@@ -50,7 +50,7 @@ paths:
                 error: "Conflict Error"
                 message: "Username or email already exists"
 
-  /auth:
+  /auth/session:
     # login endpoint
     post:
       tags: [Users]
@@ -121,8 +121,8 @@ paths:
       security:
         - cookieAuth: []
       responses:
-        '200':
-          description: OK - Successfully logged out
+        '204':
+          description: No content - Successfully logged out
         '401':
           description: Unauthorized - User is not authenticated
           content:
