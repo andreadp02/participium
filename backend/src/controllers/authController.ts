@@ -8,7 +8,8 @@ export const authController = {
 
       // Call the service to register the user
       const user = await authService.registerUser(email, username, firstName, lastName, password);
-
+      // Set Location header
+      res.setHeader('Location', '/reports');
       res.status(201).json(user);
     } catch (error: any) {
       if (error.message === 'Email is already in use' || error.message === 'Username is already in use') {
