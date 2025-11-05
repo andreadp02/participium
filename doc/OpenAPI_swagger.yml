@@ -114,7 +114,24 @@ paths:
               example:
                 error: "Authentication Error"
                 message: "Session is invalid or has expired"
-
+    delete:
+      tags: [Users]
+      summary: Logout
+      description: Logout the authenticated user
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: OK - Successfully logged out
+        '401':
+          description: Unauthorized - User is not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Authentication Error"
+                message: "You must be logged in to logout"
   /reports:
     # create report endpoint
     post:
