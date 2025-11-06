@@ -1,10 +1,72 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ShieldCheck, User, Mail, Lock } from "lucide-react";
 import registrationIll from "src/assets/registration-ill.png";
+import { register, type UserRegistration } from "../services/api";
 
 export const Register: React.FC = () => {
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    username: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+    setError("");
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    // Validation
+    if (!formData.firstName || !formData.lastName || !formData.username || !formData.email || !formData.password) {
+      setError("All fields are required");
+      return;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      setError("Password must be at least 6 characters long");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const userData: UserRegistration = {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        username: formData.username,
+        email: formData.email,
+        password: formData.password,
+      };
+
+      await register(userData);
+      // Registration successful, redirect to login
+      navigate("/login");
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Registration failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-b from-indigo-100 via-white to-emerald-50">
    
@@ -35,19 +97,49 @@ export const Register: React.FC = () => {
           </div>
 
           {/* Form */}
-          <form className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Error Message */}
+            {error && (
+              <div className="rounded-xl bg-red-50 border border-red-200 p-3 text-sm text-red-600">
+                {error}
+              </div>
+            )}
+
             {/* Full Name */}
-            <div className="flex flex-col gap-1 !w-full items-start justify-center ">
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                Full Name
-              </label>
-              <div className="relative w-full">
-                <User className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                <input
-                  type="text"
-                  placeholder="John Doe"
-                  className="pl-9 w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm shadow-sm bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition"
-                />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-col gap-1 !w-full items-start justify-center ">
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  First Name
+                </label>
+                <div className="relative w-full">
+                  <User className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                  <input
+                    type="text"
+                    name="firstName"
+                    value={formData.firstName}
+                    onChange={handleChange}
+                    placeholder="John"
+                    required
+                    className="pl-9 w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm shadow-sm bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition"
+                  />
+                </div>
+              </div>
+              <div className="flex flex-col gap-1 !w-full items-start justify-center ">
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Last Name
+                </label>
+                <div className="relative w-full">
+                  <User className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                  <input
+                    type="text"
+                    name="lastName"
+                    value={formData.lastName}
+                    onChange={handleChange}
+                    placeholder="Doe"
+                    required
+                    className="pl-9 w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm shadow-sm bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition"
+                  />
+                </div>
               </div>
             </div>
 
@@ -60,7 +152,11 @@ export const Register: React.FC = () => {
                 <User className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
                 <input
                   type="text"
+                  name="username"
+                  value={formData.username}
+                  onChange={handleChange}
                   placeholder="johndoe"
+                  required
                   className="pl-9 w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm shadow-sm bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition"
                 />
               </div>
@@ -76,7 +172,11 @@ export const Register: React.FC = () => {
                 <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
                 <input
                   type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
                   placeholder="you@example.com"
+                  required
                   className="pl-9 w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm shadow-sm bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition"
                 />
               </div>
@@ -92,20 +192,30 @@ export const Register: React.FC = () => {
                   <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
                   <input
                     type="password"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
                     placeholder="••••••••"
+                    required
+                    minLength={6}
                     className="pl-9 w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm shadow-sm bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition"
                   />
                 </div>
               </div>
               <div className="flex flex-col gap-1 !w-full items-start justify-center ">
                 <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Confirm Passswor
+                  Confirm Password
                 </label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
                   <input
                     type="password"
+                    name="confirmPassword"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
                     placeholder="••••••••"
+                    required
+                    minLength={6}
                     className="pl-9 w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm shadow-sm bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition"
                   />
                 </div>
@@ -115,9 +225,10 @@ export const Register: React.FC = () => {
             {/* Button */}
             <button
               type="submit"
-              className="mt-4 w-full rounded-xl bg-gradient-to-r from-indigo-600 to-emerald-500 px-4 py-3 text-sm font-semibold text-white shadow-lg hover:shadow-indigo-200 hover:-translate-y-0.5 transition-all duration-200 focus:ring-2 focus:ring-indigo-400 focus:ring-offset-1"
+              disabled={loading}
+              className="mt-4 w-full rounded-xl bg-gradient-to-r from-indigo-600 to-emerald-500 px-4 py-3 text-sm font-semibold text-white shadow-lg hover:shadow-indigo-200 hover:-translate-y-0.5 transition-all duration-200 focus:ring-2 focus:ring-indigo-400 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Register
+              {loading ? "Registering..." : "Register"}
             </button>
           </form>
 
