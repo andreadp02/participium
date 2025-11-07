@@ -41,7 +41,7 @@ const MapView: React.FC<React.PropsWithChildren<{ reports: Report[] }>> = ({
   reports,
 }) => {
   const markers = reports.filter(
-    (r) => typeof r.lat === "number" && typeof r.lng === "number"
+    (r) => typeof r.lat === "number" && typeof r.lng === "number",
   );
 
   const displayMarkers = markers.length ? markers : reports;

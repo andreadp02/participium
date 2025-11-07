@@ -1,9 +1,14 @@
 import React, { useState } from "react";
+import { X } from "lucide-react";
 import { Report } from "src/services/models";
 
-const ReportForm: React.FC<{ lat: number; lng: number }> = ({ lat, lng }) => {
+const ReportForm: React.FC<{
+  lat: number;
+  lng: number;
+  onClose?: () => void;
+}> = ({ lat, lng, onClose }) => {
   const [formData, setFormData] = useState<Report>(
-    new Report(lat, lng, "", "PENDING")
+    new Report(lat, lng, "", "PENDING"),
   );
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -22,7 +27,18 @@ const ReportForm: React.FC<{ lat: number; lng: number }> = ({ lat, lng }) => {
 
   return (
     <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 animate-in fade-in duration-300">
+      <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 animate-in fade-in duration-300 relative">
+        {/* Close button (top-right) */}
+        <button
+          type="button"
+          aria-label="Close"
+          onClick={() => onClose?.()}
+          className="absolute right-4 top-4 inline-flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200 transition"
+        >
+          <span className="sr-only">Close</span>
+          <X />
+        </button>
+
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="mt-5 text-2xl font-extrabold text-slate-900">
@@ -76,14 +92,23 @@ const ReportForm: React.FC<{ lat: number; lng: number }> = ({ lat, lng }) => {
             </div>
           </div>
 
-          {/* Button */}
-          <button
-            type="submit"
-            disabled={loading}
-            className="mt-4 w-full rounded-xl bg-gradient-to-r from-indigo-600 to-emerald-500 px-4 py-3 text-sm font-semibold text-white shadow-lg hover:shadow-indigo-200 hover:-translate-y-0.5 transition-all duration-200 focus:ring-2 focus:ring-indigo-400 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? "Sending..." : "Send Report"}
-          </button>
+          {/* Buttons */}
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => onClose?.()}
+              className="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 transition"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="flex-1 rounded-xl bg-gradient-to-r from-indigo-600 to-emerald-500 px-4 py-3 text-sm font-semibold text-white shadow-lg hover:shadow-indigo-200 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? "Sending..." : "Send Report"}
+            </button>
+          </div>
 
           {/* TODO: remove it after testing */}
           <div className="mt-3 text-xs text-slate-500">

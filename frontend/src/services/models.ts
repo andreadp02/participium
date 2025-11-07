@@ -20,7 +20,7 @@ export class Report {
     anonymous?: boolean,
     category?: string,
     photos?: string[],
-    createdAt?: string
+    createdAt?: string,
   ) {
     this.id = id || 0;
     this.title = title;
