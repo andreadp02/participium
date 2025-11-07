@@ -70,7 +70,6 @@ export const UserDashboard: React.FC = () => {
               key={k.label}
               label={k.label}
               value={k.value}
-              helper={k.helper}
             />
           ))}
         </div>
