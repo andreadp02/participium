@@ -1,6 +1,11 @@
 import React from "react";
 import {
-  Clock, UserCheck, Loader2, PauseCircle, XCircle, CheckCircle2,
+  Clock,
+  UserCheck,
+  Loader2,
+  PauseCircle,
+  XCircle,
+  CheckCircle2,
 } from "lucide-react";
 
 export type ReportStatus =
@@ -12,7 +17,7 @@ export type ReportStatus =
   | "Resolved";
 
 const map = {
-  "Pending": {
+  Pending: {
     wrap: "bg-indigo-50 text-indigo-700 border-indigo-200",
     icon: <Clock className="h-3.5 w-3.5 text-indigo-600" />,
   },
@@ -38,10 +43,15 @@ const map = {
   },
 } as const;
 
-export const StatusBadge: React.FC<{ status: ReportStatus; compact?: boolean }> = ({ status, compact }) => {
+export const StatusBadge: React.FC<{
+  status: ReportStatus;
+  compact?: boolean;
+}> = ({ status, compact }) => {
   const s = map[status];
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-full border px-2 ${compact ? "py-0.5 text-xs" : "py-1 text-xs"} ${s.wrap}`}>
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full border px-2 ${compact ? "py-0.5 text-xs" : "py-1 text-xs"} ${s.wrap}`}
+    >
       {s.icon}
       {status}
     </span>

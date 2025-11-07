@@ -46,8 +46,12 @@ export const ReportsTable: React.FC<{ data: Report[] }> = ({ data }) => {
       <div className="flex items-center justify-between px-4 py-3 text-xs text-slate-500 bg-slate-50 border-t border-slate-200">
         <span>{data.length} results</span>
         <div className="space-x-1">
-          <button className="rounded-lg border border-slate-300 bg-white px-2.5 py-1 hover:bg-slate-100">Prev</button>
-          <button className="rounded-lg border border-slate-300 bg-white px-2.5 py-1 hover:bg-slate-100">Next</button>
+          <button className="rounded-lg border border-slate-300 bg-white px-2.5 py-1 hover:bg-slate-100">
+            Prev
+          </button>
+          <button className="rounded-lg border border-slate-300 bg-white px-2.5 py-1 hover:bg-slate-100">
+            Next
+          </button>
         </div>
       </div>
     </div>

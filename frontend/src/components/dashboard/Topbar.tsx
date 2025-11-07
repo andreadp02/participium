@@ -15,7 +15,9 @@ export const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
         >
           <Menu className="h-5 w-5 text-slate-700" />
         </button>
-        <span className="text-sm font-semibold text-slate-900">Citizen Dashboard</span>
+        <span className="text-sm font-semibold text-slate-900">
+          Citizen Dashboard
+        </span>
       </div>
       <button className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 hover:bg-slate-100 transition">
         <Bell className="h-5 w-5 text-slate-700" />
@@ -23,4 +25,3 @@ export const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
     </div>
   );
 };
-

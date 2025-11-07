@@ -1,13 +1,36 @@
 // src/dashboard/components/Sidebar.tsx
 import React from "react";
-import { ShieldCheck, LayoutDashboard, FilePlus2, BarChart3, MessageSquare, X } from "lucide-react";
+import {
+  ShieldCheck,
+  LayoutDashboard,
+  FilePlus2,
+  BarChart3,
+  MessageSquare,
+  X,
+} from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
 const nav = [
-  { href: "/dashboard", label: "Dashboard", icon: <LayoutDashboard className="h-4 w-4" /> },
-  { href: "/report/new", label: "New Report", icon: <FilePlus2 className="h-4 w-4" /> },
-  { href: "/dashboard/stats", label: "Statistics", icon: <BarChart3 className="h-4 w-4" /> },
-  { href: "/dashboard/messages", label: "Messages", icon: <MessageSquare className="h-4 w-4" /> },
+  {
+    href: "/dashboard",
+    label: "Dashboard",
+    icon: <LayoutDashboard className="h-4 w-4" />,
+  },
+  {
+    href: "/report/new",
+    label: "New Report",
+    icon: <FilePlus2 className="h-4 w-4" />,
+  },
+  {
+    href: "/dashboard/stats",
+    label: "Statistics",
+    icon: <BarChart3 className="h-4 w-4" />,
+  },
+  {
+    href: "/dashboard/messages",
+    label: "Messages",
+    icon: <MessageSquare className="h-4 w-4" />,
+  },
 ];
 
 interface SidebarProps {
@@ -15,7 +38,10 @@ interface SidebarProps {
   setMobileMenuOpen: (open: boolean) => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, setMobileMenuOpen }) => {
+export const Sidebar: React.FC<SidebarProps> = ({
+  mobileMenuOpen,
+  setMobileMenuOpen,
+}) => {
   const { pathname } = useLocation();
 
   const navContent = (
@@ -25,7 +51,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, setMobileMenuO
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-sm">
             <ShieldCheck className="h-5 w-5" />
           </div>
-          <span className="text-sm font-semibold text-slate-900">Participium</span>
+          <span className="text-sm font-semibold text-slate-900">
+            Participium
+          </span>
         </div>
         {/* Close button for mobile */}
         <button
@@ -45,9 +73,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, setMobileMenuO
               to={item.href}
               onClick={() => setMobileMenuOpen(false)}
               className={`flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition
-                ${active
-                  ? "bg-indigo-50 text-indigo-700 border border-indigo-200"
-                  : "text-slate-700 hover:bg-slate-50 border border-transparent"}`}
+                ${
+                  active
+                    ? "bg-indigo-50 text-indigo-700 border border-indigo-200"
+                    : "text-slate-700 hover:bg-slate-50 border border-transparent"
+                }`}
             >
               {item.icon}
               {item.label}
@@ -56,7 +86,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, setMobileMenuO
         })}
       </nav>
 
-      <div className="p-4 text-xs text-slate-400">© {new Date().getFullYear()} Participium</div>
+      <div className="p-4 text-xs text-slate-400">
+        © {new Date().getFullYear()} Participium
+      </div>
     </>
   );
 
