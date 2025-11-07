@@ -1,17 +1,17 @@
-import axios from 'axios';
+import axios from "axios";
 
 // ==================== Types ====================
 
 export type ReportCategory =
-  | 'Water Supply – Drinking Water'
-  | 'Architectural Barriers'
-  | 'Sewer System'
-  | 'Public Lighting'
-  | 'Waste'
-  | 'Road Signs and Traffic Lights'
-  | 'Roads and Urban Furnishings'
-  | 'Public Green Areas and Playgrounds'
-  | 'Other';
+  | "Water Supply – Drinking Water"
+  | "Architectural Barriers"
+  | "Sewer System"
+  | "Public Lighting"
+  | "Waste"
+  | "Road Signs and Traffic Lights"
+  | "Roads and Urban Furnishings"
+  | "Public Green Areas and Playgrounds"
+  | "Other";
 
 export interface UserRegistration {
   firstName: string;
@@ -58,7 +58,7 @@ export interface ApiError {
 // ==================== API Instance ====================
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:4000/api',
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:4000/api",
   withCredentials: true, // Important: enables cookies for authentication
 });
 
@@ -70,7 +70,7 @@ const api = axios.create({
  * @throws ApiError on failure
  */
 export const register = async (userData: UserRegistration): Promise<User> => {
-  const response = await api.post('/users', userData);
+  const response = await api.post("/users", userData);
   return response.data;
 };
 
@@ -80,7 +80,7 @@ export const register = async (userData: UserRegistration): Promise<User> => {
  * @throws ApiError on failure
  */
 export const login = async (credentials: LoginRequest): Promise<User> => {
-  const response = await api.post('/auth/session', credentials);
+  const response = await api.post("/auth/session", credentials);
   return response.data;
 };
 
@@ -90,7 +90,7 @@ export const login = async (credentials: LoginRequest): Promise<User> => {
  * @throws ApiError if not authenticated
  */
 export const verifyAuth = async (): Promise<User> => {
-  const response = await api.get('/auth/session');
+  const response = await api.get("/auth/session");
   return response.data;
 };
 
@@ -99,7 +99,7 @@ export const verifyAuth = async (): Promise<User> => {
  * Note: You may need to implement a logout endpoint on the backend
  */
 export const logout = async (): Promise<void> => {
-  await api.delete('/auth/session');
+  await api.delete("/auth/session");
 };
 
 // ==================== Report APIs ====================
@@ -123,9 +123,9 @@ export const createReport = async (): Promise<Report> => {
   //   formData.append('photos', photo);
   // });
 
-  const response = await api.post('/reports', formData, {
+  const response = await api.post("/reports", formData, {
     headers: {
-      'Content-Type': 'multipart/form-data',
+      "Content-Type": "multipart/form-data",
     },
   });
 

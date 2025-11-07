@@ -1,7 +1,10 @@
 import React from "react";
 import { DashboardLayout } from "src/components/dashboard/DashboardLayout";
 import { StatCard } from "src/components/dashboard/StatCard";
-import { ReportsTable, type Report } from "src/components/dashboard/ReportsTable";
+import {
+  ReportsTable,
+  type Report,
+} from "src/components/dashboard/ReportsTable";
 import { StatusBadge } from "src/components/dashboard/StatusBadge";
 
 import { MapPin, FileDown } from "lucide-react";
@@ -63,7 +66,12 @@ export const UserDashboard: React.FC = () => {
         {/* Stat cards */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {kpis.map((k) => (
-            <StatCard key={k.label} label={k.label} value={k.value} helper={k.helper} />
+            <StatCard
+              key={k.label}
+              label={k.label}
+              value={k.value}
+              helper={k.helper}
+            />
           ))}
         </div>
 
@@ -75,9 +83,7 @@ export const UserDashboard: React.FC = () => {
               className="w-full sm:w-64 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 placeholder-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition"
             />
 
-            <select
-              className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition"
-            >
+            <select className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition">
               <option value="">All categories</option>
               <option>Public Lighting</option>
               <option>Waste</option>
@@ -90,9 +96,7 @@ export const UserDashboard: React.FC = () => {
               <option>Other</option>
             </select>
 
-            <select
-              className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition"
-            >
+            <select className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition">
               <option value="">All statuses</option>
               <option>Pending Approval</option>
               <option>Assigned</option>
@@ -125,21 +129,33 @@ export const UserDashboard: React.FC = () => {
                 <MapPin className="h-5 w-5" />
               </span>
               <div>
-                <p className="text-sm font-semibold text-slate-900">Map preview</p>
-                <p className="text-xs text-slate-600">Your recent report locations</p>
+                <p className="text-sm font-semibold text-slate-900">
+                  Map preview
+                </p>
+                <p className="text-xs text-slate-600">
+                  Your recent report locations
+                </p>
               </div>
             </div>
             <div className="mt-4 aspect-[4/3] w-full rounded-xl bg-gradient-to-br from-indigo-50 to-emerald-50 ring-1 ring-inset ring-slate-200" />
             <p className="mt-3 text-xs text-slate-500">
-              Replace this with your actual map component (Leaflet, Mapbox, Google Maps).
+              Replace this with your actual map component (Leaflet, Mapbox,
+              Google Maps).
             </p>
 
             <div className="mt-4 space-y-2">
               {sampleReports.slice(0, 3).map((r) => (
-                <div key={r.id} className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-3 py-2">
+                <div
+                  key={r.id}
+                  className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-3 py-2"
+                >
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-slate-900">{r.title}</p>
-                    <p className="truncate text-xs text-slate-500">{r.location}</p>
+                    <p className="truncate text-sm font-medium text-slate-900">
+                      {r.title}
+                    </p>
+                    <p className="truncate text-xs text-slate-500">
+                      {r.location}
+                    </p>
                   </div>
                   <StatusBadge status={r.status} compact />
                 </div>

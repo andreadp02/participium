@@ -31,7 +31,13 @@ export const Register: React.FC = () => {
     setError("");
 
     // Validation
-    if (!formData.firstName || !formData.lastName || !formData.username || !formData.email || !formData.password) {
+    if (
+      !formData.firstName ||
+      !formData.lastName ||
+      !formData.username ||
+      !formData.email ||
+      !formData.password
+    ) {
       setError("All fields are required");
       return;
     }
@@ -61,7 +67,9 @@ export const Register: React.FC = () => {
       // Registration successful, redirect to login
       navigate("/login");
     } catch (err: any) {
-      setError(err.response?.data?.message || "Registration failed. Please try again.");
+      setError(
+        err.response?.data?.message || "Registration failed. Please try again.",
+      );
     } finally {
       setLoading(false);
     }
@@ -69,7 +77,6 @@ export const Register: React.FC = () => {
 
   return (
     <div className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-b from-indigo-100 via-white to-emerald-50">
-   
       <div className="absolute -top-32 -right-32 h-64 w-64 rounded-full bg-indigo-200 opacity-40 blur-3xl" />
       <div className="absolute -bottom-40 -left-40 h-72 w-72 rounded-full bg-emerald-200 opacity-30 blur-3xl" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-indigo-50 via-white to-transparent" />
@@ -91,8 +98,9 @@ export const Register: React.FC = () => {
               Create your account
             </h1>
             <p className="mt-2 text-sm text-slate-600">
-              Join <span className="font-semibold text-indigo-600">Participium</span> to start
-              reporting and tracking city issues.
+              Join{" "}
+              <span className="font-semibold text-indigo-600">Participium</span>{" "}
+              to start reporting and tracking city issues.
             </p>
           </div>
 
@@ -164,7 +172,6 @@ export const Register: React.FC = () => {
 
             {/* Email */}
             <div className="flex flex-col gap-1 !w-full items-start justify-center ">
-
               <label className="block text-sm font-medium text-slate-700 mb-1">
                 Email
               </label>
@@ -235,14 +242,18 @@ export const Register: React.FC = () => {
           {/* Footer */}
           <p className="mt-6 text-center text-sm text-slate-600">
             Already registered?{" "}
-            <Link to="/login" className="text-indigo-600 font-semibold hover:underline">
+            <Link
+              to="/login"
+              className="text-indigo-600 font-semibold hover:underline"
+            >
               Sign in
             </Link>
           </p>
 
           <p className="mt-4 text-center text-xs text-slate-400">
             Securely handled under{" "}
-            <span className="text-indigo-600 font-medium">Participium</span> privacy standards.
+            <span className="text-indigo-600 font-medium">Participium</span>{" "}
+            privacy standards.
           </p>
         </motion.div>
         {/* Illustration Side */}
@@ -258,7 +269,6 @@ export const Register: React.FC = () => {
             className="w-full max-w-lg h-auto drop-shadow-2xl"
           />
         </motion.div>
-
       </div>
     </div>
   );

@@ -1,13 +1,11 @@
-import React, { useEffect, useState } from 'react';
-//import { getUsers } from '../services/api';
+import React, { useEffect, useState } from "react";
+//import { getUsers } from "../services/api";
 
 type User = {
   id: number;
   name: string;
   email: string;
 };
-
-
 
 const UsersPage: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -19,7 +17,7 @@ const UsersPage: React.FC = () => {
   //       const data = await getUsers();
   //       setUsers(data);
   //     } catch (err) {
-  //       setError('Failed to fetch users');
+  //       setError("Failed to fetch users");
   //     }
   //   };
 
@@ -31,7 +29,7 @@ const UsersPage: React.FC = () => {
   // }
 
   return (
-    <div>
+    <main>
       <h1>Users</h1>
       <ul>
         {users.map((user) => (
@@ -40,7 +38,7 @@ const UsersPage: React.FC = () => {
           </li>
         ))}
       </ul>
-    </div>
+    </main>
   );
 };
 
