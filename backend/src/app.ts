@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import authRouter from './routes/authRouter';
 import swaggerUi from 'swagger-ui-express';
 import YAML from 'yamljs';
@@ -16,6 +17,7 @@ const swaggerDocument = YAML.load(swaggerPath);
 
 app.use(cors());
 app.use(express.json());
+app.use(cookieParser());
 app.use('/api', authRouter);
 app.use('/api', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
