@@ -5,6 +5,8 @@ import { Login } from "src/pages/LoginPage";
 import { Register } from "src/pages/RegisterPage";
 import UserDashboardPage from "./pages/UserDashboard/UserDashboardPage";
 import NewReportPage from "./pages/UserDashboard/NewReportPage";
+import AdminDashboardPage from "./pages/AdminDashboard/AdminDashboardPage";
+import AdminUsersPage from "./pages/AdminDashboard/AdminUsersPage";
 import { NavBar } from "src/components/Navbar";
 import { Footer } from "src/components/Footer";
 
@@ -17,10 +19,15 @@ function App() {
     <Router>
       <div className="min-h-screen bg-white">
         <Routes>
-          {/* Dashboard routes - no navbar/footer */}
+          {/* User Dashboard routes - no navbar/footer */}
           <Route path="/dashboard" element={<UserDashboardPage />} />
           <Route path="/dashboard/*" element={<UserDashboardPage />} />
           <Route path="/dashboard/new-report" element={<NewReportPage />} />
+          
+          {/* Admin Dashboard routes - no navbar/footer */}
+          <Route path="/admin" element={<AdminDashboardPage />} />
+          <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
+          <Route path="/admin/users" element={<AdminUsersPage />} />
           
           {/* Public routes - with navbar/footer */}
           <Route path="*" element={
