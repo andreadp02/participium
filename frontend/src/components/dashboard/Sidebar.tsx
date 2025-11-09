@@ -17,7 +17,7 @@ const nav = [
     icon: <LayoutDashboard className="h-4 w-4" />,
   },
   {
-    href: "/report/new",
+    href: "/dashboard/new-report",
     label: "New Report",
     icon: <FilePlus2 className="h-4 w-4" />,
   },

@@ -106,29 +106,37 @@ export const logout = async (): Promise<void> => {
 
 /**
  * Create a new report with photos (multipart/form-data)
- * @param reportData Report data including photos as File objects
+ * @param formData FormData containing report data and photos
  * @returns Created report
  * @throws ApiError on failure
  */
-export const createReport = async (): Promise<Report> => {
-  const formData = new FormData();
-
-  // formData.append('title', reportData.title);
-  // formData.append('description', reportData.description);
-  // formData.append('anonymous', String(reportData.anonymous));
-  // formData.append('category', reportData.category);
-
-  // // Append photos (1-3 photos)
-  // reportData.photos.forEach((photo) => {
-  //   formData.append('photos', photo);
-  // });
-
+export const createReport = async (formData: FormData): Promise<Report> => {
   const response = await api.post("/reports", formData, {
     headers: {
       "Content-Type": "multipart/form-data",
     },
   });
 
+  return response.data;
+};
+
+/**
+ * Get all reports
+ * @returns Array of reports
+ * @throws ApiError on failure
+ */
+export const getReports = async (): Promise<Report[]> => {
+  const response = await api.get("/reports");
+  return response.data;
+};
+
+/**
+ * Get user's own reports
+ * @returns Array of reports
+ * @throws ApiError on failure
+ */
+export const getMyReports = async (): Promise<Report[]> => {
+  const response = await api.get("/reports/my");
   return response.data;
 };
 
