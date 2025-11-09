@@ -1,6 +1,5 @@
 import express from 'express';
 import cors from 'cors';
-import cookieParser from 'cookie-parser';
 import authRouter from './routes/authRouter';
 import swaggerUi from 'swagger-ui-express';
 import YAML from 'yamljs';
