@@ -66,11 +66,7 @@ export const UserDashboard: React.FC = () => {
         {/* Stat cards */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {kpis.map((k) => (
-            <StatCard
-              key={k.label}
-              label={k.label}
-              value={k.value}
-            />
+            <StatCard key={k.label} label={k.label} value={k.value} />
           ))}
         </div>
 
