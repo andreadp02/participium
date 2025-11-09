@@ -1,4 +1,4 @@
-import prisma from '../prisma/client';
+import {prisma} from '../database/connection';
 import { CreateReportDto } from '../models/dto/reportDto';
 
 const findAll = async () => {

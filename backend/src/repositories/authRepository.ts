@@ -1,6 +1,5 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../database/connection';
 
-const prisma = new PrismaClient();
 
 export const authRepository = {
   async createUser(email: string, username: string, firstName: string, lastName: string, password: string) {
