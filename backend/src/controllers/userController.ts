@@ -77,4 +77,13 @@ export const userController = {
       return res.status(500).json({ error: 'Internal Server Error', message: error?.message || 'Failed to delete user' });
     }
   },
+
+  async getAllMunicipalityRoles(req: Request, res: Response) {
+    try {
+      const roles = await authService.getAllMunicipalityRoles();
+      return res.status(200).json(roles);
+    } catch (error: any) {
+      return res.status(500).json({ error: 'Internal Server Error', message: error?.message || 'Failed to retrieve municipality roles' });
+    }
+  },
 };

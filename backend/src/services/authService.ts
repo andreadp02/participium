@@ -1,4 +1,5 @@
 import { authRepository } from '../repositories/authRepository';
+import { roleRepository } from '../repositories/roleRepository';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 
@@ -105,4 +106,9 @@ export const authService = {
     }
     return await authRepository.deleteUser(userId);
   },
+
+  async getAllMunicipalityRoles() {
+    return await roleRepository.getAllMunicipalityRoles();
+  },
+  
 };
