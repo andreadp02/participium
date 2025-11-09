@@ -1,7 +1,35 @@
 import { Request, Response } from 'express';
 import { authService } from '../services/authService';
+import { cookieOpts } from './authController';
 
 export const userController = {
+  async register(req: Request, res: Response) {
+      try {
+        const { email, username, firstName, lastName, password } = req.body || {};
+  
+        if (!email || !username || !firstName || !lastName || !password) {
+          return res.status(400).json({ error: 'Bad Request', message: 'Missing required fields' });
+        }
+  
+        const { user } = await authService.registerUser(email, username, firstName, lastName, password);
+        const { token } = await authService.login(email, password);
+  
+        res.cookie('authToken', token, cookieOpts);
+        res.setHeader('Location', '/reports');
+  
+        return res.status(201).json({
+          firstName: user.firstName,
+          lastName: user.lastName,
+          username: user.username,
+        });
+      } catch (error: any) {
+        if (error?.message === 'Email is already in use' || error?.message === 'Username is already in use') {
+          return res.status(409).json({ error: 'Conflict Error', message: error.message });
+        }
+        return res.status(400).json({ error: 'Bad Request', message: error?.message || 'Registration failed' });
+      }
+    },
+
   async createMunicipalityUser(req: Request, res: Response) {
     try {
       const { email, username, firstName, lastName, password, municipality_role_id } = req.body || {};

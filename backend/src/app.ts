@@ -3,7 +3,7 @@ import cors from 'cors';
 import authRouter from './routes/authRouter';
 import swaggerUi from 'swagger-ui-express';
 import YAML from 'yamljs';
-import cookieParser from 'cookie-parser'; // NEW: parser cookie per leggere authToken dai cookie
+import cookieParser from 'cookie-parser'; 
 import reportRouter from './routes/reportRouter';
 import userRouter from './routes/userRouter';
 

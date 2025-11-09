@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt, { JwtPayload } from 'jsonwebtoken';
-import { authRepository } from '../repositories/authRepository';
+import { userRepository } from '../repositories/userRepository';
 
 const SECRET_KEY = process.env.JWT_SECRET || 'default_secret_key';
 
@@ -33,7 +33,7 @@ export const isAuthenticated = async (req: Request, res: Response, next: NextFun
 
     const decoded = jwt.verify(token, SECRET_KEY) as JwtPayload;
 
-    const user = await authRepository.findUserById(decoded.id);
+    const user = await userRepository.findUserById(decoded.id);
 
     if (!user) {
       return res.status(401).json({ 

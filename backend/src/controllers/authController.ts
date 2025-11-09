@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { authService } from '../services/authService';
 
-const cookieOpts = {
+export const cookieOpts = {
   httpOnly: true,
   sameSite: 'lax' as const,
   secure: process.env.NODE_ENV === 'production',
@@ -9,32 +9,6 @@ const cookieOpts = {
 };
 
 export const authController = {
-  async register(req: Request, res: Response) {
-    try {
-      const { email, username, firstName, lastName, password } = req.body || {};
-
-      if (!email || !username || !firstName || !lastName || !password) {
-        return res.status(400).json({ error: 'Bad Request', message: 'Missing required fields' });
-      }
-
-      const { user } = await authService.registerUser(email, username, firstName, lastName, password);
-      const { token } = await authService.login(email, password);
-
-      res.cookie('authToken', token, cookieOpts);
-      res.setHeader('Location', '/reports');
-
-      return res.status(201).json({
-        firstName: user.firstName,
-        lastName: user.lastName,
-        username: user.username,
-      });
-    } catch (error: any) {
-      if (error?.message === 'Email is already in use' || error?.message === 'Username is already in use') {
-        return res.status(409).json({ error: 'Conflict Error', message: error.message });
-      }
-      return res.status(400).json({ error: 'Bad Request', message: error?.message || 'Registration failed' });
-    }
-  },
 
   async login(req: Request, res: Response) {
     try {

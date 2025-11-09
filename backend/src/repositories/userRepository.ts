@@ -1,7 +1,7 @@
 import { prisma } from '../database/connection';
 
 
-export const authRepository = {
+export const userRepository = {
   async createUser(email: string, username: string, firstName: string, lastName: string, password: string) {
     return prisma.user.create({
       data: {
