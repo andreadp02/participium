@@ -177,6 +177,266 @@ paths:
                 error: "Authentication Error"
                 message: "You must be logged in to create a report"
 
+  /admin/municipality-users:
+    post:
+      tags: [Admin]
+      summary: Create a municipality user
+      description: >
+        Crea un account per un utente del Comune (operatore/validatore/supervisore).
+        **Richiede ruolo: ADMIN**.
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MunicipalityUserCreateRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUser'
+        '400':
+          description: Bad Request - Dati mancanti o non validi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Bad Request"
+                message: "Missing required fields: email, username, firstName, lastName, password, municipality_role_id"
+        '401':
+          description: Unauthorized - Non autenticato
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - Non hai permessi admin
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Conflict - Email o username già in uso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Conflict Error"
+                message: "Email is already in use"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /admin/users:
+    get:
+      tags: [Admin]
+      summary: List all users
+      description: >
+        Restituisce la lista di tutti gli utenti (cittadini e comunali).
+        **Richiede ruolo: ADMIN**.
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AdminUser'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - Non hai permessi admin
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /admin/users/{id}:
+    get:
+      tags: [Admin]
+      summary: Get user by ID
+      description: >
+        Dettagli di un utente per ID.
+        **Richiede ruolo: ADMIN**.
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: User ID
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUser'
+        '400':
+          description: Bad Request - ID non valido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Bad Request"
+                message: "Invalid user ID"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - Non hai permessi admin
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Not Found - Utente non trovato
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Not Found"
+                message: "User not found"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      tags: [Admin]
+      summary: Delete user
+      description: >
+        Elimina un utente per ID.
+        **Richiede ruolo: ADMIN**.
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: User ID
+      responses:
+        '204':
+          description: No Content - Eliminato correttamente
+        '400':
+          description: Bad Request - ID non valido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Bad Request"
+                message: "Invalid user ID"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - Non hai permessi admin
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Not Found - Utente non trovato
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Not Found"
+                message: "User not found"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /admin/municipality-roles:
+    get:
+      tags: [Admin]
+      summary: List municipality roles
+      description: >
+        Restituisce i ruoli disponibili per gli utenti del Comune.
+        **Richiede ruolo: ADMIN**.
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MunicipalityRole'
+              examples:
+                example:
+                  value:
+                    - id: 1
+                      name: "OPERATOR"
+                    - id: 2
+                      name: "VALIDATOR"
+                    - id: 3
+                      name: "SUPERVISOR"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - Non hai permessi admin
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+
 components:
   schemas:    
     UserRegistration:
@@ -320,6 +580,85 @@ components:
           format: date-time
           example: "2025-11-04T14:30:00Z"
 
+    MunicipalityUserCreateRequest:
+      type: object
+      required:
+        - email
+        - username
+        - firstName
+        - lastName
+        - password
+        - municipality_role_id
+      properties:
+        email:
+          type: string
+          format: email
+          example: "tecnico.comune@example.it"
+        username:
+          type: string
+          example: "tcomune"
+        firstName:
+          type: string
+          example: "Teodoro"
+        lastName:
+          type: string
+          example: "Comune"
+        password:
+          type: string
+          format: password
+          example: "Str0ngP@ss!"
+        municipality_role_id:
+          type: integer
+          format: int64
+          example: 2
+          description: ID del ruolo comunale (vedi /admin/municipality-roles)
+
+    MunicipalityRole:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 2
+        name:
+          type: string
+          example: "VALIDATOR"
+
+    AdminUser:
+      type: object
+      description: Rappresentazione di un utente vista Admin
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 15
+        firstName:
+          type: string
+          example: "Mario"
+        lastName:
+          type: string
+          example: "Rossi"
+        username:
+          type: string
+          example: "mrossi"
+        email:
+          type: string
+          format: email
+          example: "mario.rossi@example.com"
+        municipality_role_id:
+          type: integer
+          format: int64
+          nullable: true
+          example: 1
+        municipality_role_name:
+          type: string
+          nullable: true
+          example: "OPERATOR"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2025-11-04T14:30:00Z"
+
     Error:
       type: object
       required:
@@ -347,4 +686,6 @@ tags:
     description: User registration and authentication
   - name: Reports
     description: Report management and submission
+  - name: Admin
+    description: Administration endpoints for system operators
 
