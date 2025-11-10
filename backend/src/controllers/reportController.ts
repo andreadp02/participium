@@ -1,5 +1,18 @@
 import { Request, Response } from 'express';
 import reportService from '../services/reportService';
+import imageService from '../services/imageService';
+
+const VALID_CATEGORIES = [
+  'WATER_SUPPLY_DRINKING_WATER',
+  'ARCHITECTURAL_BARRIERS',
+  'SEWER_SYSTEM',
+  'PUBLIC_LIGHTING',
+  'WASTE',
+  'ROAD_SIGNS_TRAFFIC_LIGHTS',
+  'ROADS_URBAN_FURNISHINGS',
+  'PUBLIC_GREEN_AREAS_PLAYGROUNDS',
+  'OTHER'
+];
 
 export const getReports = async (_req: Request, res: Response) => {
   try {
@@ -27,16 +40,62 @@ export const getReportById = async (req: Request, res: Response) => {
 
 export const submitReport = async (req: Request, res: Response) => {
   try {
-    const { latitude, longitude } = req.body;
+    const { latitude, longitude, title, description, category } = req.body;
+    const files = req.files as Express.Multer.File[];
 
-    if (latitude === undefined || longitude === undefined) {
-      return res.status(400).json({ error: 'latitude and longitude are required' });
+    // Validate required fields
+    if (!latitude || !longitude) {
+      return res.status(400).json({ error: 'Latitude and longitude are required' });
     }
 
-    const report = await reportService.submitReport({ latitude: Number(latitude), longitude: Number(longitude) });
+    if (!title || title.trim().length === 0) {
+      return res.status(400).json({ error: 'Title is required' });
+    }
+
+    if (!description || description.trim().length === 0) {
+      return res.status(400).json({ error: 'Description is required' });
+    }
+
+    if (!category) {
+      return res.status(400).json({ error: 'Category is required' });
+    }
+
+    if (!VALID_CATEGORIES.includes(category)) {
+      return res.status(400).json({ 
+        error: 'Invalid category',
+        validCategories: VALID_CATEGORIES
+      });
+    }
+
+    if (!files || files.length < 1) {
+      return res.status(400).json({ error: 'At least 1 photo is required' });
+    }
+
+    if (files.length > 3) {
+      return res.status(400).json({ error: 'Maximum 3 photos are allowed' });
+    }
+
+    const tempKeys = await imageService.storeTemporaryImages(
+      files.map(file => ({
+        buffer: file.buffer,
+        mimetype: file.mimetype,
+        originalname: file.originalname,
+      }))
+    );
+
+    const report = await reportService.submitReport({
+      latitude: Number(latitude),
+      longitude: Number(longitude),
+      title,
+      description,
+      category,
+      photoKeys: tempKeys, // Pass temporary keys
+    });
+
     res.status(201).json(report);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to submit report' });
+    const errorMessage = error instanceof Error ? error.message : 'Failed to submit report';
+    res.status(500).json({ error: errorMessage });
   }
 };
 
@@ -46,6 +105,8 @@ export const deleteReport = async (req: Request, res: Response) => {
     const deletedReport = await reportService.deleteReport(parseInt(id));
     res.json(deletedReport);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to delete report' });
+    const errorMessage = error instanceof Error ? error.message : 'Failed to delete report';
+    const statusCode = error instanceof Error && error.message === 'Report not found' ? 404 : 500;
+    res.status(statusCode).json({ error: errorMessage });
   }
 };

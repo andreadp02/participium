@@ -20,6 +20,10 @@ const create = async (data: CreateReportDto) => {
     data: {
       latitude: data.latitude,
       longitude: data.longitude,
+      title: data.title,
+      description: data.description,
+      category: data.category as any, 
+      photos: data.photoKeys, 
     },
   });
 };
@@ -30,9 +34,17 @@ const deleteById = async (id: number) => {
   });
 };
 
+const update = async (id: number, data: Partial<{photos: string[]}>) => {
+  return prisma.report.update({
+    where: { id },
+    data,
+  });
+};
+
 export default { 
   findAll, 
   findById, 
   create, 
-  deleteById 
+  deleteById,
+  update 
 };
