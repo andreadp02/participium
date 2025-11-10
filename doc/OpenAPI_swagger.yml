@@ -612,6 +612,14 @@ components:
           type: string
           format: date-time
           example: "2025-11-04T14:30:00Z"
+        latitude:
+          type: number
+          format: float
+          example: 45.4642
+        longitude:
+          type: number
+          format: float 
+          example: 9.1900
 
     MunicipalityUserCreateRequest:
       type: object
