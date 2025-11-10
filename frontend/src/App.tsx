@@ -9,7 +9,7 @@ import { Footer } from "src/components/Footer";
 import ReportForm from "src/components/report/ReportFrom";
 
 import LandingPage from "src/pages/LandingPage";
-import UsersPage from "src/pages/UsersPage";
+
 import MapPage from "./pages/MapPage";
 
 function App() {
@@ -27,7 +27,6 @@ function App() {
             path="/report"
             element={<ReportForm lat={45.0703} lng={7.6869} />}
           />
-          <Route path="/users" element={<UsersPage />} />
           <Route path="/dashboard" element={<UserDashboardPage />} />
         </Routes>
         <Footer />
