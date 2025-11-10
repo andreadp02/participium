@@ -8,7 +8,7 @@
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
     "prisma:generate": "prisma generate",
-    "test-unit": "jest --runInBand src/test/unit",
+    "test:unit": "cross-env NODE_ENV=test jest --runInBand src/test/unit",
     "test:integration": "dotenv-cli -e .env.test -- jest --runInBand src/test/integration",
     "test": "npm run test:unit"
   },
@@ -27,7 +27,6 @@
     "multer": "^2.0.2",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
-    "uuid": "^13.0.0",
     "winston": "^3.11.0",
     "yamljs": "^0.3.0"
   },
@@ -43,6 +42,7 @@
     "@types/swagger-ui-express": "^4.1.8",
     "@types/winston": "^2.4.4",
     "@types/yamljs": "^0.2.34",
+    "cross-env": "^10.1.0",
     "jest": "^30.2.0",
     "prisma": "^5.0.0",
     "supertest": "^7.1.4",

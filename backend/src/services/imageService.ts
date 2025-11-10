@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { v4 as uuidv4 } from 'uuid';
+import crypto from 'crypto';
 import redisClient from '../database/redis';
 
 interface ImageData {
@@ -23,7 +23,7 @@ const storeTemporaryImages = async (images: ImageData[]): Promise<string[]> => {
   const tempKeys: string[] = [];
   
   for (const image of images) {
-    const tempKey = `temp:image:${uuidv4()}`;
+    const tempKey = `temp:image:${crypto.randomUUID()}`;
     
     const imageObject = {
       buffer: image.buffer.toString('base64'),
