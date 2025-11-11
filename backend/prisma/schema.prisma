@@ -22,10 +22,14 @@ model user {
 }
 
 model report {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  latitude  Float
-  longitude Float
+  id          Int      @id @default(autoincrement())
+  createdAt   DateTime @default(now())
+  latitude    Float
+  longitude   Float
+  title       String
+  description String
+  category    Category
+  photos      String[]
 }
 
 model municipality_role {
@@ -38,4 +42,16 @@ enum roleType {
   CUSTOMER
   ADMIN
   MUNICIPALITY
+}
+
+enum Category {
+  WATER_SUPPLY_DRINKING_WATER
+  ARCHITECTURAL_BARRIERS
+  SEWER_SYSTEM
+  PUBLIC_LIGHTING
+  WASTE
+  ROAD_SIGNS_TRAFFIC_LIGHTS
+  ROADS_URBAN_FURNISHINGS
+  PUBLIC_GREEN_AREAS_PLAYGROUNDS
+  OTHER
 }
