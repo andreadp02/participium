@@ -18,9 +18,7 @@ export const DashboardLayout: React.FC<React.PropsWithChildren> = ({
       <div className="flex min-w-0 flex-1 flex-col lg:ml-64">
         <Topbar onMenuClick={() => setMobileMenuOpen(true)} />
         <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8 w-full max-w-full overflow-x-hidden">
-          <div className="max-w-7xl mx-auto w-full">
-            {children}
-          </div>
+          <div className="max-w-7xl mx-auto w-full">{children}</div>
         </main>
       </div>
     </div>

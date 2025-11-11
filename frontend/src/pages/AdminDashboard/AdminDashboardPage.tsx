@@ -144,9 +144,7 @@ export const AdminDashboardPage: React.FC = () => {
       <div className="space-y-8 w-full max-w-full">
         {/* Header */}
         <div className="flex flex-col gap-2">
-          <h1 className="text-2xl font-bold text-slate-900">
-            Admin Dashboard
-          </h1>
+          <h1 className="text-2xl font-bold text-slate-900">Admin Dashboard</h1>
           <p className="text-sm text-slate-600">
             Overview of all reports and municipality operations
           </p>
@@ -225,7 +223,7 @@ export const AdminDashboardPage: React.FC = () => {
                         </span>
                         <span
                           className={`inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium ${getPriorityColor(
-                            report.priority
+                            report.priority,
                           )}`}
                         >
                           {report.priority}
@@ -247,7 +245,7 @@ export const AdminDashboardPage: React.FC = () => {
                     </div>
                     <span
                       className={`inline-flex shrink-0 items-center rounded-lg border px-2.5 py-1 text-xs font-medium ${getStatusColor(
-                        report.status
+                        report.status,
                       )}`}
                     >
                       {report.status}

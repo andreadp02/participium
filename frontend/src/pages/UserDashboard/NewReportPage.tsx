@@ -22,7 +22,9 @@ const NewReportPage: React.FC = () => {
               <ArrowLeft className="h-5 w-5 text-slate-700" />
             </button>
             <div>
-              <h1 className="text-2xl font-bold text-slate-900">Create New Report</h1>
+              <h1 className="text-2xl font-bold text-slate-900">
+                Create New Report
+              </h1>
               <p className="text-sm text-slate-600 mt-1">
                 Select a location on the map to report an issue
               </p>
@@ -43,22 +45,31 @@ const NewReportPage: React.FC = () => {
                 How to create a report
               </h3>
               <ol className="text-sm text-indigo-800 space-y-1 list-decimal list-inside">
-                <li>Click anywhere on the map to select the problem location</li>
+                <li>
+                  Click anywhere on the map to select the problem location
+                </li>
                 <li>Drag the marker to adjust the position if needed</li>
                 <li>Click "Create Report" in the popup to open the form</li>
-                <li>Fill in all required details: title, description, category, and photos (1-3)</li>
+                <li>
+                  Fill in all required details: title, description, category,
+                  and photos (1-3)
+                </li>
                 <li>Choose whether to submit anonymously</li>
                 <li>Submit your report</li>
               </ol>
               <p className="text-xs text-indigo-700 mt-2">
-                <strong>Note:</strong> You can use the "Locate me" button to center the map on your current location.
+                <strong>Note:</strong> You can use the "Locate me" button to
+                center the map on your current location.
               </p>
             </div>
           </div>
         </div>
 
         {/* Map Container */}
-        <div className="flex-1 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden" style={{ height: 'calc(100vh - 380px)', minHeight: '500px' }}>
+        <div
+          className="flex-1 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"
+          style={{ height: "calc(100vh - 380px)", minHeight: "500px" }}
+        >
           <MapView reports={reports} />
         </div>
 
@@ -69,10 +80,13 @@ const NewReportPage: React.FC = () => {
               <div className="h-8 w-8 rounded-lg bg-emerald-50 flex items-center justify-center">
                 <span className="text-emerald-700 font-bold text-sm">1</span>
               </div>
-              <h4 className="font-semibold text-slate-900 text-sm">Required Photos</h4>
+              <h4 className="font-semibold text-slate-900 text-sm">
+                Required Photos
+              </h4>
             </div>
             <p className="text-xs text-slate-600">
-              Attach 1 to 3 photos of the issue. Each photo must be less than 5MB. Supported formats: JPEG, PNG, GIF.
+              Attach 1 to 3 photos of the issue. Each photo must be less than
+              5MB. Supported formats: JPEG, PNG, GIF.
             </p>
           </div>
 
@@ -81,10 +95,13 @@ const NewReportPage: React.FC = () => {
               <div className="h-8 w-8 rounded-lg bg-indigo-50 flex items-center justify-center">
                 <span className="text-indigo-700 font-bold text-sm">2</span>
               </div>
-              <h4 className="font-semibold text-slate-900 text-sm">Choose Category</h4>
+              <h4 className="font-semibold text-slate-900 text-sm">
+                Choose Category
+              </h4>
             </div>
             <p className="text-xs text-slate-600">
-              Select the most appropriate category for your report. This helps the municipality route it to the right department.
+              Select the most appropriate category for your report. This helps
+              the municipality route it to the right department.
             </p>
           </div>
 
@@ -93,10 +110,13 @@ const NewReportPage: React.FC = () => {
               <div className="h-8 w-8 rounded-lg bg-purple-50 flex items-center justify-center">
                 <span className="text-purple-700 font-bold text-sm">3</span>
               </div>
-              <h4 className="font-semibold text-slate-900 text-sm">Anonymous Option</h4>
+              <h4 className="font-semibold text-slate-900 text-sm">
+                Anonymous Option
+              </h4>
             </div>
             <p className="text-xs text-slate-600">
-              You can submit reports anonymously. Your name won't be visible in public listings, but officials can still contact you.
+              You can submit reports anonymously. Your name won't be visible in
+              public listings, but officials can still contact you.
             </p>
           </div>
         </div>

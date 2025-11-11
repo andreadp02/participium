@@ -23,7 +23,12 @@ const CATEGORIES: ReportCategory[] = [
   "Other",
 ];
 
-const ReportForm: React.FC<ReportFormProps> = ({ lat, lng, onClose, onSuccess }) => {
+const ReportForm: React.FC<ReportFormProps> = ({
+  lat,
+  lng,
+  onClose,
+  onSuccess,
+}) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState<ReportCategory | "">("");
@@ -36,7 +41,7 @@ const ReportForm: React.FC<ReportFormProps> = ({ lat, lng, onClose, onSuccess })
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    
+
     // Validate number of photos (max 3)
     if (photos.length + files.length > 3) {
       setError("Maximum 3 photos allowed");
@@ -45,15 +50,17 @@ const ReportForm: React.FC<ReportFormProps> = ({ lat, lng, onClose, onSuccess })
 
     // Validate file types
     const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif"];
-    const invalidFiles = files.filter(file => !validTypes.includes(file.type));
-    
+    const invalidFiles = files.filter(
+      (file) => !validTypes.includes(file.type),
+    );
+
     if (invalidFiles.length > 0) {
       setError("Only image files (JPEG, PNG, GIF) are allowed");
       return;
     }
 
     // Validate file sizes (max 5MB each)
-    const oversizedFiles = files.filter(file => file.size > 5 * 1024 * 1024);
+    const oversizedFiles = files.filter((file) => file.size > 5 * 1024 * 1024);
     if (oversizedFiles.length > 0) {
       setError("Each photo must be less than 5MB");
       return;
@@ -63,10 +70,10 @@ const ReportForm: React.FC<ReportFormProps> = ({ lat, lng, onClose, onSuccess })
     setPhotos([...photos, ...files]);
 
     // Create previews
-    files.forEach(file => {
+    files.forEach((file) => {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setPhotoPreviews(prev => [...prev, reader.result as string]);
+        setPhotoPreviews((prev) => [...prev, reader.result as string]);
       };
       reader.readAsDataURL(file);
     });
@@ -79,23 +86,23 @@ const ReportForm: React.FC<ReportFormProps> = ({ lat, lng, onClose, onSuccess })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Validation
     if (!title.trim()) {
       setError("Title is required");
       return;
     }
-    
+
     if (!description.trim()) {
       setError("Description is required");
       return;
     }
-    
+
     if (!category) {
       setError("Please select a category");
       return;
     }
-    
+
     if (photos.length === 0) {
       setError("At least one photo is required");
       return;
@@ -112,20 +119,23 @@ const ReportForm: React.FC<ReportFormProps> = ({ lat, lng, onClose, onSuccess })
       formData.append("anonymous", String(anonymous));
       formData.append("lat", String(lat));
       formData.append("lng", String(lng));
-      
+
       photos.forEach((photo) => {
         formData.append("photos", photo);
       });
 
       await createReport(formData);
-      
+
       setSuccess(true);
       setTimeout(() => {
         onSuccess?.();
         onClose();
       }, 1500);
     } catch (err: any) {
-      setError(err.response?.data?.message || "Failed to submit report. Please try again.");
+      setError(
+        err.response?.data?.message ||
+          "Failed to submit report. Please try again.",
+      );
     } finally {
       setLoading(false);
     }
@@ -137,8 +147,12 @@ const ReportForm: React.FC<ReportFormProps> = ({ lat, lng, onClose, onSuccess })
         {/* Header */}
         <div className="sticky top-0 bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between rounded-t-2xl">
           <div>
-            <h2 className="text-2xl font-bold text-slate-900">Submit New Report</h2>
-            <p className="text-sm text-slate-500 mt-1">Report an issue in your area</p>
+            <h2 className="text-2xl font-bold text-slate-900">
+              Submit New Report
+            </h2>
+            <p className="text-sm text-slate-500 mt-1">
+              Report an issue in your area
+            </p>
           </div>
           <button
             onClick={onClose}
@@ -155,7 +169,11 @@ const ReportForm: React.FC<ReportFormProps> = ({ lat, lng, onClose, onSuccess })
           {success && (
             <div className="rounded-xl bg-green-50 border border-green-200 p-4 text-sm text-green-700 flex items-center gap-2">
               <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                <path
+                  fillRule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                  clipRule="evenodd"
+                />
               </svg>
               Report submitted successfully!
             </div>
@@ -193,7 +211,9 @@ const ReportForm: React.FC<ReportFormProps> = ({ lat, lng, onClose, onSuccess })
               maxLength={100}
               className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm shadow-sm bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition"
             />
-            <p className="text-xs text-slate-500 mt-1">{title.length}/100 characters</p>
+            <p className="text-xs text-slate-500 mt-1">
+              {title.length}/100 characters
+            </p>
           </div>
 
           {/* Description */}
@@ -210,7 +230,9 @@ const ReportForm: React.FC<ReportFormProps> = ({ lat, lng, onClose, onSuccess })
               maxLength={500}
               className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm shadow-sm bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition resize-none"
             />
-            <p className="text-xs text-slate-500 mt-1">{description.length}/500 characters</p>
+            <p className="text-xs text-slate-500 mt-1">
+              {description.length}/500 characters
+            </p>
           </div>
 
           {/* Category */}
@@ -237,9 +259,11 @@ const ReportForm: React.FC<ReportFormProps> = ({ lat, lng, onClose, onSuccess })
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">
               Photos <span className="text-red-500">*</span>
-              <span className="text-slate-500 font-normal ml-1">(1-3 photos, max 5MB each)</span>
+              <span className="text-slate-500 font-normal ml-1">
+                (1-3 photos, max 5MB each)
+              </span>
             </label>
-            
+
             {/* Photo Previews */}
             {photoPreviews.length > 0 && (
               <div className="grid grid-cols-3 gap-3 mb-3">
@@ -267,8 +291,12 @@ const ReportForm: React.FC<ReportFormProps> = ({ lat, lng, onClose, onSuccess })
               <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-300 rounded-xl hover:border-indigo-500 hover:bg-indigo-50 transition-colors cursor-pointer">
                 <div className="flex flex-col items-center justify-center pt-5 pb-6">
                   <Upload className="h-8 w-8 text-slate-400 mb-2" />
-                  <p className="text-sm text-slate-600 font-medium">Click to upload photos</p>
-                  <p className="text-xs text-slate-500 mt-1">JPEG, PNG, GIF (max 5MB)</p>
+                  <p className="text-sm text-slate-600 font-medium">
+                    Click to upload photos
+                  </p>
+                  <p className="text-xs text-slate-500 mt-1">
+                    JPEG, PNG, GIF (max 5MB)
+                  </p>
                 </div>
                 <input
                   type="file"
@@ -291,7 +319,10 @@ const ReportForm: React.FC<ReportFormProps> = ({ lat, lng, onClose, onSuccess })
               className="mt-1 h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-2 focus:ring-indigo-200"
             />
             <div className="flex-1">
-              <label htmlFor="anonymous" className="text-sm font-medium text-slate-700 cursor-pointer">
+              <label
+                htmlFor="anonymous"
+                className="text-sm font-medium text-slate-700 cursor-pointer"
+              >
                 Submit as anonymous
               </label>
               <p className="text-xs text-slate-500 mt-1">
@@ -314,13 +345,17 @@ const ReportForm: React.FC<ReportFormProps> = ({ lat, lng, onClose, onSuccess })
               disabled={loading || success}
               className="flex-1 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-700 px-4 py-3 text-sm font-semibold text-white shadow-lg hover:shadow-indigo-300 hover:from-indigo-700 hover:to-indigo-800 transition-all duration-200 focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? "Submitting..." : success ? "Submitted!" : "Submit Report"}
+              {loading
+                ? "Submitting..."
+                : success
+                  ? "Submitted!"
+                  : "Submit Report"}
             </button>
           </div>
         </form>
       </div>
     </div>,
-    document.body
+    document.body,
   );
 };
 

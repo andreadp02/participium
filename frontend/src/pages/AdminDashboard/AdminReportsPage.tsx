@@ -33,21 +33,22 @@ interface Report {
 const categoryOfficeMapping: Record<string, string> = {
   "Public Lighting": "Public Works - Lighting Division",
   "Roads & Urban Furnishings": "Public Works - Roads Department",
-  "Waste": "Environmental Services - Waste Management",
+  Waste: "Environmental Services - Waste Management",
   "Water Supply – Drinking Water": "Water Supply Authority",
   "Sewer System": "Public Works - Sewerage Department",
   "Road Signs and Traffic Lights": "Transportation & Traffic Department",
   "Roads and Urban Furnishings": "Public Works - Roads Department",
   "Public Green Areas and Playgrounds": "Parks & Recreation Department",
   "Architectural Barriers": "Urban Planning - Accessibility Office",
-  "Other": "General Services Office",
+  Other: "General Services Office",
 };
 
 const sampleReports: Report[] = [
   {
     id: "RPT-105",
     title: "Broken streetlight on Via Roma",
-    description: "The streetlight near building 45 has been broken for 3 days, creating safety concerns for pedestrians at night.",
+    description:
+      "The streetlight near building 45 has been broken for 3 days, creating safety concerns for pedestrians at night.",
     category: "Public Lighting",
     status: "Pending",
     location: "Via Roma 45, Centro",
@@ -60,11 +61,12 @@ const sampleReports: Report[] = [
   {
     id: "RPT-104",
     title: "Pothole near school entrance",
-    description: "Large pothole at school entrance poses danger to children and vehicles.",
+    description:
+      "Large pothole at school entrance poses danger to children and vehicles.",
     category: "Roads & Urban Furnishings",
     status: "Pending",
     location: "Via Garibaldi 12, Vanchiglia",
-    coordinates: { lat: 45.0702, lng: 7.6970 },
+    coordinates: { lat: 45.0702, lng: 7.697 },
     createdAt: "2025-11-08",
     submittedBy: "Anonymous",
     isAnonymous: true,
@@ -73,11 +75,12 @@ const sampleReports: Report[] = [
   {
     id: "RPT-103",
     title: "Overflowing trash bin",
-    description: "Trash bin has been overflowing for days, attracting pests and creating unpleasant odors.",
+    description:
+      "Trash bin has been overflowing for days, attracting pests and creating unpleasant odors.",
     category: "Waste",
     status: "Approved",
     location: "Corso Francia 100, San Salvario",
-    coordinates: { lat: 45.0600, lng: 7.6800 },
+    coordinates: { lat: 45.06, lng: 7.68 },
     createdAt: "2025-11-08",
     submittedBy: "Giulia Bianchi",
     isAnonymous: false,
@@ -96,16 +99,18 @@ const sampleReports: Report[] = [
     submittedBy: "Marco Verdi",
     isAnonymous: false,
     photos: [],
-    rejectionReason: "This issue does not fall under citizen-reportable categories. Please contact the cultural heritage office directly.",
+    rejectionReason:
+      "This issue does not fall under citizen-reportable categories. Please contact the cultural heritage office directly.",
   },
   {
     id: "RPT-101",
     title: "Water leak on street",
-    description: "Continuous water leak from underground pipe causing street flooding.",
+    description:
+      "Continuous water leak from underground pipe causing street flooding.",
     category: "Water Supply – Drinking Water",
     status: "In Progress",
     location: "Via Po 25, Lingotto",
-    coordinates: { lat: 45.0505, lng: 7.6700 },
+    coordinates: { lat: 45.0505, lng: 7.67 },
     createdAt: "2025-11-06",
     submittedBy: "Sara Ferrari",
     isAnonymous: false,
@@ -125,10 +130,14 @@ export const AdminReportsPage: React.FC = () => {
   const [reports, setReports] = useState<Report[]>(sampleReports);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [showReviewModal, setShowReviewModal] = useState(false);
-  const [reviewAction, setReviewAction] = useState<"approve" | "reject" | null>(null);
+  const [reviewAction, setReviewAction] = useState<"approve" | "reject" | null>(
+    null,
+  );
   const [rejectionReason, setRejectionReason] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState<"pending" | "approved" | "rejected">("pending");
+  const [activeTab, setActiveTab] = useState<
+    "pending" | "approved" | "rejected"
+  >("pending");
 
   const handleReviewClick = (report: Report, action: "approve" | "reject") => {
     setSelectedReport(report);
@@ -139,11 +148,13 @@ export const AdminReportsPage: React.FC = () => {
 
   const handleSubmitReview = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (selectedReport && reviewAction) {
-      const assignedOffice = reviewAction === "approve" 
-        ? categoryOfficeMapping[selectedReport.category] || "General Services Office"
-        : undefined;
+      const assignedOffice =
+        reviewAction === "approve"
+          ? categoryOfficeMapping[selectedReport.category] ||
+            "General Services Office"
+          : undefined;
 
       setReports(
         reports.map((r) =>
@@ -151,13 +162,14 @@ export const AdminReportsPage: React.FC = () => {
             ? {
                 ...r,
                 status: reviewAction === "approve" ? "Approved" : "Rejected",
-                rejectionReason: reviewAction === "reject" ? rejectionReason : undefined,
+                rejectionReason:
+                  reviewAction === "reject" ? rejectionReason : undefined,
                 assignedOffice: assignedOffice,
               }
-            : r
-        )
+            : r,
+        ),
       );
-      
+
       setShowReviewModal(false);
       setSelectedReport(null);
       setReviewAction(null);
@@ -171,13 +183,16 @@ export const AdminReportsPage: React.FC = () => {
       report.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       report.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
       report.location.toLowerCase().includes(searchQuery.toLowerCase());
-    
+
     // Tab-based filtering
     let matchesTab = true;
     if (activeTab === "pending") {
       matchesTab = report.status === "Pending";
     } else if (activeTab === "approved") {
-      matchesTab = report.status === "Approved" || report.status === "In Progress" || report.status === "Resolved";
+      matchesTab =
+        report.status === "Approved" ||
+        report.status === "In Progress" ||
+        report.status === "Resolved";
     } else if (activeTab === "rejected") {
       matchesTab = report.status === "Rejected";
     }
@@ -186,7 +201,12 @@ export const AdminReportsPage: React.FC = () => {
   });
 
   const pendingCount = reports.filter((r) => r.status === "Pending").length;
-  const approvedCount = reports.filter((r) => r.status === "Approved" || r.status === "In Progress" || r.status === "Resolved").length;
+  const approvedCount = reports.filter(
+    (r) =>
+      r.status === "Approved" ||
+      r.status === "In Progress" ||
+      r.status === "Resolved",
+  ).length;
   const rejectedCount = reports.filter((r) => r.status === "Rejected").length;
 
   return (
@@ -215,7 +235,9 @@ export const AdminReportsPage: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm text-slate-600">Pending Review</p>
-                <p className="text-2xl font-bold text-slate-900">{pendingCount}</p>
+                <p className="text-2xl font-bold text-slate-900">
+                  {pendingCount}
+                </p>
               </div>
             </div>
           </motion.div>
@@ -232,7 +254,9 @@ export const AdminReportsPage: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm text-slate-600">Approved</p>
-                <p className="text-2xl font-bold text-slate-900">{approvedCount}</p>
+                <p className="text-2xl font-bold text-slate-900">
+                  {approvedCount}
+                </p>
               </div>
             </div>
           </motion.div>
@@ -249,7 +273,9 @@ export const AdminReportsPage: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm text-slate-600">Rejected</p>
-                <p className="text-2xl font-bold text-slate-900">{rejectedCount}</p>
+                <p className="text-2xl font-bold text-slate-900">
+                  {rejectedCount}
+                </p>
               </div>
             </div>
           </motion.div>
@@ -270,17 +296,19 @@ export const AdminReportsPage: React.FC = () => {
                 <Clock className="h-4 w-4" />
                 Pending Review
                 {pendingCount > 0 && (
-                  <span className={`inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-xs font-bold ${
-                    activeTab === "pending" 
-                      ? "bg-indigo-100 text-indigo-700" 
-                      : "bg-slate-100 text-slate-700"
-                  }`}>
+                  <span
+                    className={`inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-xs font-bold ${
+                      activeTab === "pending"
+                        ? "bg-indigo-100 text-indigo-700"
+                        : "bg-slate-100 text-slate-700"
+                    }`}
+                  >
                     {pendingCount}
                   </span>
                 )}
               </span>
             </button>
-            
+
             <button
               onClick={() => setActiveTab("approved")}
               className={`px-6 py-3 text-sm font-semibold transition relative whitespace-nowrap ${
@@ -293,17 +321,19 @@ export const AdminReportsPage: React.FC = () => {
                 <CheckCircle2 className="h-4 w-4" />
                 Approved
                 {approvedCount > 0 && (
-                  <span className={`inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-xs font-bold ${
-                    activeTab === "approved" 
-                      ? "bg-indigo-100 text-indigo-700" 
-                      : "bg-slate-100 text-slate-700"
-                  }`}>
+                  <span
+                    className={`inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-xs font-bold ${
+                      activeTab === "approved"
+                        ? "bg-indigo-100 text-indigo-700"
+                        : "bg-slate-100 text-slate-700"
+                    }`}
+                  >
                     {approvedCount}
                   </span>
                 )}
               </span>
             </button>
-            
+
             <button
               onClick={() => setActiveTab("rejected")}
               className={`px-6 py-3 text-sm font-semibold transition relative whitespace-nowrap ${
@@ -316,11 +346,13 @@ export const AdminReportsPage: React.FC = () => {
                 <XCircle className="h-4 w-4" />
                 Rejected
                 {rejectedCount > 0 && (
-                  <span className={`inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-xs font-bold ${
-                    activeTab === "rejected" 
-                      ? "bg-indigo-100 text-indigo-700" 
-                      : "bg-slate-100 text-slate-700"
-                  }`}>
+                  <span
+                    className={`inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-xs font-bold ${
+                      activeTab === "rejected"
+                        ? "bg-indigo-100 text-indigo-700"
+                        : "bg-slate-100 text-slate-700"
+                    }`}
+                  >
                     {rejectedCount}
                   </span>
                 )}
@@ -348,7 +380,9 @@ export const AdminReportsPage: React.FC = () => {
           {filteredReports.length === 0 ? (
             <div className="rounded-xl border border-slate-200 bg-white p-8 text-center">
               <FileText className="h-12 w-12 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-600">No reports found matching your filters.</p>
+              <p className="text-slate-600">
+                No reports found matching your filters.
+              </p>
             </div>
           ) : (
             filteredReports.map((report, index) => (
@@ -372,7 +406,7 @@ export const AdminReportsPage: React.FC = () => {
                         {report.title}
                       </h3>
                     </div>
-                    
+
                     <span
                       className={`inline-flex items-center rounded-xl px-4 py-2 text-sm font-bold shadow-sm ${
                         statusColors[report.status]
@@ -402,7 +436,9 @@ export const AdminReportsPage: React.FC = () => {
                     <div className="flex items-center gap-2 text-sm text-slate-600 bg-slate-50 rounded-lg px-3 py-2">
                       <User className="h-4 w-4 text-indigo-600" />
                       <span className="font-medium">
-                        {report.isAnonymous ? "Anonymous Report" : `By ${report.submittedBy}`}
+                        {report.isAnonymous
+                          ? "Anonymous Report"
+                          : `By ${report.submittedBy}`}
                       </span>
                     </div>
                     <div className="flex items-center gap-2 text-sm text-slate-600 bg-slate-50 rounded-lg px-3 py-2">
@@ -421,7 +457,8 @@ export const AdminReportsPage: React.FC = () => {
                             ✓ Approved & Assigned
                           </p>
                           <p className="text-sm text-green-800">
-                            <strong>Technical Office:</strong> {report.assignedOffice}
+                            <strong>Technical Office:</strong>{" "}
+                            {report.assignedOffice}
                           </p>
                         </div>
                       </div>
@@ -471,7 +508,9 @@ export const AdminReportsPage: React.FC = () => {
       </div>
 
       {/* Review Modal */}
-      {showReviewModal && selectedReport && reviewAction &&
+      {showReviewModal &&
+        selectedReport &&
+        reviewAction &&
         createPortal(
           <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
             <motion.div
@@ -500,8 +539,12 @@ export const AdminReportsPage: React.FC = () => {
                   <p className="text-sm font-semibold text-slate-900 mb-1">
                     {selectedReport.id}: {selectedReport.title}
                   </p>
-                  <p className="text-xs text-slate-600">{selectedReport.location}</p>
-                  <p className="text-xs text-slate-600">Category: {selectedReport.category}</p>
+                  <p className="text-xs text-slate-600">
+                    {selectedReport.location}
+                  </p>
+                  <p className="text-xs text-slate-600">
+                    Category: {selectedReport.category}
+                  </p>
                 </div>
 
                 {reviewAction === "approve" ? (
@@ -511,7 +554,8 @@ export const AdminReportsPage: React.FC = () => {
                         📋 This report will be assigned to:
                       </p>
                       <p className="text-base font-bold text-indigo-700">
-                        {categoryOfficeMapping[selectedReport.category] || "General Services Office"}
+                        {categoryOfficeMapping[selectedReport.category] ||
+                          "General Services Office"}
                       </p>
                       <p className="text-xs text-indigo-600 mt-1">
                         Based on category: {selectedReport.category}
@@ -524,8 +568,13 @@ export const AdminReportsPage: React.FC = () => {
                       </p>
                       <ul className="text-sm text-green-800 mt-2 space-y-1 list-disc list-inside">
                         <li>Mark it as valid and accepted</li>
-                        <li>Assign it to the technical office bound to this category</li>
-                        <li>Make it visible for the assigned office to process</li>
+                        <li>
+                          Assign it to the technical office bound to this
+                          category
+                        </li>
+                        <li>
+                          Make it visible for the assigned office to process
+                        </li>
                         <li>Notify relevant staff members</li>
                       </ul>
                     </div>
@@ -545,7 +594,8 @@ export const AdminReportsPage: React.FC = () => {
                         className="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition resize-none"
                       />
                       <p className="text-xs text-slate-500 mt-1">
-                        This explanation will be visible to the citizen who submitted the report.
+                        This explanation will be visible to the citizen who
+                        submitted the report.
                       </p>
                     </div>
 
@@ -583,13 +633,14 @@ export const AdminReportsPage: React.FC = () => {
                         : "bg-red-600 hover:bg-red-700"
                     }`}
                   >
-                    Confirm {reviewAction === "approve" ? "Approval" : "Rejection"}
+                    Confirm{" "}
+                    {reviewAction === "approve" ? "Approval" : "Rejection"}
                   </button>
                 </div>
               </form>
             </motion.div>
           </div>,
-          document.body
+          document.body,
         )}
     </AdminDashboardLayout>
   );

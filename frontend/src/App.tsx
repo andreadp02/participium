@@ -31,21 +31,27 @@ function App() {
           <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
           <Route path="/admin/users" element={<AdminUsersPage />} />
           <Route path="/admin/reports" element={<AdminReportsPage />} />
-          <Route path="/admin/technical-reports" element={<TechnicalReportsPage />} />
+          <Route
+            path="/admin/technical-reports"
+            element={<TechnicalReportsPage />}
+          />
 
           {/* Public routes - with navbar/footer */}
-          <Route path="*" element={
-            <>
-              <NavBar />
-              <Routes>
-                <Route path="/" element={<LandingPage />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/map" element={<MapPage />} />
-              </Routes>
-              <Footer />
-            </>
-          } />
+          <Route
+            path="*"
+            element={
+              <>
+                <NavBar />
+                <Routes>
+                  <Route path="/" element={<LandingPage />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                  <Route path="/map" element={<MapPage />} />
+                </Routes>
+                <Footer />
+              </>
+            }
+          />
         </Routes>
       </div>
     </Router>

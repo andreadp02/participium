@@ -43,11 +43,12 @@ const sampleReports: Report[] = [
   {
     id: "RPT-103",
     title: "Overflowing trash bin",
-    description: "Trash bin has been overflowing for days, attracting pests and creating unpleasant odors.",
+    description:
+      "Trash bin has been overflowing for days, attracting pests and creating unpleasant odors.",
     category: "Waste",
     status: "Assigned",
     location: "Corso Francia 100, San Salvario",
-    coordinates: { lat: 45.0600, lng: 7.6800 },
+    coordinates: { lat: 45.06, lng: 7.68 },
     createdAt: "2025-11-08",
     submittedBy: "Giulia Bianchi",
     isAnonymous: false,
@@ -58,11 +59,12 @@ const sampleReports: Report[] = [
   {
     id: "RPT-101",
     title: "Water leak on street",
-    description: "Continuous water leak from underground pipe causing street flooding.",
+    description:
+      "Continuous water leak from underground pipe causing street flooding.",
     category: "Water Supply – Drinking Water",
     status: "In Progress",
     location: "Via Po 25, Lingotto",
-    coordinates: { lat: 45.0505, lng: 7.6700 },
+    coordinates: { lat: 45.0505, lng: 7.67 },
     createdAt: "2025-11-06",
     submittedBy: "Sara Ferrari",
     isAnonymous: false,
@@ -84,7 +86,7 @@ const sampleReports: Report[] = [
     category: "Public Green Areas and Playgrounds",
     status: "Suspended",
     location: "Parco del Valentino",
-    coordinates: { lat: 45.0500, lng: 7.6850 },
+    coordinates: { lat: 45.05, lng: 7.685 },
     createdAt: "2025-11-03",
     submittedBy: "Laura Verdi",
     isAnonymous: false,
@@ -163,8 +165,10 @@ export const TechnicalReportsPage: React.FC = () => {
     if (selectedReport && newStatus) {
       setReports(
         reports.map((r) =>
-          r.id === selectedReport.id ? { ...r, status: newStatus as Report["status"] } : r
-        )
+          r.id === selectedReport.id
+            ? { ...r, status: newStatus as Report["status"] }
+            : r,
+        ),
       );
       setShowStatusModal(false);
       setSelectedReport(null);
@@ -186,8 +190,8 @@ export const TechnicalReportsPage: React.FC = () => {
         reports.map((r) =>
           r.id === selectedReport.id
             ? { ...r, comments: [...r.comments, comment] }
-            : r
-        )
+            : r,
+        ),
       );
       setShowCommentModal(false);
       setSelectedReport(null);
@@ -207,7 +211,9 @@ export const TechnicalReportsPage: React.FC = () => {
   });
 
   const assignedCount = reports.filter((r) => r.status === "Assigned").length;
-  const inProgressCount = reports.filter((r) => r.status === "In Progress").length;
+  const inProgressCount = reports.filter(
+    (r) => r.status === "In Progress",
+  ).length;
   const suspendedCount = reports.filter((r) => r.status === "Suspended").length;
   const resolvedCount = reports.filter((r) => r.status === "Resolved").length;
 
@@ -217,7 +223,8 @@ export const TechnicalReportsPage: React.FC = () => {
         {/* Header */}
         <div>
           <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-            <FileText className="h-6 w-6 text-indigo-600" /> Technical Office Reports
+            <FileText className="h-6 w-6 text-indigo-600" /> Technical Office
+            Reports
           </h1>
           <p className="text-sm text-slate-600 mt-1">
             Manage assigned reports and update their status
@@ -237,7 +244,9 @@ export const TechnicalReportsPage: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm text-slate-600">Assigned</p>
-                <p className="text-2xl font-bold text-slate-900">{assignedCount}</p>
+                <p className="text-2xl font-bold text-slate-900">
+                  {assignedCount}
+                </p>
               </div>
             </div>
           </motion.div>
@@ -254,7 +263,9 @@ export const TechnicalReportsPage: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm text-slate-600">In Progress</p>
-                <p className="text-2xl font-bold text-slate-900">{inProgressCount}</p>
+                <p className="text-2xl font-bold text-slate-900">
+                  {inProgressCount}
+                </p>
               </div>
             </div>
           </motion.div>
@@ -271,7 +282,9 @@ export const TechnicalReportsPage: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm text-slate-600">Suspended</p>
-                <p className="text-2xl font-bold text-slate-900">{suspendedCount}</p>
+                <p className="text-2xl font-bold text-slate-900">
+                  {suspendedCount}
+                </p>
               </div>
             </div>
           </motion.div>
@@ -288,7 +301,9 @@ export const TechnicalReportsPage: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm text-slate-600">Resolved</p>
-                <p className="text-2xl font-bold text-slate-900">{resolvedCount}</p>
+                <p className="text-2xl font-bold text-slate-900">
+                  {resolvedCount}
+                </p>
               </div>
             </div>
           </motion.div>
@@ -325,7 +340,9 @@ export const TechnicalReportsPage: React.FC = () => {
           {filteredReports.length === 0 ? (
             <div className="rounded-xl border border-slate-200 bg-white p-8 text-center">
               <FileText className="h-12 w-12 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-600">No reports found matching your filters.</p>
+              <p className="text-slate-600">
+                No reports found matching your filters.
+              </p>
             </div>
           ) : (
             filteredReports.map((report, index) => (
@@ -379,7 +396,9 @@ export const TechnicalReportsPage: React.FC = () => {
                     <div className="flex items-center gap-2 text-sm text-slate-600 bg-slate-50 rounded-lg px-3 py-2">
                       <User className="h-4 w-4 text-indigo-600" />
                       <span className="font-medium">
-                        {report.isAnonymous ? "Anonymous Report" : `By ${report.submittedBy}`}
+                        {report.isAnonymous
+                          ? "Anonymous Report"
+                          : `By ${report.submittedBy}`}
                       </span>
                     </div>
                     <div className="flex items-center gap-2 text-sm text-slate-600 bg-slate-50 rounded-lg px-3 py-2">
@@ -419,7 +438,9 @@ export const TechnicalReportsPage: React.FC = () => {
                                 {comment.timestamp}
                               </span>
                             </div>
-                            <p className="text-sm text-slate-700">{comment.text}</p>
+                            <p className="text-sm text-slate-700">
+                              {comment.text}
+                            </p>
                           </div>
                         ))}
                       </div>
@@ -451,7 +472,8 @@ export const TechnicalReportsPage: React.FC = () => {
       </div>
 
       {/* Update Status Modal */}
-      {showStatusModal && selectedReport &&
+      {showStatusModal &&
+        selectedReport &&
         createPortal(
           <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
             <motion.div
@@ -471,7 +493,9 @@ export const TechnicalReportsPage: React.FC = () => {
                   <p className="text-sm font-semibold text-slate-900 mb-1">
                     {selectedReport.id}: {selectedReport.title}
                   </p>
-                  <p className="text-xs text-slate-600">{selectedReport.location}</p>
+                  <p className="text-xs text-slate-600">
+                    {selectedReport.location}
+                  </p>
                   <p className="text-xs text-slate-600">
                     Current Status: <strong>{selectedReport.status}</strong>
                   </p>
@@ -484,25 +508,48 @@ export const TechnicalReportsPage: React.FC = () => {
                   </label>
                   <select
                     value={newStatus}
-                    onChange={(e) => setNewStatus(e.target.value as Report["status"])}
+                    onChange={(e) =>
+                      setNewStatus(e.target.value as Report["status"])
+                    }
                     required
                     className="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-700 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition"
                   >
-                    <option value="Assigned">Assigned - Newly assigned to office</option>
-                    <option value="In Progress">In Progress - Intervention scheduled/started</option>
-                    <option value="Suspended">Suspended - Awaiting resources/evaluation</option>
-                    <option value="Resolved">Resolved - Problem fixed and closed</option>
+                    <option value="Assigned">
+                      Assigned - Newly assigned to office
+                    </option>
+                    <option value="In Progress">
+                      In Progress - Intervention scheduled/started
+                    </option>
+                    <option value="Suspended">
+                      Suspended - Awaiting resources/evaluation
+                    </option>
+                    <option value="Resolved">
+                      Resolved - Problem fixed and closed
+                    </option>
                   </select>
                 </div>
 
                 {/* Status Information */}
                 <div className="rounded-xl bg-blue-50 border border-blue-200 p-4">
-                  <p className="text-sm font-semibold text-blue-900 mb-2">Status Workflow:</p>
+                  <p className="text-sm font-semibold text-blue-900 mb-2">
+                    Status Workflow:
+                  </p>
                   <ul className="text-sm text-blue-800 space-y-1">
-                    <li><strong>Assigned:</strong> Report received by technical office</li>
-                    <li><strong>In Progress:</strong> Intervention scheduled, work started</li>
-                    <li><strong>Suspended:</strong> Paused awaiting resources or evaluation</li>
-                    <li><strong>Resolved:</strong> Problem fixed, report closed</li>
+                    <li>
+                      <strong>Assigned:</strong> Report received by technical
+                      office
+                    </li>
+                    <li>
+                      <strong>In Progress:</strong> Intervention scheduled, work
+                      started
+                    </li>
+                    <li>
+                      <strong>Suspended:</strong> Paused awaiting resources or
+                      evaluation
+                    </li>
+                    <li>
+                      <strong>Resolved:</strong> Problem fixed, report closed
+                    </li>
                   </ul>
                 </div>
 
@@ -528,11 +575,12 @@ export const TechnicalReportsPage: React.FC = () => {
               </form>
             </motion.div>
           </div>,
-          document.body
+          document.body,
         )}
 
       {/* Add Comment Modal */}
-      {showCommentModal && selectedReport &&
+      {showCommentModal &&
+        selectedReport &&
         createPortal(
           <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
             <motion.div
@@ -552,7 +600,9 @@ export const TechnicalReportsPage: React.FC = () => {
                   <p className="text-sm font-semibold text-slate-900 mb-1">
                     {selectedReport.id}: {selectedReport.title}
                   </p>
-                  <p className="text-xs text-slate-600">{selectedReport.location}</p>
+                  <p className="text-xs text-slate-600">
+                    {selectedReport.location}
+                  </p>
                 </div>
 
                 {/* Comment Input */}
@@ -569,7 +619,8 @@ export const TechnicalReportsPage: React.FC = () => {
                     className="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition resize-none"
                   />
                   <p className="text-xs text-slate-500 mt-1">
-                    Comments help track progress and communicate with team members.
+                    Comments help track progress and communicate with team
+                    members.
                   </p>
                 </div>
 
@@ -595,7 +646,7 @@ export const TechnicalReportsPage: React.FC = () => {
               </form>
             </motion.div>
           </div>,
-          document.body
+          document.body,
         )}
     </AdminDashboardLayout>
   );

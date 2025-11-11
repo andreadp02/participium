@@ -20,7 +20,7 @@ function CustomMarker({
   const handleLocate = () => {
     map.locate();
   };
-  
+
   const mapEvents = useMapEvents({
     locationfound(e) {
       setPosition(e.latlng);
@@ -100,10 +100,10 @@ function CustomMarker({
           </Popup>
         </Marker>
       )}
-      
+
       {showReport && position && (
-        <ReportForm 
-          lat={position.lat} 
+        <ReportForm
+          lat={position.lat}
           lng={position.lng}
           onClose={() => setShowReport(false)}
           onSuccess={handleReportSuccess}

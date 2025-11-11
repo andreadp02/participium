@@ -114,9 +114,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
           <p className="text-xs font-semibold text-slate-900 mb-1">
             Administrator
           </p>
-          <p className="text-xs text-slate-600">
-            Full system access
-          </p>
+          <p className="text-xs text-slate-600">Full system access</p>
         </div>
       </div>
 

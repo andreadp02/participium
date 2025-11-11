@@ -120,9 +120,7 @@ export const AdminUsersPage: React.FC = () => {
   const handleUpdateUser = (e: React.FormEvent) => {
     e.preventDefault();
     if (editingUser) {
-      setUsers(
-        users.map((u) => (u.id === editingUser.id ? editingUser : u))
-      );
+      setUsers(users.map((u) => (u.id === editingUser.id ? editingUser : u)));
       setShowEditModal(false);
       setEditingUser(null);
     }
@@ -133,8 +131,8 @@ export const AdminUsersPage: React.FC = () => {
       users.map((u) =>
         u.id === id
           ? { ...u, status: u.status === "active" ? "inactive" : "active" }
-          : u
-      )
+          : u,
+      ),
     );
   };
 
@@ -151,7 +149,9 @@ export const AdminUsersPage: React.FC = () => {
   });
 
   const activeUsersCount = users.filter((u) => u.status === "active").length;
-  const inactiveUsersCount = users.filter((u) => u.status === "inactive").length;
+  const inactiveUsersCount = users.filter(
+    (u) => u.status === "inactive",
+  ).length;
 
   return (
     <AdminDashboardLayout>
@@ -263,12 +263,8 @@ export const AdminUsersPage: React.FC = () => {
                   <th className="px-4 py-3 text-left font-semibold">Office</th>
                   <th className="px-4 py-3 text-left font-semibold">Role</th>
                   <th className="px-4 py-3 text-left font-semibold">Status</th>
-                  <th className="px-4 py-3 text-left font-semibold">
-                    Created
-                  </th>
-                  <th className="px-4 py-3 text-left font-semibold">
-                    Actions
-                  </th>
+                  <th className="px-4 py-3 text-left font-semibold">Created</th>
+                  <th className="px-4 py-3 text-left font-semibold">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -287,9 +283,7 @@ export const AdminUsersPage: React.FC = () => {
                       <td className="px-4 py-3 font-medium text-slate-900">
                         {user.firstName} {user.lastName}
                       </td>
-                      <td className="px-4 py-3 text-slate-700">
-                        {user.email}
-                      </td>
+                      <td className="px-4 py-3 text-slate-700">{user.email}</td>
                       <td className="px-4 py-3 text-slate-700">
                         {user.office}
                       </td>
@@ -328,7 +322,9 @@ export const AdminUsersPage: React.FC = () => {
                                 : "border-green-300 bg-green-50 text-green-700 hover:bg-green-100"
                             }`}
                           >
-                            {user.status === "active" ? "Deactivate" : "Activate"}
+                            {user.status === "active"
+                              ? "Deactivate"
+                              : "Activate"}
                           </button>
                         </div>
                       </td>
@@ -359,8 +355,8 @@ export const AdminUsersPage: React.FC = () => {
               className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl"
             >
               <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2 mb-4">
-                <UserCog className="h-5 w-5 text-indigo-600" /> Add
-                Municipality User
+                <UserCog className="h-5 w-5 text-indigo-600" /> Add Municipality
+                User
               </h2>
 
               <form onSubmit={handleAddUser} className="space-y-4">
@@ -464,11 +460,12 @@ export const AdminUsersPage: React.FC = () => {
               </form>
             </motion.div>
           </div>,
-          document.body
+          document.body,
         )}
 
       {/* Edit Role Modal */}
-      {showEditModal && editingUser &&
+      {showEditModal &&
+        editingUser &&
         createPortal(
           <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
             <motion.div
@@ -487,7 +484,9 @@ export const AdminUsersPage: React.FC = () => {
                   <p className="text-sm font-medium text-slate-900">
                     {editingUser.firstName} {editingUser.lastName}
                   </p>
-                  <p className="text-xs text-slate-600 mt-1">{editingUser.email}</p>
+                  <p className="text-xs text-slate-600 mt-1">
+                    {editingUser.email}
+                  </p>
                   <p className="text-xs text-slate-600">{editingUser.office}</p>
                 </div>
 
@@ -511,17 +510,29 @@ export const AdminUsersPage: React.FC = () => {
                     ))}
                   </select>
                   <p className="text-xs text-slate-500 mt-2">
-                    Select the appropriate role for this user based on their responsibilities.
+                    Select the appropriate role for this user based on their
+                    responsibilities.
                   </p>
                 </div>
 
                 {/* Role Descriptions */}
                 <div className="rounded-xl bg-blue-50 border border-blue-200 p-3">
-                  <p className="text-xs font-semibold text-blue-900 mb-2">Role Descriptions:</p>
+                  <p className="text-xs font-semibold text-blue-900 mb-2">
+                    Role Descriptions:
+                  </p>
                   <ul className="text-xs text-blue-800 space-y-1">
-                    <li><strong>Municipal Administrator:</strong> Full system access and user management</li>
-                    <li><strong>Technical Staff:</strong> Handle technical reports and operations</li>
-                    <li><strong>Public Relations Officer:</strong> Manage citizen communications</li>
+                    <li>
+                      <strong>Municipal Administrator:</strong> Full system
+                      access and user management
+                    </li>
+                    <li>
+                      <strong>Technical Staff:</strong> Handle technical reports
+                      and operations
+                    </li>
+                    <li>
+                      <strong>Public Relations Officer:</strong> Manage citizen
+                      communications
+                    </li>
                   </ul>
                 </div>
 
@@ -546,7 +557,7 @@ export const AdminUsersPage: React.FC = () => {
               </form>
             </motion.div>
           </div>,
-          document.body
+          document.body,
         )}
     </AdminDashboardLayout>
   );
