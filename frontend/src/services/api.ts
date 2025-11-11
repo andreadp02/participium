@@ -55,6 +55,36 @@ export interface ApiError {
   message: string;
 }
 
+// ==================== Municipality User Types ====================
+
+export interface MunicipalityRole {
+  id: number;
+  name: string;
+}
+
+export interface MunicipalityUserCreateRequest {
+  firstName: string;
+  lastName: string;
+  username: string;
+  email: string;
+  password: string;
+  municipality_role_id: number;
+}
+
+export interface MunicipalityUser {
+  id: number;
+  firstName: string;
+  lastName: string;
+  username: string;
+  email: string;
+  municipality_role_id: number;
+  municipality_role?: {
+    id: number;
+    name: string;
+  };
+  createdAt: string;
+}
+
 // ==================== API Instance ====================
 
 const api = axios.create({
@@ -137,6 +167,62 @@ export const getReports = async (): Promise<Report[]> => {
  */
 export const getMyReports = async (): Promise<Report[]> => {
   const response = await api.get("/reports/my");
+  return response.data;
+};
+
+// ==================== Municipality User APIs ====================
+
+/**
+ * Get all municipality roles
+ * Requires: ADMIN role
+ * @returns Array of municipality roles
+ * @throws ApiError on failure
+ */
+export const getMunicipalityRoles = async (): Promise<MunicipalityRole[]> => {
+  const response = await api.get("/users/municipality-users/roles");
+  return response.data;
+};
+
+/**
+ * Get all municipality users
+ * Requires: ADMIN role
+ * @returns Array of municipality users
+ * @throws ApiError on failure
+ */
+export const getMunicipalityUsers = async (): Promise<MunicipalityUser[]> => {
+  const response = await api.get("/users/municipality-users");
+  return response.data;
+};
+
+/**
+ * Create a new municipality user
+ * Requires: ADMIN role
+ * @param userData Municipality user data
+ * @returns Created municipality user
+ * @throws ApiError on failure
+ */
+export const createMunicipalityUser = async (
+  userData: MunicipalityUserCreateRequest
+): Promise<MunicipalityUser> => {
+  const response = await api.post("/users/municipality-users", userData);
+  return response.data;
+};
+
+/**
+ * Update municipality user's role
+ * Requires: ADMIN role
+ * @param userId User ID
+ * @param roleId New role ID
+ * @returns Updated user
+ * @throws ApiError on failure
+ */
+export const updateMunicipalityUserRole = async (
+  userId: number,
+  roleId: number
+): Promise<MunicipalityUser> => {
+  const response = await api.patch(`/users/${userId}`, {
+    municipality_role_id: roleId,
+  });
   return response.data;
 };
 
