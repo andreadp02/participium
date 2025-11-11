@@ -1,10 +1,7 @@
-import { Router } from 'express';
-import { authController } from '../controllers/authController';
+import { Router } from "express";
+import { authController } from "../controllers/authController";
 
 const router = Router();
-
-// POST /api/users - User registration
-router.post('/users', authController.register);
 
 // POST /api/auth/session - Login
 router.post('/session', authController.login);

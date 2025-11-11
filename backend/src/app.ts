@@ -9,10 +9,10 @@ import userRouter from './routes/userRouter';
 
 const app = express();
 
-const isDocker = process.env.IS_DOCKER === 'true';
+const isDocker = process.env.IS_DOCKER === "true";
 const swaggerPath = isDocker
-  ? '/app/doc/OpenAPI_swagger.yml'        // dentro container
-  : '../doc/OpenAPI_swagger.yml'; // locale
+  ? "/app/doc/OpenAPI_swagger.yml" // dentro container
+  : "../doc/OpenAPI_swagger.yml"; // locale
 
 const swaggerDocument = YAML.load(swaggerPath);
 
@@ -26,15 +26,17 @@ app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument)); // CHAN
 
 app.use((err: any, _req: any, res: any, _next: any) => {
   // NEW: se il body JSON è malformato, restituiamo 400 (allineato ai test)
-  if (err instanceof SyntaxError && 'body' in err) {
-    return res.status(400).json({ error: 'Validation Error', message: 'Invalid JSON' });
+  if (err instanceof SyntaxError && "body" in err) {
+    return res
+      .status(400)
+      .json({ error: "Validation Error", message: "Invalid JSON" });
   }
   console.error(err);
-  return res.status(500).json({ error: 'Internal Server Error' });
+  return res.status(500).json({ error: "Internal Server Error" });
 });
 
-app.get('/', (_req, res) => {
-  res.send('Backend is running');
+app.get("/", (_req, res) => {
+  res.send("Backend is running");
 });
 
 export default app;

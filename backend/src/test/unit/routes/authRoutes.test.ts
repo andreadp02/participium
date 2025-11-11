@@ -3,9 +3,6 @@ import request from 'supertest';
 
 jest.mock('../../../controllers/authController', () => ({
     authController: {
-        register: jest.fn((req: Request, res: Response) =>
-            res.status(201).json({ route: 'register', body: req.body })
-        ),
         login: jest.fn((req: Request, res: Response) =>
             res.status(200).json({ route: 'login', body: req.body })
         ),
@@ -22,32 +19,13 @@ import { authController } from '../../../controllers/authController';
 const makeApp = () => {
     const app = express();
     app.use(express.json());
-    app.use('/api', authRouter);
+    app.use('/api/auth', authRouter);
     return app;
 };
 
 describe('authRouter', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-    });
-
-    describe('POST /api/users', () => {
-        it('routes to authController.register and returns 201', async () => {
-            const app = makeApp();
-            const payload = {
-                email: 'mario.rossi@example.com',
-                username: 'mrossi',
-                firstName: 'Mario',
-                lastName: 'Rossi',
-                password: 'plain',
-            };
-
-            const res = await request(app).post('/api/users').send(payload);
-
-            expect(res.status).toBe(201);
-            expect(res.body).toEqual({ route: 'register', body: payload });
-            expect(authController.register).toHaveBeenCalledTimes(1);
-        });
     });
 
     describe('POST /api/auth/session', () => {

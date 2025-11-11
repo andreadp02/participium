@@ -1,8 +1,15 @@
-import { prisma } from '../database/connection';
-
+import { prisma } from "../database/connection";
+import { roleType } from "../models/enums";
+import { roleType as PrismaRole } from "@prisma/client";
 
 export const authRepository = {
-  async createUser(email: string, username: string, firstName: string, lastName: string, password: string) {
+  async createUser(
+    email: string,
+    username: string,
+    firstName: string,
+    lastName: string,
+    password: string
+  ) {
     return prisma.user.create({
       data: {
         username,
@@ -44,10 +51,10 @@ export const authRepository = {
   },
 
   async createUserWithRole(
-    email: string, 
-    username: string, 
-    firstName: string, 
-    lastName: string, 
+    email: string,
+    username: string,
+    firstName: string,
+    lastName: string,
     password: string,
     role: string,
     municipality_role_id?: number
@@ -95,6 +102,14 @@ export const authRepository = {
   async deleteUser(userId: number) {
     return prisma.user.delete({
       where: { id: userId },
+    });
+  },
+
+  async getUsersByRole(role: roleType | PrismaRole) {
+    // ensure value is the Prisma enum type before querying
+    const prismaRole = role as PrismaRole;
+    return prisma.user.findMany({
+      where: { role: prismaRole },
     });
   },
 };
