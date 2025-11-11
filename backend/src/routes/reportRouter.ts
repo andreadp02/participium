@@ -6,6 +6,6 @@ import { isCitizen } from '../middlewares/roleMiddleware';
 const router = Router();
 
 // POST /api/reports - Create a new report (authenticated users only)
-router.post('/reports', isAuthenticated, isCitizen, submitReport);
+router.post('/', isAuthenticated, isCitizen, submitReport);
 
 export default router;
