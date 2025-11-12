@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { createPortal } from "react-dom";
 import { X, Upload, MapPin } from "lucide-react";
 import { createReport } from "src/services/api";
-import type { ReportCategory } from "src/services/api";
+import type { ReportCategory, ReportRequest } from "src/services/api";
 
 interface ReportFormProps {
   lat: number;
@@ -112,19 +112,17 @@ const ReportForm: React.FC<ReportFormProps> = ({
     setError("");
 
     try {
-      const formData = new FormData();
-      formData.append("title", title);
-      formData.append("description", description);
-      formData.append("category", category);
-      formData.append("anonymous", String(anonymous));
-      formData.append("lat", String(lat));
-      formData.append("lng", String(lng));
+      const reportData: ReportRequest = {
+        title,
+        description,
+        category: category as ReportCategory,
+        anonymous,
+        photos,
+        latitude: lat,
+        longitude: lng
+      };
 
-      photos.forEach((photo) => {
-        formData.append("photos", photo);
-      });
-
-      await createReport(formData);
+      await createReport(reportData);
 
       setSuccess(true);
       setTimeout(() => {

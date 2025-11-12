@@ -38,6 +38,8 @@ export interface ReportRequest {
   anonymous: boolean;
   category: ReportCategory;
   photos: File[]; // 1-3 photos
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface Report {
@@ -140,18 +142,28 @@ export const logout = async (): Promise<void> => {
  * @returns Created report
  * @throws ApiError on failure
  */
-export const createReport = async (reportData: ReportRequest): Promise<Report> => {
+export const createReport = async (
+  reportData: ReportRequest,
+): Promise<Report> => {
   const formData = new FormData();
 
-   formData.append('title', reportData.title);
-   formData.append('description', reportData.description);
-   formData.append('anonymous', String(reportData.anonymous));
-   formData.append('category', reportData.category);
+  formData.append("title", reportData.title);
+  formData.append("description", reportData.description);
+  formData.append("anonymous", String(reportData.anonymous));
+  formData.append("category", reportData.category);
+  
+  // Add coordinates if provided
+  if (reportData.latitude !== undefined) {
+    formData.append("lat", String(reportData.latitude));
+  }
+  if (reportData.longitude !== undefined) {
+    formData.append("lng", String(reportData.longitude));
+  }
 
-   // Append photos (1-3 photos)
-   reportData.photos.forEach((photo) => {
-     formData.append('photos', photo);
-   });
+  // Append photos (1-3 photos)
+  reportData.photos.forEach((photo) => {
+    formData.append("photos", photo);
+  });
 
   const response = await api.post("/reports", formData, {
     headers: {
@@ -214,7 +226,7 @@ export const getMunicipalityUsers = async (): Promise<MunicipalityUser[]> => {
  * @throws ApiError on failure
  */
 export const createMunicipalityUser = async (
-  userData: MunicipalityUserCreateRequest
+  userData: MunicipalityUserCreateRequest,
 ): Promise<MunicipalityUser> => {
   const response = await api.post("/users/municipality-users", userData);
   return response.data;
@@ -230,7 +242,7 @@ export const createMunicipalityUser = async (
  */
 export const updateMunicipalityUserRole = async (
   userId: number,
-  roleId: number
+  roleId: number,
 ): Promise<MunicipalityUser> => {
   const response = await api.patch(`/users/${userId}`, {
     municipality_role_id: roleId,

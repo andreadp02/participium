@@ -1,7 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { AdminDashboardLayout } from "../../components/dashboard/AdminDashboardLayout";
 import { motion } from "framer-motion";
-import { Plus, Shield, UserCog, Search, Loader, AlertCircle } from "lucide-react";
+import {
+  Plus,
+  Shield,
+  UserCog,
+  Search,
+  Loader,
+  AlertCircle,
+} from "lucide-react";
 import { createPortal } from "react-dom";
 import {
   getMunicipalityUsers,
@@ -71,7 +78,9 @@ export const AdminUsersPage: React.FC = () => {
       setRoles(rolesData);
     } catch (err: any) {
       console.error("Failed to load data:", err);
-      setError(err.response?.data?.message || "Failed to load municipality users");
+      setError(
+        err.response?.data?.message || "Failed to load municipality users",
+      );
     } finally {
       setLoading(false);
     }
@@ -93,7 +102,7 @@ export const AdminUsersPage: React.FC = () => {
       };
 
       await createMunicipalityUser(userData);
-      
+
       // Reload data to get updated list
       await loadData();
 
@@ -181,7 +190,9 @@ export const AdminUsersPage: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm text-slate-600">Total Users</p>
-                <p className="text-2xl font-bold text-slate-900">{totalUsersCount}</p>
+                <p className="text-2xl font-bold text-slate-900">
+                  {totalUsersCount}
+                </p>
               </div>
             </div>
           </motion.div>
@@ -198,7 +209,9 @@ export const AdminUsersPage: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm text-slate-600">Available Roles</p>
-                <p className="text-2xl font-bold text-slate-900">{roles.length}</p>
+                <p className="text-2xl font-bold text-slate-900">
+                  {roles.length}
+                </p>
               </div>
             </div>
           </motion.div>
@@ -393,7 +406,10 @@ export const AdminUsersPage: React.FC = () => {
                     required
                     value={newUser.roleId}
                     onChange={(e) =>
-                      setNewUser({ ...newUser, roleId: parseInt(e.target.value) })
+                      setNewUser({
+                        ...newUser,
+                        roleId: parseInt(e.target.value),
+                      })
                     }
                     className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition"
                   >
@@ -436,7 +452,7 @@ export const AdminUsersPage: React.FC = () => {
               </form>
             </motion.div>
           </div>,
-          document.body
+          document.body,
         )}
     </AdminDashboardLayout>
   );

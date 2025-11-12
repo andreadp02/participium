@@ -32,7 +32,10 @@ function App() {
           <Route path="/admin/users" element={<AdminUsersPage />} />
 
           {/* Municipality Dashboard routes - no navbar/footer */}
-          <Route path="/municipality/reports" element={<MunicipalityReportsPage />} />
+          <Route
+            path="/municipality/reports"
+            element={<MunicipalityReportsPage />}
+          />
           <Route
             path="/municipality/technical-reports"
             element={<MunicipalityTechnicalReportsPage />}
