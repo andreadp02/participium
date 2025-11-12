@@ -39,12 +39,10 @@ export const userController = {
           .status(409)
           .json({ error: "Conflict Error", message: error.message });
       }
-      return res
-        .status(400)
-        .json({
-          error: "Bad Request",
-          message: error?.message || "Registration failed",
-        });
+      return res.status(400).json({
+        error: "Bad Request",
+        message: error?.message || "Registration failed",
+      });
     }
   },
 
@@ -93,12 +91,10 @@ export const userController = {
           .status(409)
           .json({ error: "Conflict Error", message: error.message });
       }
-      return res
-        .status(500)
-        .json({
-          error: "Internal Server Error",
-          message: error?.message || "User creation failed",
-        });
+      return res.status(500).json({
+        error: "Internal Server Error",
+        message: error?.message || "User creation failed",
+      });
     }
   },
 
@@ -107,12 +103,10 @@ export const userController = {
       const users = await authService.getAllUsers();
       return res.status(200).json(users);
     } catch (error: any) {
-      return res
-        .status(500)
-        .json({
-          error: "Internal Server Error",
-          message: error?.message || "Failed to retrieve users",
-        });
+      return res.status(500).json({
+        error: "Internal Server Error",
+        message: error?.message || "Failed to retrieve users",
+      });
     }
   },
 
@@ -136,12 +130,10 @@ export const userController = {
 
       return res.status(200).json(user);
     } catch (error: any) {
-      return res
-        .status(500)
-        .json({
-          error: "Internal Server Error",
-          message: error?.message || "Failed to retrieve user",
-        });
+      return res.status(500).json({
+        error: "Internal Server Error",
+        message: error?.message || "Failed to retrieve user",
+      });
     }
   },
 
@@ -163,12 +155,10 @@ export const userController = {
           .status(404)
           .json({ error: "Not Found", message: error.message });
       }
-      return res
-        .status(500)
-        .json({
-          error: "Internal Server Error",
-          message: error?.message || "Failed to delete user",
-        });
+      return res.status(500).json({
+        error: "Internal Server Error",
+        message: error?.message || "Failed to delete user",
+      });
     }
   },
 
@@ -177,12 +167,10 @@ export const userController = {
       const roles = await authService.getAllMunicipalityRoles();
       return res.status(200).json(roles);
     } catch (error: any) {
-      return res
-        .status(500)
-        .json({
-          error: "Internal Server Error",
-          message: error?.message || "Failed to retrieve municipality roles",
-        });
+      return res.status(500).json({
+        error: "Internal Server Error",
+        message: error?.message || "Failed to retrieve municipality roles",
+      });
     }
   },
 

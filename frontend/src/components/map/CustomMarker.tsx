@@ -51,11 +51,18 @@ function CustomMarker({
     [draggable],
   );
 
-  const handleReportSuccess = () => {
+  const handleReportSuccess = (createdReport?: any) => {
     setShowReport(false);
     setShowMarker(false);
     setPosition(null);
     // Optionally reload reports here
+    // Notify listeners (MapPage) that reports changed so it can refetch or append
+    try {
+      const ev = new CustomEvent("reports:changed", { detail: createdReport });
+      window.dispatchEvent(ev);
+    } catch (err) {
+      // ignore in non-browser environments
+    }
   };
 
   return (

@@ -15,6 +15,7 @@ import { Footer } from "src/components/Footer";
 import LandingPage from "src/pages/LandingPage";
 
 import MapPage from "./pages/MapPage";
+import ReportDetailsPage from "./pages/ReportDetailsPage";
 
 function App() {
   return (
@@ -52,6 +53,7 @@ function App() {
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
                   <Route path="/map" element={<MapPage />} />
+                  <Route path="/report/:id" element={<ReportDetailsPage />} />
                 </Routes>
                 <Footer />
               </>
