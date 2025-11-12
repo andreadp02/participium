@@ -45,6 +45,11 @@ const makeRes = (): ResMock => {
 const makeReport = (overrides: Partial<any> = {}) => ({
     id: 1,
     createdAt: new Date('2025-11-04T14:30:00Z'),
+    latitude: '45.0',
+    longitude: '7.0',
+    title: 'Valid title',
+    description: 'Valid description',
+    category: 'WASTE',
     ...overrides,
 });
 
@@ -125,23 +130,24 @@ describe('reportController', () => {
     // -------- submitReport --------
     describe('submitReport', () => {
         it('creates a report (draft) and returns 201 + json', async () => {
-            const created = makeReport({ id: 10 });
+            const created = makeReport({ id: 10, anonymous: true });
             svc.submitReport.mockResolvedValue(created);
 
-            const req = { body: {} } as unknown as Request; // controller ignores body and sends {}
+            const req = { body: created } as unknown as Request; // controller ignores body and sends {}
             const res = makeRes();
 
             await submitReport(req, res as unknown as Response);
 
-            expect(svc.submitReport).toHaveBeenCalledWith({});
+            expect(svc.submitReport).toHaveBeenCalledWith(created);
             expect(res.status).toHaveBeenCalledWith(201);
             expect(res.json).toHaveBeenCalledWith(created);
         });
 
         it('returns 500 on service error', async () => {
+            const created = makeReport({ id: 10 });
             svc.submitReport.mockRejectedValue(new Error('write fail'));
 
-            const req = { body: {} } as unknown as Request;
+            const req = { body: created } as unknown as Request;
             const res = makeRes();
 
             await submitReport(req, res as unknown as Response);
@@ -175,7 +181,7 @@ describe('reportController', () => {
             await deleteReport(req, res as unknown as Response);
 
             expect(res.status).toHaveBeenCalledWith(500);
-            expect(res.json).toHaveBeenCalledWith({ error: 'Failed to delete report' });
+            expect(res.json).toHaveBeenCalledWith({ error: 'delete fail' });
         });
     });
 });
