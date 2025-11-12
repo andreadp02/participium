@@ -38,9 +38,48 @@ export const getReportById = async (req: Request, res: Response) => {
   }
 };
 
+export const getReportByStatus = async (req: Request, res: Response) => {
+  try {
+    const { status } = req.query;
+    const reports = await reportService.findByStatus(status as string);
+    
+    res.json(reports);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch report' });
+  }
+};
+
+export const approveOrRejectReport = async (req: Request, res: Response) => {
+
+  try {
+    const { id } = req.params;
+    const { status, rejectionReason } = req.body;
+
+    if (status !== 'APPROVED' && status !== 'REJECTED') {
+      return res.status(400).json({ error: 'Invalid status. Must be APPROVED or REJECTED.' });
+    }
+
+    if (status === 'REJECTED' && (!rejectionReason || rejectionReason.trim() === '')) {
+      return res.status(400).json({ error: 'Rejection reason is required when rejecting a report.' });
+    }
+
+    const updatedStatus = await reportService.updateReportStatus(
+      parseInt(id),
+      status,
+      rejectionReason
+    );
+
+    res.json({ status: updatedStatus });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Failed to update report status';
+    const statusCode = error instanceof Error && error.message === 'Report not found' ? 404 : 500;
+    res.status(statusCode).json({ error: errorMessage });
+  }
+}
+
 export const submitReport = async (req: Request, res: Response) => {
   try {
-    const { latitude, longitude, title, description, category } = req.body;
+    const { latitude, longitude, anonymous, title, description, category } = req.body;
     const files = req.files as Express.Multer.File[];
 
     // Validate required fields
@@ -75,6 +114,10 @@ export const submitReport = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Maximum 3 photos are allowed' });
     }
 
+    if(!req.user) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
     const tempKeys = await imageService.storeTemporaryImages(
       files.map(file => ({
         buffer: file.buffer,
@@ -88,9 +131,12 @@ export const submitReport = async (req: Request, res: Response) => {
       longitude: Number(longitude),
       title,
       description,
+      anonymous: false,   // Currently not used
       category,
       photoKeys: tempKeys, // Pass temporary keys
-    });
+    }, 
+     req.user.id 
+    );
 
     res.status(201).json(report);
   } catch (error) {

@@ -1,5 +1,7 @@
 import {prisma} from '../database/connection';
 import { CreateReportDto } from '../models/dto/reportDto';
+import { Report } from '../models/entities/report';
+import { ReportStatus } from '../models/enums';
 
 const findAll = async () => {
   return prisma.report.findMany({
@@ -15,16 +17,35 @@ const findById = async (id: number) => {
   });
 };
 
-const create = async (data: CreateReportDto) => {
+const findByStatus = async (status: ReportStatus) => {
+  return prisma.report.findMany({
+    where: { status } as any,
+    orderBy: {
+      createdAt: 'desc'
+    }
+  });
+};
+
+const create = async (data: Report) => {
+  const createData: any = {
+    latitude: data.latitude,
+    longitude: data.longitude,
+    title: data.title,
+    description: data.description,
+    category: data.category, 
+    photos: data.photoKeys,
+    status: data.status,
+  };
+
+  // Add user relation if user_id is provided
+  if (data.user_id) {
+    createData.user = {
+      connect: { id: data.user_id }
+    };
+  }
+
   return prisma.report.create({
-    data: {
-      latitude: data.latitude,
-      longitude: data.longitude,
-      title: data.title,
-      description: data.description,
-      category: data.category as any, 
-      photos: data.photoKeys, 
-    },
+    data: createData,
   });
 };
 
@@ -34,7 +55,14 @@ const deleteById = async (id: number) => {
   });
 };
 
-const update = async (id: number, data: Partial<{photos: string[]}>) => {
+const update = async (
+  id: number,
+  data: Partial<{
+    photos: string[];
+    status: ReportStatus;
+    rejectionReason: string;
+  }>
+) => {
   return prisma.report.update({
     where: { id },
     data,
@@ -44,6 +72,7 @@ const update = async (id: number, data: Partial<{photos: string[]}>) => {
 export default { 
   findAll, 
   findById, 
+  findByStatus,
   create, 
   deleteById,
   update 

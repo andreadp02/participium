@@ -77,7 +77,7 @@ describe('reportService', () => {
             const created = makeReport({ id: 10 });
             repo.create.mockResolvedValue(created);
 
-            const res = await reportService.submitReport(dto as any);
+            const res = await reportService.submitReport(dto as any, 1);
 
             expect(repo.create).toHaveBeenCalledWith(dto);
             expect(res).toBe(created);
