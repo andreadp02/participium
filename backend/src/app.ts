@@ -32,7 +32,7 @@ app.use(cookieParser());
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 app.use("/api/auth", authRouter);
-app.use("/api/reports", reportRouter);
+app.use("/api", reportRouter);
 app.use("/api/users", userRouter);
 app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 

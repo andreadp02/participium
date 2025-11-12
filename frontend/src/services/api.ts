@@ -155,10 +155,12 @@ export const createReport = async (
 
   // Add coordinates if provided
   if (reportData.latitude !== undefined) {
-    formData.append("lat", String(reportData.latitude));
+    // backend expects `latitude`
+    formData.append("latitude", String(reportData.latitude));
   }
   if (reportData.longitude !== undefined) {
-    formData.append("lng", String(reportData.longitude));
+    // backend expects `longitude`
+    formData.append("longitude", String(reportData.longitude));
   }
 
   // Append photos (1-3 photos)
@@ -182,6 +184,14 @@ export const createReport = async (
  */
 export const getReports = async (): Promise<Report[]> => {
   const response = await api.get("/reports");
+  return response.data;
+};
+
+/**
+ * Get a single report by id
+ */
+export const getReportById = async (id: string | number): Promise<Report> => {
+  const response = await api.get(`/reports/${id}`);
   return response.data;
 };
 

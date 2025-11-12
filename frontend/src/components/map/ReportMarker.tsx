@@ -50,10 +50,11 @@ const ReportMarker: React.FC<{ report: Report }> = ({ report }) => {
               Created: {new Date(report.createdAt).toLocaleString()}
             </div>
           </div>
-          {/* Placeholder Link for future "report details" page.Stops propagation so popup/map behavior is preserved. */}
+          {/* Link to report details; stop propagation so popup/map behavior is preserved. */}
           <Link
-            to="#"
+            to={`/report/${report.id}`}
             className="inline-block text-sm font-medium text-indigo-600 hover:underline"
+            onClick={(e) => e.stopPropagation()}
           >
             View details
           </Link>

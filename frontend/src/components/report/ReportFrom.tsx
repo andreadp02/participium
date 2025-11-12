@@ -8,7 +8,7 @@ interface ReportFormProps {
   lat: number;
   lng: number;
   onClose: () => void;
-  onSuccess?: () => void;
+  onSuccess?: (createdReport?: any) => void;
 }
 
 const CATEGORIES: ReportCategory[] = [
@@ -22,6 +22,19 @@ const CATEGORIES: ReportCategory[] = [
   "Public Green Areas and Playgrounds",
   "Other",
 ];
+
+// Map human-friendly labels to backend enum values
+const CATEGORY_MAP: Record<string, string> = {
+  "Water Supply – Drinking Water": "WATER_SUPPLY_DRINKING_WATER",
+  "Architectural Barriers": "ARCHITECTURAL_BARRIERS",
+  "Sewer System": "SEWER_SYSTEM",
+  "Public Lighting": "PUBLIC_LIGHTING",
+  "Waste": "WASTE",
+  "Road Signs and Traffic Lights": "ROAD_SIGNS_TRAFFIC_LIGHTS",
+  "Roads and Urban Furnishings": "ROADS_URBAN_FURNISHINGS",
+  "Public Green Areas and Playgrounds": "PUBLIC_GREEN_AREAS_PLAYGROUNDS",
+  "Other": "OTHER",
+};
 
 const ReportForm: React.FC<ReportFormProps> = ({
   lat,
@@ -115,18 +128,19 @@ const ReportForm: React.FC<ReportFormProps> = ({
       const reportData: ReportRequest = {
         title,
         description,
-        category: category as ReportCategory,
         anonymous,
         photos,
+        // map displayed category label to backend enum value
+        category: (CATEGORY_MAP[category] ?? category) as any,
         latitude: lat,
         longitude: lng,
       };
 
-      await createReport(reportData);
+      const created = await createReport(reportData);
 
       setSuccess(true);
       setTimeout(() => {
-        onSuccess?.();
+        onSuccess?.(created);
         onClose();
       }, 1500);
     } catch (err: any) {
