@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
-import { getReportById, verifyAuth } from "src/services/api";
+import { useParams, Link, useLocation } from "react-router-dom";
+import { getReportById } from "src/services/api";
 
 // Reverse map backend enum -> human-friendly labels (keep in sync with form)
 const ENUM_TO_LABEL: Record<string, string> = {
@@ -19,22 +19,9 @@ const backendOrigin = (import.meta.env.VITE_API_URL || "http://localhost:4000/ap
 
 const ReportDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const location = useLocation();
   const [report, setReport] = useState<any | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-
-  useEffect(() => {
-    // Check if user is authenticated
-    const checkAuth = async () => {
-      try {
-        await verifyAuth();
-        setIsAuthenticated(true);
-      } catch {
-        setIsAuthenticated(false);
-      }
-    };
-    checkAuth();
-  }, []);
 
   useEffect(() => {
     if (!id) return;
@@ -50,8 +37,10 @@ const ReportDetailsPage: React.FC = () => {
     fetch();
   }, [id]);
 
-  const backLink = isAuthenticated ? "/dashboard/new-report" : "/map";
-  const backText = isAuthenticated ? "Back to Dashboard" : "Back to map";
+  // Check if we came from the dashboard, otherwise go back to /map
+  const fromDashboard = (location.state as any)?.fromDashboard;
+  const backLink = fromDashboard ? "/dashboard/new-report" : "/map";
+  const backText = fromDashboard ? "Back to Dashboard" : "Back to map";
 
   if (error) {
     return (

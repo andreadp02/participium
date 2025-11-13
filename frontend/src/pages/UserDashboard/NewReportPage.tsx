@@ -5,8 +5,6 @@ import MapView from "src/components/map/MapView";
 import { ArrowLeft, Info } from "lucide-react";
 import { getReports } from "src/services/api";
 import { Report, ReportStatus } from "src/services/models";
-import { getReports } from "src/services/api";
-import { Report, ReportStatus } from "src/services/models";
 
 const NewReportPage: React.FC = () => {
   const navigate = useNavigate();
@@ -101,7 +99,7 @@ const NewReportPage: React.FC = () => {
           className="flex-1 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"
           style={{ height: "calc(100vh - 380px)", minHeight: "500px" }}
         >
-          <MapView reports={reports} />
+          <MapView reports={reports} fromDashboard={true} />
         </div>
 
         {/* Quick Tips */}
