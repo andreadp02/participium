@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { MunicipalitySidebar } from "./MunicipalitySidebar";
+import { UnifiedSidebar } from "./UnifiedSidebar";
 import { Topbar } from "./Topbar";
 import { useAuth } from "src/contexts/AuthContext";
 
@@ -19,7 +19,8 @@ export const MunicipalityDashboardLayout: React.FC<React.PropsWithChildren> = ({
   return (
     <div className="flex min-h-svh w-full bg-slate-50">
       {/* Municipality Sidebar */}
-      <MunicipalitySidebar
+      <UnifiedSidebar
+        role="MUNICIPALITY"
         mobileMenuOpen={mobileMenuOpen}
         setMobileMenuOpen={setMobileMenuOpen}
       />

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { AdminSidebar } from "./AdminSidebar";
+import { UnifiedSidebar } from "./UnifiedSidebar";
 import { Topbar } from "./Topbar";
 import { useAuth } from "src/contexts/AuthContext";
 
@@ -19,7 +19,8 @@ export const AdminDashboardLayout: React.FC<React.PropsWithChildren> = ({
   return (
     <div className="flex min-h-svh w-full bg-slate-50">
       {/* Admin Sidebar */}
-      <AdminSidebar
+      <UnifiedSidebar
+        role="ADMIN"
         mobileMenuOpen={mobileMenuOpen}
         setMobileMenuOpen={setMobileMenuOpen}
       />
