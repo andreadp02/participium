@@ -11,6 +11,8 @@ import MunicipalityReportsPage from "./pages/MunicipalityDashboard/MunicipalityR
 import MunicipalityTechnicalReportsPage from "./pages/MunicipalityDashboard/TechnicalReportsPage";
 import { NavBar } from "src/components/Navbar";
 import { Footer } from "src/components/Footer";
+import { AuthProvider } from "src/contexts/AuthContext";
+import { ProtectedRoute } from "src/components/ProtectedRoute";
 
 import LandingPage from "src/pages/LandingPage";
 
@@ -19,28 +21,79 @@ import ReportDetailsPage from "./pages/ReportDetailsPage";
 
 function App() {
   return (
-    <Router>
-      <div className="min-h-screen bg-white">
-        <Routes>
-          {/* User Dashboard routes - no navbar/footer */}
-          <Route path="/dashboard" element={<UserDashboardPage />} />
-          <Route path="/dashboard/*" element={<UserDashboardPage />} />
-          <Route path="/dashboard/new-report" element={<NewReportPage />} />
+    <AuthProvider>
+      <Router>
+        <div className="min-h-screen bg-white">
+          <Routes>
+            {/* User Dashboard routes - protected, CITIZEN role */}
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute requiredRole="CITIZEN">
+                  <UserDashboardPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/*"
+              element={
+                <ProtectedRoute requiredRole="CITIZEN">
+                  <UserDashboardPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/new-report"
+              element={
+                <ProtectedRoute requiredRole="CITIZEN">
+                  <NewReportPage />
+                </ProtectedRoute>
+              }
+            />
 
-          {/* Admin Dashboard routes - no navbar/footer */}
-          <Route path="/admin" element={<AdminDashboardPage />} />
-          <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
-          <Route path="/admin/users" element={<AdminUsersPage />} />
+            {/* Admin Dashboard routes - protected, ADMIN role */}
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute requiredRole="ADMIN">
+                  <AdminDashboardPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/dashboard"
+              element={
+                <ProtectedRoute requiredRole="ADMIN">
+                  <AdminDashboardPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/users"
+              element={
+                <ProtectedRoute requiredRole="ADMIN">
+                  <AdminUsersPage />
+                </ProtectedRoute>
+              }
+            />
 
-          {/* Municipality Dashboard routes - no navbar/footer */}
-          <Route
-            path="/municipality/reports"
-            element={<MunicipalityReportsPage />}
-          />
-          <Route
-            path="/municipality/technical-reports"
-            element={<MunicipalityTechnicalReportsPage />}
-          />
+            {/* Municipality Dashboard routes - protected, MUNICIPALITY role */}
+            <Route
+              path="/municipality/reports"
+              element={
+                <ProtectedRoute requiredRole="MUNICIPALITY">
+                  <MunicipalityReportsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/municipality/technical-reports"
+              element={
+                <ProtectedRoute requiredRole="MUNICIPALITY">
+                  <MunicipalityTechnicalReportsPage />
+                </ProtectedRoute>
+              }
+            />
 
           {/* Public routes - with navbar/footer */}
           <Route
@@ -59,9 +112,10 @@ function App() {
               </>
             }
           />
-        </Routes>
-      </div>
-    </Router>
+          </Routes>
+        </div>
+      </Router>
+    </AuthProvider>
   );
 }
 

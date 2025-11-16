@@ -2,15 +2,17 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Sidebar } from "./Sidebar";
 import { Topbar } from "./Topbar";
+import { useAuth } from "src/contexts/AuthContext";
 
 export const DashboardLayout: React.FC<React.PropsWithChildren> = ({
   children,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
+  const { logout } = useAuth();
 
-  const handleLogout = () => {
-    // Clear any authentication tokens or session data here
+  const handleLogout = async () => {
+    await logout();
     navigate("/login");
   };
 
