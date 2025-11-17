@@ -52,7 +52,7 @@ const makeReport = (overrides: Partial<any> = {}) => ({
 });
 
 const makeCreateDto = (overrides: Partial<any> = {}) => ({
-  latitude: 45.10,
+  latitude: 45.1,
   longitude: 7.65,
   title: "Lampione rotto",
   description: "Il lampione non si accende",
@@ -122,8 +122,14 @@ describe("reportService", () => {
       const created = makeReport({ id: 123, photos: [] });
 
       repo.create.mockResolvedValue(created);
-      img.persistImagesForReport.mockResolvedValue(["/img/r/1.jpg", "/img/r/2.jpg"]);
-      repo.update.mockResolvedValue({ ...created, photos: ["/img/r/1.jpg", "/img/r/2.jpg"] });
+      img.persistImagesForReport.mockResolvedValue([
+        "/img/r/1.jpg",
+        "/img/r/2.jpg",
+      ]);
+      repo.update.mockResolvedValue({
+        ...created,
+        photos: ["/img/r/1.jpg", "/img/r/2.jpg"],
+      });
       img.getMultipleImages.mockResolvedValue(["BINARY1", "BINARY2"]);
 
       const res = await reportService.submitReport(dto as any);
@@ -133,9 +139,17 @@ describe("reportService", () => {
         photoKeys: [],
       });
 
-      expect(img.persistImagesForReport).toHaveBeenCalledWith(dto.photoKeys, 123);
-      expect(repo.update).toHaveBeenCalledWith(123, { photos: ["/img/r/1.jpg", "/img/r/2.jpg"] });
-      expect(img.getMultipleImages).toHaveBeenCalledWith(["/img/r/1.jpg", "/img/r/2.jpg"]);
+      expect(img.persistImagesForReport).toHaveBeenCalledWith(
+        dto.photoKeys,
+        123,
+      );
+      expect(repo.update).toHaveBeenCalledWith(123, {
+        photos: ["/img/r/1.jpg", "/img/r/2.jpg"],
+      });
+      expect(img.getMultipleImages).toHaveBeenCalledWith([
+        "/img/r/1.jpg",
+        "/img/r/2.jpg",
+      ]);
       expect(res).toEqual(
         expect.objectContaining({
           id: 123,
@@ -154,7 +168,9 @@ describe("reportService", () => {
       ).rejects.toThrow("Description is required");
 
       await expect(
-        reportService.submitReport(makeCreateDto({ category: undefined }) as any),
+        reportService.submitReport(
+          makeCreateDto({ category: undefined }) as any,
+        ),
       ).rejects.toThrow("Category is required");
 
       await expect(
@@ -162,7 +178,9 @@ describe("reportService", () => {
       ).rejects.toThrow("At least 1 photo is required");
 
       await expect(
-        reportService.submitReport(makeCreateDto({ photoKeys: ["a", "b", "c", "d"] }) as any),
+        reportService.submitReport(
+          makeCreateDto({ photoKeys: ["a", "b", "c", "d"] }) as any,
+        ),
       ).rejects.toThrow("Maximum 3 photos are allowed");
     });
   });

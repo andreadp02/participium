@@ -91,7 +91,9 @@ describe("reportController", () => {
       await getReports(req, res as unknown as Response);
 
       expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({ error: "Failed to fetch reports" });
+      expect(res.json).toHaveBeenCalledWith({
+        error: "Failed to fetch reports",
+      });
     });
   });
 
@@ -132,7 +134,9 @@ describe("reportController", () => {
       await getReportById(req, res as unknown as Response);
 
       expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({ error: "Failed to fetch report" });
+      expect(res.json).toHaveBeenCalledWith({
+        error: "Failed to fetch report",
+      });
     });
   });
 
@@ -183,8 +187,16 @@ describe("reportController", () => {
       await submitReport(req, res as unknown as Response);
 
       expect(img.storeTemporaryImages).toHaveBeenCalledWith([
-        { buffer: expect.any(Buffer), mimetype: "image/jpeg", originalname: "a.jpg" },
-        { buffer: expect.any(Buffer), mimetype: "image/png", originalname: "b.png" },
+        {
+          buffer: expect.any(Buffer),
+          mimetype: "image/jpeg",
+          originalname: "a.jpg",
+        },
+        {
+          buffer: expect.any(Buffer),
+          mimetype: "image/png",
+          originalname: "b.png",
+        },
       ]);
 
       expect(svc.submitReport).toHaveBeenCalledWith({
@@ -201,17 +213,28 @@ describe("reportController", () => {
     });
 
     it("validation: mancano lat/long -> 400", async () => {
-      const req = { body: { title: "t", description: "d", category: "WASTE" }, files: [] } as any;
+      const req = {
+        body: { title: "t", description: "d", category: "WASTE" },
+        files: [],
+      } as any;
       const res = makeRes();
 
       await submitReport(req as Request, res as unknown as Response);
       expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({ error: "Latitude and longitude are required" });
+      expect(res.json).toHaveBeenCalledWith({
+        error: "Latitude and longitude are required",
+      });
     });
 
     it("validation: title vuoto -> 400", async () => {
       const req = {
-        body: { latitude: 1, longitude: 2, title: "   ", description: "d", category: "WASTE" },
+        body: {
+          latitude: 1,
+          longitude: 2,
+          title: "   ",
+          description: "d",
+          category: "WASTE",
+        },
         files: [{}],
       } as any;
       const res = makeRes();
@@ -223,14 +246,22 @@ describe("reportController", () => {
 
     it("validation: description vuota -> 400", async () => {
       const req = {
-        body: { latitude: 1, longitude: 2, title: "t", description: "", category: "WASTE" },
+        body: {
+          latitude: 1,
+          longitude: 2,
+          title: "t",
+          description: "",
+          category: "WASTE",
+        },
         files: [{}],
       } as any;
       const res = makeRes();
 
       await submitReport(req as Request, res as unknown as Response);
       expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({ error: "Description is required" });
+      expect(res.json).toHaveBeenCalledWith({
+        error: "Description is required",
+      });
     });
 
     it("validation: category mancante -> 400", async () => {
@@ -247,7 +278,13 @@ describe("reportController", () => {
 
     it("validation: category invalida -> 400", async () => {
       const req = {
-        body: { latitude: 1, longitude: 2, title: "t", description: "d", category: "NOT_A_CAT" },
+        body: {
+          latitude: 1,
+          longitude: 2,
+          title: "t",
+          description: "d",
+          category: "NOT_A_CAT",
+        },
         files: [{}],
       } as any;
       const res = makeRes();
@@ -261,26 +298,42 @@ describe("reportController", () => {
 
     it("validation: nessuna foto -> 400", async () => {
       const req = {
-        body: { latitude: 1, longitude: 2, title: "t", description: "d", category: "WASTE" },
+        body: {
+          latitude: 1,
+          longitude: 2,
+          title: "t",
+          description: "d",
+          category: "WASTE",
+        },
         files: [],
       } as any;
       const res = makeRes();
 
       await submitReport(req as Request, res as unknown as Response);
       expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({ error: "At least 1 photo is required" });
+      expect(res.json).toHaveBeenCalledWith({
+        error: "At least 1 photo is required",
+      });
     });
 
     it("validation: più di 3 foto -> 400", async () => {
       const req = {
-        body: { latitude: 1, longitude: 2, title: "t", description: "d", category: "WASTE" },
+        body: {
+          latitude: 1,
+          longitude: 2,
+          title: "t",
+          description: "d",
+          category: "WASTE",
+        },
         files: [{}, {}, {}, {}],
       } as any;
       const res = makeRes();
 
       await submitReport(req as Request, res as unknown as Response);
       expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({ error: "Maximum 3 photos are allowed" });
+      expect(res.json).toHaveBeenCalledWith({
+        error: "Maximum 3 photos are allowed",
+      });
     });
 
     it("returns 500 on service error", async () => {
@@ -295,14 +348,22 @@ describe("reportController", () => {
           description: "d",
           category: "WASTE",
         },
-        files: [{ buffer: Buffer.from("x"), mimetype: "image/jpeg", originalname: "a.jpg" }],
+        files: [
+          {
+            buffer: Buffer.from("x"),
+            mimetype: "image/jpeg",
+            originalname: "a.jpg",
+          },
+        ],
       } as any;
       const res = makeRes();
 
       await submitReport(req as Request, res as unknown as Response);
 
       expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({ error: "Failed to submit report" });
+      expect(res.json).toHaveBeenCalledWith({
+        error: "Failed to submit report",
+      });
     });
   });
 
@@ -330,7 +391,9 @@ describe("reportController", () => {
       await deleteReport(req, res as unknown as Response);
 
       expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({ error: "Failed to delete report" });
+      expect(res.json).toHaveBeenCalledWith({
+        error: "Failed to delete report",
+      });
     });
   });
 });
