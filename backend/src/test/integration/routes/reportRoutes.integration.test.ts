@@ -10,14 +10,22 @@ jest.mock("../../../services/imageService", () => {
       storeTemporaryImages: jest.fn(async (images: any[]) =>
         images.map((_: any, i: number) => `temp:image:key-${i + 1}`),
       ),
-      persistImagesForReport: jest.fn(async (keys: string[], reportId: number) =>
-        keys.map((_: string, i: number) => `${reportId}/${reportId}_${i + 1}.jpg`),
+      persistImagesForReport: jest.fn(
+        async (keys: string[], reportId: number) =>
+          keys.map(
+            (_: string, i: number) => `${reportId}/${reportId}_${i + 1}.jpg`,
+          ),
       ),
       getMultipleImages: jest.fn(async (paths: string[]) =>
-        paths.map((_: string, i: number) => `data:image/jpeg;base64,ZmFrZV9pbWFnZV8${i}`),
+        paths.map(
+          (_: string, i: number) =>
+            `data:image/jpeg;base64,ZmFrZV9pbWFnZV8${i}`,
+        ),
       ),
       getImageUrl: jest.fn((rel: string) => `/uploads/${rel}`),
-      getMultipleImageUrls: jest.fn((rels: string[]) => rels.map((r) => `/uploads/${r}`)),
+      getMultipleImageUrls: jest.fn((rels: string[]) =>
+        rels.map((r) => `/uploads/${r}`),
+      ),
       deleteImages: jest.fn(async () => {}),
       getImage: jest.fn(async () => null),
       preloadCache: jest.fn(async () => {}),
@@ -58,7 +66,8 @@ describe("ReportRoutes Integration (Create Report)", () => {
       .expect(200);
 
     const title = "Broken street light";
-    const description = "The street light on Via Roma has been broken for a week";
+    const description =
+      "The street light on Via Roma has been broken for a week";
     const category = "PUBLIC_LIGHTING"; // internal enum expected by backend
     const latitude = 45.4642;
     const longitude = 9.19;
@@ -117,7 +126,10 @@ describe("ReportRoutes Integration (Create Report)", () => {
       .field("category", "PUBLIC_LIGHTING")
       .field("latitude", String(45.0))
       .field("longitude", String(9.0))
-      .attach("photos", Buffer.from("fake"), { filename: "p.jpg", contentType: "image/jpeg" })
+      .attach("photos", Buffer.from("fake"), {
+        filename: "p.jpg",
+        contentType: "image/jpeg",
+      })
       .expect(400);
 
     expect(res.body).toHaveProperty("error", "Title is required");
@@ -125,7 +137,10 @@ describe("ReportRoutes Integration (Create Report)", () => {
 
   it("400 if missing description", async () => {
     const agent = request.agent(app);
-    await agent.post("/api/users").send({ ...fakeUser, username: "citizen2", email: "c2@example.com" }).expect(201);
+    await agent
+      .post("/api/users")
+      .send({ ...fakeUser, username: "citizen2", email: "c2@example.com" })
+      .expect(201);
     await agent
       .post("/api/auth/session")
       .send({ identifier: "citizen2", password: fakeUser.password })
@@ -137,7 +152,10 @@ describe("ReportRoutes Integration (Create Report)", () => {
       .field("category", "PUBLIC_LIGHTING")
       .field("latitude", String(45.0))
       .field("longitude", String(9.0))
-      .attach("photos", Buffer.from("fake"), { filename: "p.jpg", contentType: "image/jpeg" })
+      .attach("photos", Buffer.from("fake"), {
+        filename: "p.jpg",
+        contentType: "image/jpeg",
+      })
       .expect(400);
 
     expect(res.body).toHaveProperty("error", "Description is required");
@@ -145,7 +163,10 @@ describe("ReportRoutes Integration (Create Report)", () => {
 
   it("400 if missing category", async () => {
     const agent = request.agent(app);
-    await agent.post("/api/users").send({ ...fakeUser, username: "citizen3", email: "c3@example.com" }).expect(201);
+    await agent
+      .post("/api/users")
+      .send({ ...fakeUser, username: "citizen3", email: "c3@example.com" })
+      .expect(201);
     await agent
       .post("/api/auth/session")
       .send({ identifier: "citizen3", password: fakeUser.password })
@@ -157,7 +178,10 @@ describe("ReportRoutes Integration (Create Report)", () => {
       .field("description", "d")
       .field("latitude", String(45.0))
       .field("longitude", String(9.0))
-      .attach("photos", Buffer.from("fake"), { filename: "p.jpg", contentType: "image/jpeg" })
+      .attach("photos", Buffer.from("fake"), {
+        filename: "p.jpg",
+        contentType: "image/jpeg",
+      })
       .expect(400);
 
     expect(res.body).toHaveProperty("error", "Category is required");
@@ -165,7 +189,10 @@ describe("ReportRoutes Integration (Create Report)", () => {
 
   it("400 if invalid category", async () => {
     const agent = request.agent(app);
-    await agent.post("/api/users").send({ ...fakeUser, username: "citizen4", email: "c4@example.com" }).expect(201);
+    await agent
+      .post("/api/users")
+      .send({ ...fakeUser, username: "citizen4", email: "c4@example.com" })
+      .expect(201);
     await agent
       .post("/api/auth/session")
       .send({ identifier: "citizen4", password: fakeUser.password })
@@ -178,7 +205,10 @@ describe("ReportRoutes Integration (Create Report)", () => {
       .field("category", "NOT_A_VALID_CATEGORY")
       .field("latitude", String(45.0))
       .field("longitude", String(9.0))
-      .attach("photos", Buffer.from("fake"), { filename: "p.jpg", contentType: "image/jpeg" })
+      .attach("photos", Buffer.from("fake"), {
+        filename: "p.jpg",
+        contentType: "image/jpeg",
+      })
       .expect(400);
 
     expect(res.body).toHaveProperty("error", "Invalid category");
@@ -187,7 +217,10 @@ describe("ReportRoutes Integration (Create Report)", () => {
 
   it("400 if missing latitude/longitude", async () => {
     const agent = request.agent(app);
-    await agent.post("/api/users").send({ ...fakeUser, username: "citizen5", email: "c5@example.com" }).expect(201);
+    await agent
+      .post("/api/users")
+      .send({ ...fakeUser, username: "citizen5", email: "c5@example.com" })
+      .expect(201);
     await agent
       .post("/api/auth/session")
       .send({ identifier: "citizen5", password: fakeUser.password })
@@ -199,15 +232,24 @@ describe("ReportRoutes Integration (Create Report)", () => {
       .field("description", "d")
       .field("category", "PUBLIC_LIGHTING")
       // no latitude/longitude
-      .attach("photos", Buffer.from("fake"), { filename: "p.jpg", contentType: "image/jpeg" })
+      .attach("photos", Buffer.from("fake"), {
+        filename: "p.jpg",
+        contentType: "image/jpeg",
+      })
       .expect(400);
 
-    expect(res.body).toHaveProperty("error", "Latitude and longitude are required");
+    expect(res.body).toHaveProperty(
+      "error",
+      "Latitude and longitude are required",
+    );
   });
 
   it("400 if no photos attached", async () => {
     const agent = request.agent(app);
-    await agent.post("/api/users").send({ ...fakeUser, username: "citizen6", email: "c6@example.com" }).expect(201);
+    await agent
+      .post("/api/users")
+      .send({ ...fakeUser, username: "citizen6", email: "c6@example.com" })
+      .expect(201);
     await agent
       .post("/api/auth/session")
       .send({ identifier: "citizen6", password: fakeUser.password })
@@ -228,7 +270,10 @@ describe("ReportRoutes Integration (Create Report)", () => {
 
   it("500 (multer limit) if more than 3 photos attached", async () => {
     const agent = request.agent(app);
-    await agent.post("/api/users").send({ ...fakeUser, username: "citizen7", email: "c7@example.com" }).expect(201);
+    await agent
+      .post("/api/users")
+      .send({ ...fakeUser, username: "citizen7", email: "c7@example.com" })
+      .expect(201);
     await agent
       .post("/api/auth/session")
       .send({ identifier: "citizen7", password: fakeUser.password })
