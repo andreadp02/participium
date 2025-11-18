@@ -175,7 +175,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /reports/pending/{id}:
+  /reports/{id}:
     post:
       tags: [Reports]
       summary: Validate a report
