@@ -133,9 +133,9 @@ paths:
                 message: "You must be logged in to create a report"
     get:
       tags: [Reports]
-      summary: List all pending reports
+      summary: List all reports
       description: >
-        Returns the list of all pending reports.
+        Returns the list of all reports.
         **Requires role: ADMIN or MUNICIPALITY**. //TODO check roles
       security:
         - cookieAuth: []
@@ -207,10 +207,12 @@ paths:
                   enum:
                     - ASSIGNED
                     - REJECTED
-                  example: Assigned
+                  example: REJECTED
                 motivation:
                   type: string
-                  example: "The report is valid and has been assigned to a technician."
+                  example: "The report is not valid because photos are blurry."
+                category:
+                  $ref: '#/components/schemas/ReportCategory'
       responses:
         '204':
           description: OK - Report successfully validated
