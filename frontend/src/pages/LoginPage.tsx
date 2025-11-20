@@ -1,12 +1,27 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ShieldCheck, Lock, User } from "lucide-react";
 import registrationIll from "src/assets/registration-ill.png";
 import { login, type LoginRequest } from "../services/api";
+import { useAuth } from "src/contexts/AuthContext";
 
 export const Login: React.FC = () => {
   const navigate = useNavigate();
+  const { login: setAuthUser, isAuthenticated, user, isLoading } = useAuth();
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (!isLoading && isAuthenticated && user) {
+      if (user.role === "ADMIN") {
+        navigate("/admin", { replace: true });
+      } else if (user.role === "MUNICIPALITY") {
+        navigate("/municipality/reports", { replace: true });
+      } else {
+        navigate("/dashboard", { replace: true });
+      }
+    }
+  }, [isAuthenticated, user, isLoading, navigate]);
   const [formData, setFormData] = useState({
     identifier: "",
     password: "",
@@ -39,14 +54,22 @@ export const Login: React.FC = () => {
         password: formData.password,
       };
 
-      await login(credentials);
-      // Login successful, redirect to home or dashboard
-      navigate("/");
-    } catch (err: any) {
-      setError(
-        err.response?.data?.message ||
-          "Login failed. Please check your credentials.",
-      );
+      const user = await login(credentials);
+      // Save user to context
+      setAuthUser(user);
+
+      // Role-based routing
+      if (user.role === "ADMIN") {
+        navigate("/admin");
+      } else if (user.role === "MUNICIPALITY") {
+        navigate("/municipality/reports");
+      } else {
+        // CITIZEN role or default
+        navigate("/dashboard");
+      }
+    } catch (err) {
+      console.error("Login error:", err);
+      setError("Login failed. Please check your credentials.");
     } finally {
       setLoading(false);
     }

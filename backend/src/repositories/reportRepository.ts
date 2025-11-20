@@ -1,19 +1,19 @@
-import {prisma} from '../database/connection';
-import { CreateReportDto } from '../models/dto/reportDto';
-import { Report } from '../models/entities/report';
-import { ReportStatus } from '../models/enums';
+import { prisma } from "@database";
+import { CreateReportDto } from "@dto/reportDto";
+import { Report } from "@models/entities/report";
+import { ReportStatus } from "@models/enums";
 
 const findAll = async () => {
   return prisma.report.findMany({
     orderBy: {
-      createdAt: 'desc'
-    }
+      createdAt: "desc",
+    },
   });
 };
 
 const findById = async (id: number) => {
   return prisma.report.findUnique({
-    where: { id }
+    where: { id },
   });
 };
 
@@ -21,8 +21,8 @@ const findByStatus = async (status: ReportStatus) => {
   return prisma.report.findMany({
     where: { status } as any,
     orderBy: {
-      createdAt: 'desc'
-    }
+      createdAt: "desc",
+    },
   });
 };
 
@@ -32,7 +32,7 @@ const create = async (data: Report) => {
     longitude: data.longitude,
     title: data.title,
     description: data.description,
-    category: data.category, 
+    category: data.category as any,
     photos: data.photoKeys,
     status: data.status,
   };
@@ -40,7 +40,7 @@ const create = async (data: Report) => {
   // Add user relation if user_id is provided
   if (data.user_id) {
     createData.user = {
-      connect: { id: data.user_id }
+      connect: { id: data.user_id },
     };
   }
 
@@ -51,7 +51,7 @@ const create = async (data: Report) => {
 
 const deleteById = async (id: number) => {
   return prisma.report.delete({
-    where: { id }
+    where: { id },
   });
 };
 
@@ -69,11 +69,11 @@ const update = async (
   });
 };
 
-export default { 
-  findAll, 
-  findById, 
+export default {
+  findAll,
+  findById,
   findByStatus,
-  create, 
+  create,
   deleteById,
-  update 
+  update,
 };
