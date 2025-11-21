@@ -359,6 +359,12 @@ paths:
               example:
                 error: "Conflict Error"
                 message: "Username or email already exists"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
     get:
       tags: [Users]
       summary: List all users
@@ -384,6 +390,30 @@ paths:
                 $ref: '#/components/schemas/Error'
         '403':
           description: Forbidden - You don't have admin permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    patch:
+      tags: [Users]
+      summary: Account configuration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserConfiguration'
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Bad Request
           content:
             application/json:
               schema:
@@ -680,6 +710,21 @@ components:
           format: password
           example: "P@ssw0rd!"
 
+    UserConfiguration:
+      type: object
+      properties:
+        photo:
+          type: string
+          format: binary
+          description: "JPEG, JPG or PNG image file"
+        telegramUsername:
+          type: string
+          pattern: '^@[a-zA-Z0-9_]{5,32}$'
+          example: "@Rossi"
+        notificationsEnabled:
+          type: boolean
+          example: true
+
     User:
       type: object 
       properties:
@@ -747,12 +792,9 @@ components:
           type: array
           items:
             type: string
-            format: uri
+            format: binary
           minItems: 1
           maxItems: 3
-          example: 
-            - "https://example.com/photos/report1_photo1.jpg"
-            - "https://example.com/photos/report1_photo2.jpg"
         latitude:
           type: number
           format: float
