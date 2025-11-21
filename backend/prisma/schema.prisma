@@ -19,7 +19,7 @@ model user {
   municipality_role_id Int?
   role                 roleType           @default(CITIZEN)
   municipality_role    municipality_role? @relation(fields: [municipality_role_id], references: [id], onDelete: Restrict)
-  reports   report[]
+  reports              report[]
 }
 
 model report {
@@ -34,7 +34,7 @@ model report {
   status      reportStatus @default(PENDING_APPROVAL)
   rejectionReason String?
   user_id     Int?
-  user   user?   @relation(fields: [user_id], references: [id], onDelete: Restrict)
+  user        user? @relation(fields: [user_id], references: [id], onDelete: Restrict)
 }
 
 model municipality_role {
@@ -49,15 +49,6 @@ enum roleType {
   MUNICIPALITY
 }
 
-enum reportStatus {
-  PENDING_APPROVAL
-  ASSIGNED
-  IN_PROGRESS
-  SUSPENDED
-  REJECTED
-  RESOLVED
-}
-
 enum Category {
   WATER_SUPPLY_DRINKING_WATER
   ARCHITECTURAL_BARRIERS
@@ -68,4 +59,13 @@ enum Category {
   ROADS_URBAN_FURNISHINGS
   PUBLIC_GREEN_AREAS_PLAYGROUNDS
   OTHER
+}
+
+enum reportStatus {
+  PENDING_APPROVAL
+  ASSIGNED
+  IN_PROGRESS
+  SUSPENDED
+  REJECTED
+  RESOLVED
 }
