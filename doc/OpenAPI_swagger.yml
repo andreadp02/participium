@@ -252,6 +252,68 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  /reports/municipality-users/{roleId}:
+    get:
+      tags: [Reports]
+      summary: Get reports by municipality role
+      description: >
+        Get reports by municipality role ID.
+        **Requires role: MUNICIPALITY**.
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: roleId
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: Municipality role ID
+      responses:
+        '200':
+          description: OK - Reports successfully retrieved
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Report'
+        '400':
+          description: Bad Request 
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Bad Request - Validation error"
+                message: "Invalid input data"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - You don't have municipality permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Not Found - Role not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Not Found"
+                message: "Role not found"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /users:
     # registration endpoint
