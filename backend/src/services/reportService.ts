@@ -18,18 +18,14 @@ const mapStringToStatus = (status: string): ReportStatus => {
 
 const findAll = async (): Promise<ReportResponseDto[]> => {
   const reports = await reportRepository.findAll();
-
-  const reportsWithImages = await Promise.all(
-    reports.map(async (report) => {
-      const photos = await imageService.getMultipleImages(report.photos);
-      return {
-        ...report,
-        photos,
-      };
-    }),
-  );
-
-  return reportsWithImages;
+  // Return stored relative paths for photos. The frontend expects relative
+  // paths (e.g. "<reportId>/<file>") and will build the full URL as
+  // `${backendOrigin}/uploads/${path}`. Avoid returning data URLs here to
+  // keep payload size small and let the client fetch images when needed.
+  return reports.map((report) => ({
+    ...report,
+    photos: report.photos || [],
+  }));
 };
 
 const findById = async (id: number): Promise<ReportResponseDto | null> => {
@@ -38,12 +34,11 @@ const findById = async (id: number): Promise<ReportResponseDto | null> => {
   if (!report) {
     return null;
   }
-
-  const photos = await imageService.getMultipleImages(report.photos);
-
+  // Return relative paths (not data URLs). The frontend will request
+  // `/uploads/{relativePath}` to fetch each image.
   return {
     ...report,
-    photos,
+    photos: report.photos || [],
   };
 };
 
@@ -57,17 +52,10 @@ const findByStatus = async (status: string): Promise<ReportResponseDto[]> => {
     return [];
   }
 
-  const reportsWithImages = await Promise.all(
-    reports.map(async (report: any) => {
-      const photos = await imageService.getMultipleImages(report.photos);
-      return {
-        ...report,
-        photos,
-      };
-    }),
-  );
-
-  return reportsWithImages;
+  return reports.map((report: any) => ({
+    ...report,
+    photos: report.photos || [],
+  }));
 };
 
 const updateReportStatus = async (
@@ -135,11 +123,17 @@ const submitReport = async (
     photos: imagePaths,
   });
 
-  const photos = await imageService.getMultipleImages(updatedReport.photos);
+  // Return relative paths; frontend will build full URLs to `/uploads/{path}`.
+  // Optionally preload the image cache for faster client access.
+  try {
+    await imageService.preloadCache(imagePaths);
+  } catch (e) {
+    // non-fatal
+  }
 
   return {
     ...(updatedReport as any),
-    photos,
+    photos: updatedReport.photos || [],
   } as any;
 };
 
