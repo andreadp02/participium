@@ -64,16 +64,16 @@ export const AdminReportsPage: React.FC = () => {
         const reportsData = data.map(
           (r) =>
             new Report(
-              r.latitude,
-              r.longitude,
-              r.title,
-              r.status,
-              r.id,
-              r.description,
-              r.category,
-              r.photos,
-              r.createdAt,
-              r.rejectionReason,
+                  r.latitude ?? 0,
+                  r.longitude ?? 0,
+                  r.title ?? "",
+                  r.status ?? "",
+                  r.id,
+                  r.description ?? "",
+                  r.category ?? "",
+                  r.photos ?? [],
+                  r.createdAt ?? "",
+                  r.rejectionReason,
             ),
         );
         setReports(reportsData);
@@ -139,8 +139,8 @@ export const AdminReportsPage: React.FC = () => {
   // Filter reports
   const filteredReports = reports.filter((report) => {
     const matchesSearch =
-      report.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      report.id.toLowerCase().includes(searchQuery.toLowerCase());
+      (report.title ?? "").toString().toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (report.id ?? "").toString().toLowerCase().includes(searchQuery.toLowerCase());
 
     // Tab-based filtering
     let matchesTab = true;
@@ -162,11 +162,9 @@ export const AdminReportsPage: React.FC = () => {
     (r) => r.status === ReportStatus.PENDING,
   ).length;
   const approvedCount = reports.filter((r) =>
-    [
-      ReportStatus.ASSIGNED,
-      ReportStatus.IN_PROGRESS,
-      ReportStatus.RESOLVED,
-    ].includes(r.status),
+    r.status === ReportStatus.ASSIGNED ||
+    r.status === ReportStatus.IN_PROGRESS ||
+    r.status === ReportStatus.RESOLVED,
   ).length;
   const rejectedCount = reports.filter(
     (r) => r.status === ReportStatus.REJECTED,

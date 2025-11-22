@@ -52,15 +52,18 @@ export const getReportByStatus = async (req: Request, res: Response) => {
 export const approveOrRejectReport = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { status, motivation, category } = req.body;
+    const { status, rejectionReason } = req.body;
 
-    if (status !== "ASSIGNED" && status !== "REJECTED") {
+    if (status !== "APPROVED" && status !== "REJECTED") {
       return res
         .status(400)
-        .json({ error: "Invalid status. Must be ASSIGNED or REJECTED." });
+        .json({ error: "Invalid status. Must be APPROVED or REJECTED." });
     }
 
-    if (status === "REJECTED" && (!motivation || motivation.trim() === "")) {
+    if (
+      status === "REJECTED" &&
+      (!rejectionReason || rejectionReason.trim() === "")
+    ) {
       return res.status(400).json({
         error: "Rejection reason is required when rejecting a report.",
       });
@@ -69,7 +72,7 @@ export const approveOrRejectReport = async (req: Request, res: Response) => {
     const updatedStatus = await reportService.updateReportStatus(
       parseInt(id),
       status,
-      motivation,
+      rejectionReason
     );
 
     res.json({ status: updatedStatus });
@@ -135,7 +138,7 @@ export const submitReport = async (req: Request, res: Response) => {
         buffer: file.buffer,
         mimetype: file.mimetype,
         originalname: file.originalname,
-      })),
+      }))
     );
 
     const report = await reportService.submitReport(
@@ -148,7 +151,7 @@ export const submitReport = async (req: Request, res: Response) => {
         category,
         photoKeys: tempKeys, // Pass temporary keys
       },
-      req.user.id,
+      req.user!.id
     );
 
     res.status(201).json(report);
