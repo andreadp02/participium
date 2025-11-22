@@ -403,6 +403,18 @@ paths:
     patch:
       tags: [Users]
       summary: Account configuration
+      description: >
+        Require role: CITIZEN.
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: User ID
       requestBody:
         required: true
         content:
@@ -485,7 +497,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-
     delete:
       tags: [Users]
       summary: Delete user
