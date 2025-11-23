@@ -3,8 +3,11 @@ import { CreateReportDto } from "@dto/reportDto";
 import { Report } from "@models/entities/report";
 import { ReportStatus } from "@models/enums";
 
-const findAll = async () => {
+type ReportStatusFilter = "ASSIGNED";
+
+const findAll = async (statusFilter?: ReportStatusFilter) => {
   return prisma.report.findMany({
+    where: statusFilter ? { status: statusFilter } : undefined,
     orderBy: {
       createdAt: "desc",
     },

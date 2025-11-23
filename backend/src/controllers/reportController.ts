@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import reportService from "@services/reportService";
 import imageService from "@services/imageService";
+import { stat } from "fs";
 
 const VALID_CATEGORIES = [
   "WATER_SUPPLY_DRINKING_WATER",
@@ -14,14 +15,41 @@ const VALID_CATEGORIES = [
   "OTHER",
 ];
 
+type ReportStatusFilter = "ASSIGNED";
+
 export const getReports = async (_req: Request, res: Response) => {
   try {
-    const reports = await reportService.findAll();
-    res.json(reports);
+    const { status } = _req.query as {
+      status?: string 
+    };
+
+    let statusFilter: ReportStatusFilter | undefined;
+
+    if (status !== undefined) {
+      if (status !== "ASSIGNED") {
+        return res.status(400).json({
+          error: "Bad Request",
+          message: "Invalid status filter",
+        });
+      }
+
+      if(!_req.user || _req.user.role !== "CITIZEN") {
+        return res.status(403).json({
+          error: "Authorization Error",
+          message: "Access denied. Citizen role required to filter by status.",
+        });
+      }
+      statusFilter = "ASSIGNED";
+    }
+
+    const reports = await reportService.findAll(statusFilter as any);
+    return res.json(reports);
   } catch (error) {
-    res.status(500).json({ error: "Failed to fetch reports" });
+    console.error("getReports error:", error);
+    return res.status(500).json({ error: "Failed to fetch reports" });
   }
 };
+
 
 export const getReportById = async (req: Request, res: Response) => {
   try {

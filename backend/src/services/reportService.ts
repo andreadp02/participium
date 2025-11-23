@@ -2,6 +2,7 @@ import reportRepository from "@repositories/reportRepository";
 import { CreateReportDto, ReportResponseDto } from "@dto/reportDto";
 import imageService from "@services/imageService";
 import { ReportStatus } from "@models/enums";
+import { stat } from "fs";
 
 // Helper function to map string to ReportStatus enum
 const mapStringToStatus = (status: string): ReportStatus => {
@@ -16,8 +17,10 @@ const mapStringToStatus = (status: string): ReportStatus => {
   );
 };
 
-const findAll = async (): Promise<ReportResponseDto[]> => {
-  const reports = await reportRepository.findAll();
+const findAll = async (
+  statusFilter?: ReportStatus,
+): Promise<ReportResponseDto[]> => {
+  const reports = await reportRepository.findAll(statusFilter as any);
   // Return stored relative paths for photos. The frontend expects relative
   // paths (e.g. "<reportId>/<file>") and will build the full URL as
   // `${backendOrigin}/uploads/${path}`. Avoid returning data URLs here to
