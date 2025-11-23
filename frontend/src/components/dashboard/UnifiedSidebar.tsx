@@ -69,6 +69,11 @@ const ROLE_CONFIGS: Record<UserRole, RoleConfig> = {
         label: "Messages",
         icon: <MessageSquare className="h-4 w-4" />,
       },
+      {
+        href: "/dashboard/settings",
+        label: "Settings",
+        icon: <Settings className="h-4 w-4" />,
+      },
     ],
   },
   ADMIN: {
