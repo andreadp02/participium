@@ -135,8 +135,7 @@ paths:
       tags: [Reports]
       summary: List all reports
       description: >
-        Returns the list of all reports.
-        **Requires role: ADMIN or MUNICIPALITY**. //TODO check roles
+        Returns the list of all reports. 
       security:
         - cookieAuth: []
       parameters:
@@ -145,7 +144,6 @@ paths:
           schema:
             type: string
             enum:
-              - PENDING_APPROVAL
               - ASSIGNED
           description: Filter reports by status
       responses:
