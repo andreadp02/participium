@@ -69,6 +69,7 @@ export const AdminReportsPage: React.FC = () => {
                   r.longitude ?? 0,
                   r.title ?? "",
                   r.status ?? "",
+                  r.anonymous ?? true,
                   r.id,
                   r.description ?? "",
                   r.category ?? "",

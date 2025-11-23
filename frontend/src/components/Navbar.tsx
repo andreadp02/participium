@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Menu, X, ShieldCheck, ChevronDown } from "lucide-react";
+import { Menu, X, ShieldCheck, ChevronDown, LogOut } from "lucide-react";
+import { useAuth } from "src/contexts/AuthContext";
 import { Container } from "src/components/shared/Container";
 
 const HOME_LINKS = [
@@ -140,12 +141,50 @@ export const NavBar: React.FC = () => {
               </Link>
             ))}
 
-            {/* Auth Buttons */}
-            {AUTH_BUTTONS.map((button) => (
-              <Link key={button.to} to={button.to} className={button.className}>
-                {button.label}
-              </Link>
-            ))}
+            {/* Auth Buttons / User */}
+            {(() => {
+              try {
+                const { isAuthenticated, user, logout } = useAuth();
+
+                if (isAuthenticated && user) {
+                  const displayName = user.firstName || user.username || "User";
+                  const handleLogout = async () => {
+                    await logout();
+                    navigate("/");
+                  };
+
+                  return (
+                    <div className="flex items-center gap-3">
+                      <Link
+                        to={user.role === "CITIZEN" ? "/dashboard" : user.role === "ADMIN" ? "/admin" : user.role === "MUNICIPALITY" ? "/municipality/reports" : "/dashboard"}
+                        className="text-sm font-medium text-slate-700 hover:text-slate-900 transition-colors"
+                      >
+                        {displayName}
+                      </Link>
+                      <button
+                        onClick={handleLogout}
+                        className="inline-flex items-center gap-2 rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-100 transition-colors"
+                      >
+                        <LogOut className="h-4 w-4" />
+                        Logout
+                      </button>
+                    </div>
+                  );
+                }
+              } catch (e) {
+                // If useAuth can't be used here (e.g., outside provider), fall back to default buttons
+              }
+
+              return (
+                <>
+                  {AUTH_BUTTONS.map((button) => (
+                    <Link key={button.to} to={button.to} className={button.className}>
+                      {button.label}
+                    </Link>
+                  ))}
+                </>
+              );
+            })()}
           </nav>
 
           {/* Mobile Menu Button */}
