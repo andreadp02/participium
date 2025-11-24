@@ -20,12 +20,13 @@ const NewReportPage: React.FC = () => {
             Number(r.longitude ?? r.lng ?? 0),
             r.title ?? "",
             (r.status as any) ?? ReportStatus.PENDING,
+            r.anonymous,
             r.id,
             r.description,
-            r.anonymous,
             r.category,
             r.photos,
             r.createdAt,
+            r.rejectionReason,
           );
         });
         setReports(mapped);
@@ -47,12 +48,13 @@ const NewReportPage: React.FC = () => {
           Number(newReport.longitude ?? newReport.lng ?? 0),
           newReport.title ?? "",
           (newReport.status as any) ?? ReportStatus.PENDING,
+          newReport.anonymous,
           newReport.id,
           newReport.description,
-          newReport.anonymous,
           newReport.category,
           newReport.photos,
           newReport.createdAt,
+          newReport.rejectionReason,
         );
         setReports((prev) => [...prev, mappedReport]);
       }
