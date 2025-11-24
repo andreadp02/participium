@@ -31,6 +31,7 @@ export const userController = {
         firstName: user.firstName,
         lastName: user.lastName,
         username: user.username,
+        profilePhoto: user.profilePhoto,
       });
     } catch (error: any) {
       if (
@@ -193,8 +194,13 @@ export const userController = {
       const id = req.user?.id;
 
       const { telegramUsername, notificationsEnabled } = req.body || {};
-
       const file = req.file;
+      
+      console.log(`[PATCH /users] req.body:`, req.body);
+      console.log(`[PATCH /users] file:`, file ? `${file.originalname} (${file.size} bytes)` : "undefined");
+      console.log(`[PATCH /users] telegramUsername:`, telegramUsername);
+      console.log(`[PATCH /users] notificationsEnabled:`, notificationsEnabled);
+
       if (!file && !telegramUsername && notificationsEnabled === undefined) {
         console.log("ERROR: Missing all fields");
         return res.status(400).json({
@@ -226,7 +232,7 @@ export const userController = {
       return res.status(200).send();
     } catch (error: any) {
       return res.status(500).json({
-        error: "Internal Server Errore",
+        error: "Internal Server Error",
         message: error?.message || "User profile update failed",
       });
     }

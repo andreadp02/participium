@@ -30,7 +30,6 @@ app.use(
 // Middlewares
 app.use(cookieParser());
 app.use(express.json());
-app.use(openApiValidator);
 
 // Health check endpoint
 app.get("/", (_req, res) => {
@@ -50,11 +49,21 @@ app.use(
   express.static(path.join(process.cwd(), "uploads")),
 );
 
- app.use(CONFIG.ROUTES.USER_PROFILES, express.static(path.join(process.cwd(), "user_profiles")))
+app.use(CONFIG.ROUTES.USER_PROFILES, express.static(path.join(process.cwd(), "user_profiles")));
 
-// Mount routers
-app.use(CONFIG.ROUTES.AUTH, authRouter);
+// IMPORTANT: Mount user router BEFORE OpenAPI validator
+// because the PATCH /users endpoint uses multipart/form-data which is not well supported by express-openapi-validator
 app.use(CONFIG.ROUTES.USERS, userRouter);
+
+// Apply OpenAPI validator middleware array (after user router to skip validation for PATCH /users)
+if (Array.isArray(openApiValidator)) {
+  openApiValidator.forEach(middleware => app.use(middleware));
+} else {
+  app.use(openApiValidator);
+}
+
+// Mount other routers
+app.use(CONFIG.ROUTES.AUTH, authRouter);
 app.use(CONFIG.ROUTES.REPORTS, reportRouter);
 
 // OpenAPI validation error handler

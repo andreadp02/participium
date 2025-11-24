@@ -29,6 +29,8 @@ export const authController = {
         lastName: user.lastName,
         username: user.username,
         role: user.role,
+        profilePhoto: user.profilePhoto,
+        token: token,
       });
     } catch (error: any) {
       return res.status(401).json({
@@ -46,6 +48,7 @@ export const authController = {
         lastName: user.lastName,
         username: user.username,
         role: user.role,
+        profilePhoto: user.profilePhoto,
       });
     } catch {
       return res.status(401).json({
