@@ -195,11 +195,6 @@ export const userController = {
 
       const { telegramUsername, notificationsEnabled } = req.body || {};
       const file = req.file;
-      
-      console.log(`[PATCH /users] req.body:`, req.body);
-      console.log(`[PATCH /users] file:`, file ? `${file.originalname} (${file.size} bytes)` : "undefined");
-      console.log(`[PATCH /users] telegramUsername:`, telegramUsername);
-      console.log(`[PATCH /users] notificationsEnabled:`, notificationsEnabled);
 
       if (!file && !telegramUsername && notificationsEnabled === undefined) {
         console.log("ERROR: Missing all fields");

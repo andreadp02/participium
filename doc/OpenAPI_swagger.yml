@@ -741,6 +741,19 @@ components:
         username:
           type: string
           example: "mrossi"
+        role:
+          type: string
+          example: "CITIZEN"
+        telegramUsername:
+          type: string
+          example: "@Rossi"
+        notificationsEnabled:
+          type: boolean
+          example: true
+        profilePhoto:
+          type: string
+          format: uri
+          example: "https://example.com/photos/mrossi_profile.jpg"
 
     LoginRequest:
       type: object
