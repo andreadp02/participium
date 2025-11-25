@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams, Link, useLocation } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { getReportById } from "src/services/api";
 
 // Reverse map backend enum -> human-friendly labels (keep in sync with form)
@@ -15,13 +15,8 @@ const ENUM_TO_LABEL: Record<string, string> = {
   OTHER: "Other",
 };
 
-const backendOrigin = (
-  import.meta.env.VITE_API_URL || "http://localhost:4000/api"
-).replace(/\/api\/?$/, "");
-
 const ReportDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const location = useLocation();
   const [report, setReport] = useState<any | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -39,10 +34,8 @@ const ReportDetailsPage: React.FC = () => {
     fetch();
   }, [id]);
 
-  // Check if we came from the dashboard, otherwise go back to /map
-  const fromDashboard = (location.state as any)?.fromDashboard;
-  const backLink = fromDashboard ? "/dashboard/new-report" : "/map";
-  const backText = fromDashboard ? "Back to Dashboard" : "Back to map";
+  const backLink = "/dashboard/new-report";
+  const backText = "Back to Dashboard";
 
   if (error) {
     return (
@@ -85,7 +78,7 @@ const ReportDetailsPage: React.FC = () => {
             {report.photos.map((p: string, i: number) => (
               <img
                 key={i}
-                src={`${backendOrigin}/uploads/${p}`}
+                src={`${import.meta.env.VITE_API_URL || "http://localhost:4000"}/uploads/${p}`}
                 alt={`photo-${i}`}
                 className="w-full h-40 object-cover rounded"
               />

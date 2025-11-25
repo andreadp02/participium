@@ -95,8 +95,8 @@ describe("Municipality Integration Tests", () => {
         .send(invalidPayload)
         .expect(400);
 
-      expect(response.body).toHaveProperty("error", "Bad Request");
-      expect(response.body.message).toContain("Missing required fields");
+      expect(response.body).toHaveProperty("error", "Validation Error");
+      expect(response.body.message).toContain("must have required property 'municipality_role_id'");
     });
 
     it("401 when not authenticated", async () => {
@@ -230,11 +230,11 @@ describe("Municipality Integration Tests", () => {
         expect(role).toHaveProperty("name");
       });
 
-      // Check specific roles exist (using real roles from database)
+      // Check specific roles exist (using seeded roles from database)
       const roleNames = response.body.map((role: any) => role.name);
-      expect(roleNames).toContain("municipal public relations officer");
-      expect(roleNames).toContain("municipal administrator");
-      expect(roleNames).toContain("technical office staff member");
+      expect(roleNames).toContain("OPERATOR");
+      expect(roleNames).toContain("VALIDATOR");
+      expect(roleNames).toContain("SUPERVISOR");
     });
 
     it("401 when not authenticated", async () => {
