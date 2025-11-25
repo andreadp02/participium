@@ -5,6 +5,7 @@ import { Login } from "src/pages/LoginPage";
 import { Register } from "src/pages/RegisterPage";
 import UserDashboardPage from "./pages/UserDashboard/UserDashboardPage";
 import NewReportPage from "./pages/UserDashboard/NewReportPage";
+import UserSettingsPage from "./pages/UserDashboard/UserSettingsPage";
 import AdminDashboardPage from "./pages/AdminDashboard/AdminDashboardPage";
 import AdminUsersPage from "./pages/AdminDashboard/AdminUsersPage";
 import MunicipalityReportsPage from "./pages/MunicipalityDashboard/MunicipalityReportsPage";
@@ -47,6 +48,14 @@ function App() {
               element={
                 <ProtectedRoute requiredRole="CITIZEN">
                   <NewReportPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/settings"
+              element={
+                <ProtectedRoute requiredRole="CITIZEN">
+                  <UserSettingsPage />
                 </ProtectedRoute>
               }
             />
