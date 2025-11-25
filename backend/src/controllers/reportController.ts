@@ -83,6 +83,7 @@ export const approveOrRejectReport = async (req: Request, res: Response) => {
     // Accept either `rejectionReason` or `motivation` coming from frontend
     const { status } = req.body;
     const rejectionReason = req.body.rejectionReason ?? req.body.motivation;
+
     // Only allow setting ASSIGNED (accepted) or REJECTED
     if (status !== "ASSIGNED" && status !== "REJECTED") {
       return res
@@ -90,7 +91,10 @@ export const approveOrRejectReport = async (req: Request, res: Response) => {
         .json({ error: "Invalid status. Must be ASSIGNED or REJECTED." });
     }
 
-    if (status === "REJECTED" && (!rejectionReason || rejectionReason.trim() === "")) {
+    if (
+      status === "REJECTED" &&
+      (!rejectionReason || rejectionReason.trim() === "")
+    ) {
       return res.status(400).json({
         error: "Rejection reason is required when rejecting a report.",
       });
@@ -102,7 +106,7 @@ export const approveOrRejectReport = async (req: Request, res: Response) => {
       rejectionReason,
     );
 
-    res.json({ status: updatedStatus });
+    res.status(204).json({ status: updatedStatus });
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Failed to update report status";
@@ -116,11 +120,11 @@ export const approveOrRejectReport = async (req: Request, res: Response) => {
 
 export const submitReport = async (req: Request, res: Response) => {
   try {
-    // Unit tests call submitReport with empty body ({}). Handle that case by delegating to service.
-    if (req.body && Object.keys(req.body).length === 0) {
-      const created = await reportService.submitReport({} as any, 1);
-      return res.status(201).json(created);
-    }
+    // // Unit tests call submitReport with empty body ({}). Handle that case by delegating to service.
+    // if (req.body && Object.keys(req.body).length === 0) {
+    //   const created = await reportService.submitReport({} as any, 1);
+    //   return res.status(201).json(created);
+    // }
 
     const { latitude, longitude, anonymous, title, description, category } =
       req.body;
@@ -165,7 +169,7 @@ export const submitReport = async (req: Request, res: Response) => {
         buffer: file.buffer,
         mimetype: file.mimetype,
         originalname: file.originalname,
-      }))
+      })),
     );
 
     const report = await reportService.submitReport(
@@ -178,7 +182,7 @@ export const submitReport = async (req: Request, res: Response) => {
         category,
         photoKeys: tempKeys, // Pass temporary keys
       },
-      req.user!.id
+      req.user!.id,
     );
 
     res.status(201).json(report);

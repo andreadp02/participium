@@ -7,7 +7,7 @@ jest.mock("@services/reportService", () => {
     findByStatus: jest.fn(),
     submitReport: jest.fn(),
     updateReportStatus: jest.fn(),
-    deleteReport: jest.fn(),
+    deleteReport: jest.fn()
   };
   return { __esModule: true, default: m };
 });
@@ -240,6 +240,88 @@ describe("reportController", () => {
     });
   });
 
+  // -------- getReportByStatus --------
+  describe("getReportByStatus", () => {
+    it("returns reports filtered by status", async () => {
+      const reports = [makeReport({ id: 11 })];
+      svc.findByStatus.mockResolvedValue(reports);
+
+      const req = { query: { status: "PENDING" } } as unknown as Request;
+      const res = makeRes();
+
+      await getReportByStatus(req, res as unknown as Response);
+
+      expect(svc.findByStatus).toHaveBeenCalledWith("PENDING");
+      expect(res.json).toHaveBeenCalledWith(reports);
+    });
+
+    it("returns 500 on service error", async () => {
+      svc.findByStatus.mockRejectedValue(new Error("boom"));
+
+      const req = { query: { status: "ANY" } } as unknown as Request;
+      const res = makeRes();
+
+      await getReportByStatus(req, res as unknown as Response);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({
+        error: "Failed to fetch report",
+      });
+    });
+  });
+
+  // -------- approveOrRejectReport --------
+  describe("approveOrRejectReport", () => {
+    it("accepts ASSIGNED and calls service", async () => {
+      svc.updateReportStatus.mockResolvedValue("ASSIGNED");
+
+      const req = {
+        params: { id: "5" },
+        body: { status: "ASSIGNED" },
+      } as unknown as Request;
+      const res = makeRes();
+
+      await approveOrRejectReport(req, res as unknown as Response);
+
+      expect(svc.updateReportStatus).toHaveBeenCalledWith(
+        5,
+        "ASSIGNED",
+        undefined,
+      );
+      expect(res.json).toHaveBeenCalledWith({ status: "ASSIGNED" });
+    });
+
+    it("rejects with missing reason -> 400", async () => {
+      const req = {
+        params: { id: "6" },
+        body: { status: "REJECTED" },
+      } as unknown as Request;
+      const res = makeRes();
+
+      await approveOrRejectReport(req, res as unknown as Response);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        error: "Rejection reason is required when rejecting a report.",
+      });
+    });
+
+    it("returns 500 on service error", async () => {
+      svc.updateReportStatus.mockRejectedValue(new Error("fail"));
+
+      const req = {
+        params: { id: "8" },
+        body: { status: "ASSIGNED" },
+      } as unknown as Request;
+      const res = makeRes();
+
+      await approveOrRejectReport(req, res as unknown as Response);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({ error: "fail" });
+    });
+  });
+
   // -------- submitReport --------
   describe("submitReport", () => {
     it("draft path: body vuoto -> delega al service con {} e torna 201", async () => {
@@ -457,6 +539,7 @@ describe("reportController", () => {
             originalname: "a.jpg",
           },
         ],
+        user: { id: 2 },
       } as any;
       const res = makeRes();
 
