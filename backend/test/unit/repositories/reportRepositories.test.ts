@@ -5,7 +5,7 @@ jest.mock("@database", () => {
       findUnique: jest.fn(),
       create: jest.fn(),
       delete: jest.fn(),
-      update: jest.fn(), // NEW: serve per testare update()
+      update: jest.fn(),
     },
   };
   return { prisma: mPrisma };
@@ -13,6 +13,7 @@ jest.mock("@database", () => {
 
 import { prisma } from "@database";
 import reportRepository from "@repositories/reportRepository";
+import { ReportStatus } from "@models/enums";
 
 type PrismaMock = {
   report: {
@@ -20,7 +21,7 @@ type PrismaMock = {
     findUnique: jest.Mock;
     create: jest.Mock;
     delete: jest.Mock;
-    update: jest.Mock; // NEW
+    update: jest.Mock;
   };
 };
 
@@ -57,6 +58,51 @@ describe("reportRepository", () => {
       });
       expect(res).toBe(rows);
     });
+
+    it("filters reports by status when statusFilter is provided", async () => {
+      const approvedReports = [makeReport({ id: 1, status: "ASSIGNED" })];
+      prismaMock.report.findMany.mockResolvedValue(approvedReports);
+
+      const res = await reportRepository.findAll("ASSIGNED");
+
+      expect(prismaMock.report.findMany).toHaveBeenCalledWith({
+        where: { status: "ASSIGNED" },
+        orderBy: { createdAt: "desc" },
+      });
+      expect(res).toBe(approvedReports);
+    });
+
+    it("returns all reports when no statusFilter", async () => {
+      const allReports = [
+        makeReport({ id: 1, status: "PENDING" }),
+        makeReport({ id: 2, status: "ASSIGNED" })
+      ];
+      prismaMock.report.findMany.mockResolvedValue(allReports);
+
+      const res = await reportRepository.findAll();
+
+      expect(prismaMock.report.findMany).toHaveBeenCalledWith({
+        where: undefined,
+        orderBy: { createdAt: "desc" },
+      });
+      expect(res).toBe(allReports);
+    });
+  });
+
+  // -------- findByStatus --------
+  describe("findByStatus", () => {
+    it("finds reports by status", async () => {
+      const reports = [makeReport({ id: 1, status: "PENDING_APPROVAL" })];
+      prismaMock.report.findMany.mockResolvedValue(reports);
+
+      const res = await reportRepository.findByStatus(ReportStatus.PENDING_APPROVAL);
+
+      expect(prismaMock.report.findMany).toHaveBeenCalledWith({
+        where: { status: ReportStatus.PENDING_APPROVAL },
+        orderBy: { createdAt: "desc" },
+      });
+      expect(res).toBe(reports);
+    });
   });
 
   // -------- findById --------
@@ -78,6 +124,24 @@ describe("reportRepository", () => {
 
       const res = await reportRepository.findById(999);
       expect(res).toBeNull();
+    });
+  });
+
+  // -------- findByStatus --------
+  describe("findByStatus", () => {
+    it("returns reports filtered by status", async () => {
+      const rows = [makeReport({ id: 5, status: ReportStatus.ASSIGNED })];
+      prismaMock.report.findMany.mockResolvedValue(rows);
+
+      const res = await reportRepository.findByStatus(
+        ReportStatus.ASSIGNED as any,
+      );
+
+      expect(prismaMock.report.findMany).toHaveBeenCalledWith({
+        where: { status: ReportStatus.ASSIGNED } as any,
+        orderBy: { createdAt: "desc" },
+      });
+      expect(res).toBe(rows);
     });
   });
 
@@ -146,6 +210,95 @@ describe("reportRepository", () => {
         data: patch,
       });
       expect(res).toBe(updated);
+    });
+  });
+
+  // -------- findByStatusesAndCategories --------
+  describe("findByStatusesAndCategories", () => {
+    it("finds reports by statuses and categories", async () => {
+      const reports = [makeReport({ id: 1, status: "PENDING_APPROVAL", category: "ROAD_DAMAGE" })];
+      prismaMock.report.findMany.mockResolvedValue(reports);
+
+      const res = await reportRepository.findByStatusesAndCategories(
+        [ReportStatus.PENDING_APPROVAL],
+        ["ROAD_DAMAGE"]
+      );
+
+      expect(prismaMock.report.findMany).toHaveBeenCalledWith({
+        where: {
+          status: { in: [ReportStatus.PENDING_APPROVAL] as any },
+          category: { in: ["ROAD_DAMAGE"] as any },
+        } as any,
+        orderBy: { createdAt: "desc" },
+      });
+      expect(res).toBe(reports);
+    });
+  });
+
+  // -------- create --------
+  describe("create", () => {
+    it("creates a report without user_id", async () => {
+      const reportData = {
+        latitude: 45.072,
+        longitude: 7.682,
+        title: "Buche in via Roma",
+        description: "Buca profonda vicino al numero 12",
+        category: "ROAD_DAMAGE",
+        photoKeys: ["p1", "p2"],
+        status: ReportStatus.PENDING_APPROVAL,
+      };
+      const createdReport = makeReport({ ...reportData, id: 1 });
+      prismaMock.report.create.mockResolvedValue(createdReport);
+
+      const res = await reportRepository.create(reportData);
+
+      expect(prismaMock.report.create).toHaveBeenCalledWith({
+        data: {
+          latitude: 45.072,
+          longitude: 7.682,
+          title: "Buche in via Roma",
+          description: "Buca profonda vicino al numero 12",
+          category: "ROAD_DAMAGE" as any,
+          photos: ["p1", "p2"],
+          status: ReportStatus.PENDING_APPROVAL,
+          assignedOffice: undefined,
+        },
+      });
+      expect(res).toBe(createdReport);
+    });
+
+    it("creates a report with user_id", async () => {
+      const reportData = {
+        latitude: 45.072,
+        longitude: 7.682,
+        title: "Buche in via Roma",
+        description: "Buca profonda vicino al numero 12",
+        category: "ROAD_DAMAGE",
+        photoKeys: ["p1", "p2"],
+        status: ReportStatus.PENDING_APPROVAL,
+        user_id: 5,
+      };
+      const createdReport = makeReport({ ...reportData, id: 1 });
+      prismaMock.report.create.mockResolvedValue(createdReport);
+
+      const res = await reportRepository.create(reportData);
+
+      expect(prismaMock.report.create).toHaveBeenCalledWith({
+        data: {
+          latitude: 45.072,
+          longitude: 7.682,
+          title: "Buche in via Roma",
+          description: "Buca profonda vicino al numero 12",
+          category: "ROAD_DAMAGE" as any,
+          photos: ["p1", "p2"],
+          status: ReportStatus.PENDING_APPROVAL,
+          assignedOffice: undefined,
+          user: {
+            connect: { id: 5 },
+          },
+        },
+      });
+      expect(res).toBe(createdReport);
     });
   });
 

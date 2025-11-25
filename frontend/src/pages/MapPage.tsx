@@ -22,12 +22,13 @@ const MapPage: React.FC = () => {
             Number(r.longitude ?? r.lng ?? 0),
             r.title ?? "",
             (r.status as any) ?? ReportStatus.PENDING,
+            r.anonymous,
             r.id,
             r.description,
-            r.anonymous,
             r.category,
             r.photos,
             r.createdAt,
+            r.rejectionReason,
           );
         });
         setReports(mapped);
