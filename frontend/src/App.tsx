@@ -5,6 +5,7 @@ import { Login } from "src/pages/LoginPage";
 import { Register } from "src/pages/RegisterPage";
 import UserDashboardPage from "./pages/UserDashboard/UserDashboardPage";
 import NewReportPage from "./pages/UserDashboard/NewReportPage";
+import UserSettingsPage from "./pages/UserDashboard/UserSettingsPage";
 import AdminDashboardPage from "./pages/AdminDashboard/AdminDashboardPage";
 import AdminUsersPage from "./pages/AdminDashboard/AdminUsersPage";
 import MunicipalityReportsPage from "./pages/MunicipalityDashboard/MunicipalityReportsPage";
@@ -50,6 +51,14 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/dashboard/settings"
+              element={
+                <ProtectedRoute requiredRole="CITIZEN">
+                  <UserSettingsPage />
+                </ProtectedRoute>
+              }
+            />
 
             {/* Admin Dashboard routes - protected, ADMIN role */}
             <Route
@@ -81,7 +90,7 @@ function App() {
             <Route
               path="/municipality/reports"
               element={
-                <ProtectedRoute requiredRole="MUNICIPALITY">
+                <ProtectedRoute requiredRole="MUNICIPALITY" requiredMunicipalityRole="municipal public relations officer">
                   <MunicipalityReportsPage />
                 </ProtectedRoute>
               }
@@ -89,7 +98,7 @@ function App() {
             <Route
               path="/municipality/technical-reports"
               element={
-                <ProtectedRoute requiredRole="MUNICIPALITY">
+                <ProtectedRoute requiredRole="MUNICIPALITY" requiredMunicipalityRole="technical office staff member">
                   <MunicipalityTechnicalReportsPage />
                 </ProtectedRoute>
               }

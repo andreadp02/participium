@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import reportService from "@services/reportService";
 import imageService from "@services/imageService";
+import { stat } from "fs";
 
 const VALID_CATEGORIES = [
   "WATER_SUPPLY_DRINKING_WATER",
@@ -14,19 +15,74 @@ const VALID_CATEGORIES = [
   "OTHER",
 ];
 
+type ReportStatusFilter = "ASSIGNED";
+
 export const getReports = async (_req: Request, res: Response) => {
   try {
-    const reports = await reportService.findAll();
-    res.json(reports);
+    const { status } = _req.query as {
+      status?: string 
+    };
+
+    let statusFilter: ReportStatusFilter | undefined;
+    let userId: number | undefined;
+
+    if (!_req.user) {
+      return res.status(401).json({
+        error: "Authentication Error",
+        message: "User not authenticated",
+      });
+    }
+
+    // CITIZEN: Can see their own reports + ASSIGNED reports
+    if (_req.user.role === "CITIZEN") {
+      if (status !== undefined && status !== "ASSIGNED") {
+        return res.status(400).json({
+          error: "Validation Error",
+          message: "request/query/status must be equal to one of the allowed values: ASSIGNED",
+        });
+      }
+      userId = _req.user.id;
+      // If status=ASSIGNED is passed, also filter by ASSIGNED (which findAll already does with userId)
+      // If no status is passed, show all their reports + ASSIGNED from others
+    }
+    // ADMIN/MUNICIPALITY: Can see all reports, optionally filtered by status
+    else if (_req.user.role === "ADMIN" || _req.user.role === "MUNICIPALITY") {
+      // Allow filtering by status if provided
+      if (status !== undefined && status !== "ASSIGNED") {
+        return res.status(400).json({
+          error: "Validation Error",
+          message: "request/query/status must be equal to one of the allowed values: ASSIGNED",
+        });
+      }
+      if (status === "ASSIGNED") {
+        statusFilter = "ASSIGNED";
+      }
+    } else {
+      return res.status(403).json({
+        error: "Authorization Error",
+        message: `Access denied. Allowed roles: CITIZEN, ADMIN, MUNICIPALITY. Your role: ${_req.user.role}`,
+      });
+    }
+
+    const reports = await reportService.findAll(statusFilter as any, userId);
+    return res.json(reports);
   } catch (error) {
-    res.status(500).json({ error: "Failed to fetch reports" });
+    console.error("getReports error:", error);
+    return res.status(500).json({ error: "Failed to fetch reports" });
   }
 };
+
 
 export const getReportById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const report = await reportService.findById(parseInt(id));
+    const parsedId = parseInt(id);
+    
+    if (isNaN(parsedId)) {
+      return res.status(400).json({ error: "Invalid report ID" });
+    }
+    
+    const report = await reportService.findById(parsedId);
 
     if (!report) {
       return res.status(404).json({ error: "Report not found" });
@@ -55,6 +111,7 @@ export const approveOrRejectReport = async (req: Request, res: Response) => {
     // Accept either `rejectionReason` or `motivation` coming from frontend
     const { status } = req.body;
     const rejectionReason = req.body.rejectionReason ?? req.body.motivation;
+
     // Only allow setting ASSIGNED (accepted) or REJECTED
     if (status !== "ASSIGNED" && status !== "REJECTED") {
       return res
@@ -77,7 +134,7 @@ export const approveOrRejectReport = async (req: Request, res: Response) => {
       rejectionReason,
     );
 
-    res.json({ status: updatedStatus });
+    res.status(204).json({ status: updatedStatus });
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Failed to update report status";
@@ -91,11 +148,11 @@ export const approveOrRejectReport = async (req: Request, res: Response) => {
 
 export const submitReport = async (req: Request, res: Response) => {
   try {
-    // Unit tests call submitReport with empty body ({}). Handle that case by delegating to service.
-    if (req.body && Object.keys(req.body).length === 0) {
-      const created = await reportService.submitReport({} as any, 1);
-      return res.status(201).json(created);
-    }
+    // // Unit tests call submitReport with empty body ({}). Handle that case by delegating to service.
+    // if (req.body && Object.keys(req.body).length === 0) {
+    //   const created = await reportService.submitReport({} as any, 1);
+    //   return res.status(201).json(created);
+    // }
 
     const { latitude, longitude, anonymous, title, description, category } =
       req.body;
@@ -153,12 +210,13 @@ export const submitReport = async (req: Request, res: Response) => {
         category,
         photoKeys: tempKeys, // Pass temporary keys
       },
-      req.user!.id,
+      req.user!.id
     );
 
     res.status(201).json(report);
   } catch (error) {
     // Do not leak internal error messages in responses for submit
+    console.error("Error in submitReport:", error);
     res.status(500).json({ error: "Failed to submit report" });
   }
 };

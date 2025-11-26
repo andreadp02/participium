@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { MapContainer, TileLayer, GeoJSON } from "react-leaflet";
-import ReportMarker from "./ReportMarker";
+// Cluster group for grouping nearby markers
+import ClusteredMarkers from "./ClusteredMarkers";
 
 import type { LatLngExpression } from "leaflet";
 import type { Report } from "src/services/models";
@@ -22,7 +23,9 @@ Zoom levels
 const MAP_OPTIONS = {
   center: [45.0677551, 7.6824892] as LatLngExpression, // Torino
   zoom: 12, // default zoom level
-  scrollWheelZoom: false,
+  scrollWheelZoom: true,
+  minZoom: 10,
+  maxZoom: 19,
 };
 
 const MapPlaceholder: React.FC = () => {
@@ -132,9 +135,7 @@ const MapView: React.FC<React.PropsWithChildren<Props>> = ({
           </>
         )}
 
-        {reports.map((r) => (
-          <ReportMarker key={r.id} report={r} />
-        ))}
+        <ClusteredMarkers reports={reports} />
         {children}
       </MapContainer>
     </div>

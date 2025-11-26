@@ -26,6 +26,15 @@ export interface User {
   lastName?: string;
   username?: string;
   role?: string;
+  municipality_role_id?: number;
+  municipality_role?: {
+    id: number;
+    name: string;
+  };
+  telegramUsername?: string;
+  notificationsEnabled?: boolean;
+  notifications?: boolean;
+  profilePhoto?: string;
 }
 
 export interface LoginRequest {
@@ -53,12 +62,16 @@ export interface Report {
   createdAt?: string;
   latitude?: number;
   longitude?: number;
-  status?: string;
+  status?: ReportStatus;
   rejectionReason?: string;
 }
 
+export type ReportStatus = "PENDING_APPROVAL" | "ASSIGNED" | "REJECTED";
+
+export type ReportStatusFilter = ReportStatus;
+
 export interface ApproveReportRequest {
-  status: "ASSIGNED" | "REJECTED" | string;
+  status: Extract<ReportStatus, "ASSIGNED" | "REJECTED">;
   category?: string;
   motivation?: string;
 }
@@ -165,14 +178,19 @@ export const createReport = async (
   // Map human-friendly category labels to canonical backend enum values
   const mapCategoryToEnum = (label: string) => {
     const s = (label || "").toLowerCase();
-    if (s.includes("water") && s.includes("drinking")) return "WATER_SUPPLY_DRINKING_WATER";
-    if (s.includes("architectur" ) || s.includes("barrier")) return "ARCHITECTURAL_BARRIERS";
+    if (s.includes("water") && s.includes("drinking"))
+      return "WATER_SUPPLY_DRINKING_WATER";
+    if (s.includes("architectur") || s.includes("barrier"))
+      return "ARCHITECTURAL_BARRIERS";
     if (s.includes("sewer")) return "SEWER_SYSTEM";
     if (s.includes("light")) return "PUBLIC_LIGHTING";
     if (s.includes("waste") || s.includes("trash")) return "WASTE";
-    if (s.includes("road") && (s.includes("sign") || s.includes("traffic"))) return "ROAD_SIGNS_TRAFFIC_LIGHTS";
-    if (s.includes("road") || s.includes("urban") || s.includes("furnish")) return "ROADS_URBAN_FURNISHINGS";
-    if (s.includes("green") || s.includes("playground")) return "PUBLIC_GREEN_AREAS_PLAYGROUNDS";
+    if (s.includes("road") && (s.includes("sign") || s.includes("traffic")))
+      return "ROAD_SIGNS_TRAFFIC_LIGHTS";
+    if (s.includes("road") || s.includes("urban") || s.includes("furnish"))
+      return "ROADS_URBAN_FURNISHINGS";
+    if (s.includes("green") || s.includes("playground"))
+      return "PUBLIC_GREEN_AREAS_PLAYGROUNDS";
     return "OTHER";
   };
 
@@ -203,10 +221,15 @@ export const createReport = async (
 /**
  * Get all reports
  * @returns Array of reports
+ * @param statusFilter Optional status filter
  * @throws ApiError on failure
  */
-export const getReports = async (): Promise<Report[]> => {
-  const response = await api.get("/reports");
+export const getReports = async (
+  statusFilter?: ReportStatusFilter,
+): Promise<Report[]> => {
+  const response = await api.get("/reports", {
+    params: statusFilter ? { status: statusFilter } : undefined,
+  });
   return response.data;
 };
 
@@ -298,6 +321,19 @@ export const updateMunicipalityUserRole = async (
     municipality_role_id: roleId,
   });
   return response.data;
+};
+
+// ==================== Citizen Profile APIs ====================
+
+/**
+ * Update citizen profile (photo, telegram, notifications)
+ * Requires: CITIZEN role
+ * @param formData FormData containing profile data
+ * @returns Success response
+ * @throws ApiError on failure
+ */
+export const updateCitizenProfile = async (formData: FormData): Promise<void> => {
+  await api.patch("/users", formData);
 };
 
 export default api;
