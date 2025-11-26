@@ -6,8 +6,6 @@ import messageRepository, {
 const sendMessage = async (
   data: CreateMessageDto,
 ): Promise<MessageResponseDto> => {
-
-
   if (!data.title || data.title.trim().length === 0) {
     throw new Error("Title is required");
   }

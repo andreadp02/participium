@@ -2,7 +2,7 @@ import reportRepository from "@repositories/reportRepository";
 import { CreateReportDto, ReportResponseDto } from "@dto/reportDto";
 import imageService from "@services/imageService";
 import { ReportStatus } from "@models/enums";
-import { stat } from "fs";
+import { notificationService } from "@services/notificationService";
 
 // Helper function to map string to ReportStatus enum
 const mapStringToStatus = (status: string): ReportStatus => {
@@ -13,13 +13,13 @@ const mapStringToStatus = (status: string): ReportStatus => {
   }
 
   throw new Error(
-    `Invalid status: ${status}. Valid values are: ${Object.values(ReportStatus).join(", ")}`,
+    `Invalid status: ${status}. Valid values are: ${Object.values(ReportStatus).join(", ")}`
   );
 };
 
 const findAll = async (
   statusFilter?: ReportStatus,
-  userId?: number,
+  userId?: number
 ): Promise<ReportResponseDto[]> => {
   const reports = await reportRepository.findAll(statusFilter as any, userId);
   // Return stored relative paths for photos. The frontend expects relative
@@ -64,11 +64,11 @@ const findByStatus = async (status: string): Promise<ReportResponseDto[]> => {
 
 const updateReportStatus = async (
   id: number,
-  status: string,
-  rejectionReason?: string,
+  newStatus: string,
+  rejectionReason?: string
 ) => {
   // Map string to enum
-  const statusEnum = mapStringToStatus(status);
+  const statusEnum = mapStringToStatus(newStatus);
 
   // Fetch existing report to validate and to read the category
   const existing = await reportRepository.findById(id);
@@ -77,9 +77,12 @@ const updateReportStatus = async (
   // Validate allowed transitions: only PENDING_APPROVAL can be ACCEPTED/REJECTED here
   if (existing.status !== ReportStatus.PENDING_APPROVAL) {
     throw new Error(
-      `Invalid state transition: only reports in PENDING_APPROVAL can be updated. Current status: ${existing.status}`,
+      `Invalid state transition: only reports in PENDING_APPROVAL can be updated. Current status: ${existing.status}`
     );
   }
+
+  // store previous status for notification
+  const previousStatus = existing.status;
 
   // When assigning, compute the technical office based on category using a robust matcher
   let assignedOffice: string | undefined = undefined;
@@ -135,12 +138,20 @@ const updateReportStatus = async (
     assignedOffice: assignedOffice ?? null,
   });
 
+  // notify relevant status change to the reporter
+  await notificationService.notifyReportStatusChange(
+    id,
+    previousStatus,
+    newStatus,
+    (existing as any).user_id
+  );
+
   return updatedReport.status;
 };
 
 const submitReport = async (
   data: CreateReportDto,
-  user_id: number,
+  user_id: number
 ): Promise<ReportResponseDto> => {
   // In unit tests we sometimes call submitReport with an empty dto ({}).
   // Shortcut: if empty, delegate directly to repository.create so tests can mock it.
@@ -179,7 +190,7 @@ const submitReport = async (
 
   const imagePaths = await imageService.persistImagesForReport(
     data.photoKeys,
-    report.id,
+    report.id
   );
 
   const updatedReport = await reportRepository.update(report.id, {

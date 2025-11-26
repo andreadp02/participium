@@ -12,6 +12,8 @@ import errorHandler from "@middlewares/errorMiddleware";
 import reportRouter from "@routes/reportRouter";
 import authRouter from "@routes/authRouter";
 import userRouter from "@routes/userRouter";
+import messageRouter from "@routes/messageRouter";
+import notificationRouter from "@routes/notificationRouter";
 
 const app = express();
 
@@ -24,7 +26,7 @@ app.use(
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
-  }),
+  })
 );
 
 // Middlewares
@@ -40,20 +42,18 @@ app.get("/", (_req, res) => {
 app.use(
   CONFIG.ROUTES.SWAGGER,
   swaggerUi.serve,
-  swaggerUi.setup(swaggerDocument),
-  swaggerUi.setup(swaggerDocument),
+  swaggerUi.setup(swaggerDocument)
 );
 
 // Serve uploaded files statically
 app.use(
   CONFIG.ROUTES.UPLOADS,
-  express.static(path.join(process.cwd(), "uploads")),
-  express.static(path.join(process.cwd(), "uploads")),
+  express.static(path.join(process.cwd(), "uploads"))
 );
 
 app.use(
   CONFIG.ROUTES.USER_PROFILES,
-  express.static(path.join(process.cwd(), "user_profiles")),
+  express.static(path.join(process.cwd(), "user_profiles"))
 );
 
 // IMPORTANT: Mount routers that use multipart/form-data BEFORE OpenAPI validator
@@ -71,6 +71,8 @@ if (Array.isArray(openApiValidator)) {
 
 // Mount other routers (after validator)
 app.use(CONFIG.ROUTES.AUTH, authRouter);
+app.use(CONFIG.ROUTES.MESSAGES, messageRouter);
+app.use(CONFIG.ROUTES.NOTIFICATIONS, notificationRouter);
 
 // OpenAPI validation error handler
 app.use((err: any, _req: any, res: any, next: any) => {

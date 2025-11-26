@@ -3,7 +3,7 @@ import path from "path";
 
 if (!process.env.DATABASE_URL) {
   console.error(
-    "Missing required env: DATABASE_URL. Copy .env.example in a new .env and set the values.",
+    "Missing required env: DATABASE_URL. Copy .env.example in a new .env and set the values."
   );
   process.exit(1);
 }
@@ -43,6 +43,8 @@ export const CONFIG = {
     AUTH: APP_BASE_URL + "auth",
     USERS: APP_BASE_URL + "users",
     REPORTS: APP_BASE_URL + "reports",
+    MESSAGES: APP_BASE_URL + "messages",
+    NOTIFICATIONS: APP_BASE_URL + "notifications",
     // Serve uploads under the API base so frontend URLs using the API
     // base (e.g. http://host:port/api/uploads/...) resolve correctly.
     UPLOADS: APP_BASE_URL + "uploads",

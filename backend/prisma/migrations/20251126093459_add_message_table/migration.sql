@@ -11,9 +11,6 @@ CREATE TABLE "message" (
     CONSTRAINT "message_pkey" PRIMARY KEY ("id")
 );
 
--- RenameForeignKey
-ALTER TABLE "report" RENAME CONSTRAINT "report_userId_fkey" TO "report_user_id_fkey";
-
 -- AddForeignKey
 ALTER TABLE "message" ADD CONSTRAINT "message_sender_id_fkey" FOREIGN KEY ("sender_id") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
