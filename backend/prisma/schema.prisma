@@ -25,22 +25,24 @@ model user {
   reports              report[]
   sentMessages         message[]          @relation("sentMessages")
   receivedMessages     message[]          @relation("receivedMessages")
+  notification         notification[]
 }
 
 model report {
-  id          Int      @id @default(autoincrement())
-  createdAt   DateTime @default(now())
-  latitude    Float
-  longitude   Float
-  title       String
-  category    Category
-  description String
-  photos      String[]
-  status      reportStatus @default(PENDING_APPROVAL)
+  id              Int      @id @default(autoincrement())
+  createdAt       DateTime @default(now())
+  latitude        Float
+  longitude       Float
+  title           String
+  category        Category
+  description     String
+  photos          String[]
+  status          reportStatus @default(PENDING_APPROVAL)
   rejectionReason String?
-  assignedOffice String?
-  user_id     Int?
-  user        user? @relation(fields: [user_id], references: [id], onDelete: Restrict)
+  assignedOffice  String?
+  user_id         Int?
+  user            user? @relation(fields: [user_id], references: [id], onDelete: Restrict)
+  notification    notification[]
 }
 
 model message {
@@ -53,6 +55,18 @@ model message {
   recipient_id  Int
   sender        user     @relation("sentMessages", fields: [sender_id], references: [id], onDelete: Restrict)
   recipient     user     @relation("receivedMessages", fields: [recipient_id], references: [id], onDelete: Restrict)
+}
+
+model notification {
+  id          Int          @id @default(autoincrement())
+  title       String
+  content     String
+  report_id   Int
+  report      report       @relation(fields: [report_id], references: [id], onDelete: Restrict)
+  user_id     Int
+  user        user         @relation(fields: [user_id], references: [id], onDelete: Restrict)
+  created_at  DateTime     @default(now())
+  read_at     DateTime?
 }
 
 model municipality_role {
