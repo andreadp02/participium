@@ -20,6 +20,8 @@ model user {
   role                 roleType           @default(CITIZEN)
   municipality_role    municipality_role? @relation(fields: [municipality_role_id], references: [id], onDelete: Restrict)
   reports              report[]
+  sentMessages         message[]          @relation("sentMessages")
+  receivedMessages     message[]          @relation("receivedMessages")
 }
 
 model report {
@@ -36,6 +38,18 @@ model report {
   assignedOffice String?
   user_id     Int?
   user        user? @relation(fields: [user_id], references: [id], onDelete: Restrict)
+}
+
+model message {
+  id            Int      @id @default(autoincrement())
+  title         String
+  content       String
+  sentAt        DateTime @default(now())
+  readAt        DateTime?
+  sender_id     Int
+  recipient_id  Int
+  sender        user     @relation("sentMessages", fields: [sender_id], references: [id], onDelete: Restrict)
+  recipient     user     @relation("receivedMessages", fields: [recipient_id], references: [id], onDelete: Restrict)
 }
 
 model municipality_role {
