@@ -254,4 +254,5 @@ export default {
   findAssignedReportsForOfficer,
   deleteReport,
   updateReportStatus,
+  pickOfficerForService,
 };

@@ -3,6 +3,7 @@ jest.mock("@repositories/reportRepository", () => {
     findAll: jest.fn(),
     findById: jest.fn(),
     findByStatus: jest.fn(),
+    findAssignedReportsForOfficer: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
     deleteById: jest.fn(),
@@ -23,12 +24,14 @@ jest.mock("@services/imageService", () => {
 import reportService from "@services/reportService";
 import reportRepository from "@repositories/reportRepository";
 import imageService from "@services/imageService";
+import { userRepository } from "@repositories/userRepository";
 import { ReportStatus } from "@models/enums";
 
 type RepoMock = {
   findAll: jest.Mock;
   findById: jest.Mock;
   findByStatus: jest.Mock;
+  findAssignedReportsForOfficer: jest.Mock;
   create: jest.Mock;
   update: jest.Mock;
   deleteById: jest.Mock;
@@ -42,6 +45,10 @@ type ImageMock = {
 
 const repo = reportRepository as unknown as RepoMock;
 const img = imageService as unknown as ImageMock;
+const findLeastLoadedOfficerSpy = jest.spyOn(
+  userRepository,
+  "findLeastLoadedOfficerByOfficeName",
+);
 
 const makeReport = (overrides: Partial<any> = {}) => ({
   id: 1,
@@ -69,6 +76,7 @@ const makeCreateDto = (overrides: Partial<any> = {}) => ({
 describe("reportService", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    findLeastLoadedOfficerSpy.mockReset();
   });
 
   // -------- findAll --------
@@ -163,6 +171,7 @@ describe("reportService", () => {
       repo.findById.mockResolvedValue(existing);
       const updated = makeReport({ id: 1, status: ReportStatus.ASSIGNED });
       repo.update.mockResolvedValue(updated);
+      findLeastLoadedOfficerSpy.mockResolvedValue({ id: 50 } as any);
 
       const res = await reportService.updateReportStatus(
         1,
@@ -188,6 +197,7 @@ describe("reportService", () => {
       repo.findById.mockResolvedValue(existing);
       const updated = makeReport({ id: 1, status: ReportStatus.ASSIGNED });
       repo.update.mockResolvedValue(updated);
+      findLeastLoadedOfficerSpy.mockResolvedValue({ id: 77 } as any);
 
       const res = await reportService.updateReportStatus(1, "ASSIGNED");
 
@@ -389,6 +399,76 @@ describe("reportService", () => {
       await expect(reportService.deleteReport(999)).rejects.toThrow(
         "Report not found",
       );
+    });
+  });
+
+  describe("findAssignedReportsForOfficer", () => {
+    it("returns reports for officer with photos normalized", async () => {
+      const reports = [makeReport({ photos: undefined })];
+      repo.findAssignedReportsForOfficer.mockResolvedValue(reports);
+
+      const res = await reportService.findAssignedReportsForOfficer(12);
+
+      expect(repo.findAssignedReportsForOfficer).toHaveBeenCalledWith(12, undefined);
+      expect(res).toEqual([
+        expect.objectContaining({ photos: [] }),
+      ]);
+    });
+
+    it("maps provided status string before querying repository", async () => {
+      const reports = [makeReport({ status: ReportStatus.ASSIGNED })];
+      repo.findAssignedReportsForOfficer.mockResolvedValue(reports);
+
+      const res = await reportService.findAssignedReportsForOfficer(
+        5,
+        "ASSIGNED" as unknown as ReportStatus,
+      );
+
+      expect(repo.findAssignedReportsForOfficer).toHaveBeenCalledWith(
+        5,
+        ReportStatus.ASSIGNED,
+      );
+      expect(res).toHaveLength(1);
+    });
+
+    it("throws when status string is invalid", async () => {
+      await expect(
+        reportService.findAssignedReportsForOfficer(
+          1,
+          "INVALID" as unknown as ReportStatus,
+        ),
+      ).rejects.toThrow("Invalid status");
+    });
+  });
+
+  describe("pickOfficerForService", () => {
+    it("returns null when office name is missing", async () => {
+      const res = await reportService.pickOfficerForService(undefined);
+
+      expect(findLeastLoadedOfficerSpy).not.toHaveBeenCalled();
+      expect(res).toBeNull();
+    });
+
+    it("returns null when repository finds no officer", async () => {
+      findLeastLoadedOfficerSpy.mockResolvedValue(null);
+
+      const res = await reportService.pickOfficerForService("Ghost Office");
+
+      expect(findLeastLoadedOfficerSpy).toHaveBeenCalledWith(
+        "Ghost Office",
+      );
+      expect(res).toBeNull();
+    });
+
+    it("returns officer id when repository resolves an officer", async () => {
+      findLeastLoadedOfficerSpy.mockResolvedValue({ id: 77 } as any);
+
+      const res = await reportService.pickOfficerForService("Environmental Services - Waste Management");
+
+      expect(findLeastLoadedOfficerSpy).toHaveBeenCalledWith(
+        "Environmental Services - Waste Management",
+      );
+      expect(res).toBe(77);
     });
   });
 });

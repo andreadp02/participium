@@ -20,6 +20,12 @@ jest.mock("@controllers/reportController", () => ({
   approveOrRejectReport: jest.fn((req: Request, res: Response) =>
     res.status(204).send(),
   ),
+  getReportsForMunicipalityUser: jest.fn((req: Request, res: Response) =>
+    res.json({
+      route: "getReportsForMunicipalityUser",
+      municipalityUserId: req.params.municipalityUserId,
+    }),
+  ),
 }));
 
 jest.mock("@middlewares/authMiddleware", () => ({
@@ -28,6 +34,7 @@ jest.mock("@middlewares/authMiddleware", () => ({
 
 jest.mock("@middlewares/roleMiddleware", () => ({
   isMunicipality: jest.fn((req: Request, res: Response, next: Function) => next()),
+  isMunicipalityStrict: jest.fn((req: Request, res: Response, next: Function) => next()),
   isCitizen: jest.fn((req: Request, res: Response, next: Function) => next()),
   hasRole: jest.fn(() => (req: Request, res: Response, next: Function) => next()),
 }));
@@ -45,13 +52,20 @@ import {
   getReports,
   getReportById,
   approveOrRejectReport,
+  getReportsForMunicipalityUser,
 } from "@controllers/reportController";
 
 import { isAuthenticated } from "@middlewares/authMiddleware";
-import { hasRole, isMunicipality, isCitizen } from "@middlewares/roleMiddleware";
+import {
+  hasRole,
+  isMunicipality,
+  isMunicipalityStrict,
+  isCitizen,
+} from "@middlewares/roleMiddleware";
 
 const isAuthenticatedMock = isAuthenticated as jest.Mock;
 const isMunicipalityMock = isMunicipality as jest.Mock;
+const isMunicipalityStrictMock = isMunicipalityStrict as jest.Mock;
 const isCitizenMock = isCitizen as jest.Mock;
 const hasRoleMock = hasRole as jest.Mock;
 
@@ -124,6 +138,9 @@ describe("reportRouter", () => {
       (req: any, res: any, next: any) => next(),
     );
     (isMunicipality as jest.Mock).mockImplementation(
+      (req: any, res: any, next: any) => next(),
+    );
+    (isMunicipalityStrict as jest.Mock).mockImplementation(
       (req: any, res: any, next: any) => next(),
     );
     (hasRole as jest.Mock).mockImplementation(
@@ -277,6 +294,41 @@ describe("reportRouter", () => {
       expect(getReportById).toHaveBeenCalledTimes(1);
       expect(res.body).toHaveProperty("route", "getReportById");
       expect(res.body).toHaveProperty("id");
+    });
+  });
+
+  describe("GET /api/reports/municipality-user/:municipalityUserId", () => {
+    it("calls controller when authenticated municipality user", async () => {
+      const app = makeApp();
+
+      const res = await request(app).get(
+        "/api/reports/municipality-user/municipality-123",
+      );
+
+      expect(isAuthenticatedMock).toHaveBeenCalled();
+      expect(isMunicipalityStrictMock).toHaveBeenCalled();
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({
+        route: "getReportsForMunicipalityUser",
+        municipalityUserId: "municipality-123",
+      });
+      expect(getReportsForMunicipalityUser).toHaveBeenCalledTimes(1);
+    });
+
+    it("returns 401 when authentication middleware blocks", async () => {
+      (isAuthenticated as jest.Mock).mockImplementation((req: any, res: any) =>
+        res.status(401).json({ error: "Unauthorized" }),
+      );
+
+      const app = makeApp();
+      const res = await request(app).get(
+        "/api/reports/municipality-user/municipality-999",
+      );
+
+      expect(isAuthenticatedMock).toHaveBeenCalled();
+      expect(isMunicipalityStrictMock).not.toHaveBeenCalled();
+      expect(res.status).toBe(401);
+      expect(getReportsForMunicipalityUser).not.toHaveBeenCalled();
     });
   });
 
