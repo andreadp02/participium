@@ -7,7 +7,8 @@ jest.mock("@services/reportService", () => {
     findByStatus: jest.fn(),
     submitReport: jest.fn(),
     updateReportStatus: jest.fn(),
-    deleteReport: jest.fn()
+    deleteReport: jest.fn(),
+    findAssignedReportsForOfficer: jest.fn(),
   };
   return { __esModule: true, default: m };
 });
@@ -28,6 +29,7 @@ import {
   submitReport,
   approveOrRejectReport,
   deleteReport,
+  getReportsForMunicipalityUser,
 } from "@controllers/reportController";
 
 type ServiceMock = {
@@ -37,6 +39,7 @@ type ServiceMock = {
   submitReport: jest.Mock;
   updateReportStatus: jest.Mock;
   deleteReport: jest.Mock;
+  findAssignedReportsForOfficer: jest.Mock;
 };
 type ImageMock = {
   storeTemporaryImages: jest.Mock;
@@ -372,8 +375,7 @@ describe("reportController", () => {
         description: "Il lampione non si accende",
         category: "PUBLIC_LIGHTING",
         photoKeys: ["k1", "k2"],
-        anonymous: false,
-        userId: 42,
+        anonymous: false
       }, 42);
 
       expect(res.status).toHaveBeenCalledWith(201);
@@ -682,6 +684,95 @@ describe("reportController", () => {
 
       expect(res.status).toHaveBeenCalledWith(500);
       expect(res.json).toHaveBeenCalledWith({ error: "update fail" });
+    });
+  });
+
+  describe("getReportsForMunicipalityUser", () => {
+    it("returns 401 when user is not authenticated", async () => {
+      const req = {
+        params: { municipalityUserId: "5" },
+      } as unknown as Request;
+      const res = makeRes();
+
+      await getReportsForMunicipalityUser(req, res as unknown as Response);
+
+      expect(res.status).toHaveBeenCalledWith(401);
+      expect(res.json).toHaveBeenCalledWith({
+        error: "Authentication Error",
+        message: "User not authenticated",
+      });
+      expect(svc.findAssignedReportsForOfficer).not.toHaveBeenCalled();
+    });
+
+    it("returns 400 when municipality user id is invalid", async () => {
+      const req = {
+        params: { municipalityUserId: "abc" },
+        user: { id: 7 },
+      } as unknown as Request;
+      const res = makeRes();
+
+      await getReportsForMunicipalityUser(req, res as unknown as Response);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        error: "Bad Request",
+        message: "Invalid municipality user ID",
+      });
+      expect(svc.findAssignedReportsForOfficer).not.toHaveBeenCalled();
+    });
+
+    it("returns 403 when user tries to access other officer reports", async () => {
+      const req = {
+        params: { municipalityUserId: "10" },
+        user: { id: 5 },
+      } as unknown as Request;
+      const res = makeRes();
+
+      await getReportsForMunicipalityUser(req, res as unknown as Response);
+
+      expect(res.status).toHaveBeenCalledWith(403);
+      expect(res.json).toHaveBeenCalledWith({
+        error: "Forbidden",
+        message: "You can only access reports assigned to yourself",
+      });
+      expect(svc.findAssignedReportsForOfficer).not.toHaveBeenCalled();
+    });
+
+    it("returns assigned reports for valid municipality user", async () => {
+      const reports = [makeReport({ id: 1 })];
+      svc.findAssignedReportsForOfficer.mockResolvedValue(reports);
+
+      const req = {
+        params: { municipalityUserId: "3" },
+        query: { status: "ASSIGNED" },
+        user: { id: 3 },
+      } as unknown as Request;
+      const res = makeRes();
+
+      await getReportsForMunicipalityUser(req, res as unknown as Response);
+
+      expect(svc.findAssignedReportsForOfficer).toHaveBeenCalledWith(3, "ASSIGNED");
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith(reports);
+    });
+
+    it("returns 500 when service throws", async () => {
+      svc.findAssignedReportsForOfficer.mockRejectedValue(new Error("fail"));
+
+      const req = {
+        params: { municipalityUserId: "2" },
+        query: {},
+        user: { id: 2 },
+      } as unknown as Request;
+      const res = makeRes();
+
+      await getReportsForMunicipalityUser(req, res as unknown as Response);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({
+        error: "Internal Server Error",
+        message: "Unable to fetch assigned reports for municipality user",
+      });
     });
   });
 });

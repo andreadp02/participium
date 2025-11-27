@@ -15,6 +15,16 @@ const findAll = async (statusFilter?: ReportStatusFilter, userId?: number) => {
           { status: "ASSIGNED" }, // Assigned (approved) reports from others
         ],
       },
+      include: {
+        user: {
+          select: {
+            id: true,
+            username: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
       orderBy: {
         createdAt: "desc",
       },
@@ -24,6 +34,16 @@ const findAll = async (statusFilter?: ReportStatusFilter, userId?: number) => {
   // Default behavior: filter by status (for admin/municipality)
   return prisma.report.findMany({
     where: statusFilter ? { status: statusFilter } : undefined,
+    include: {
+      user: {
+        select: {
+          id: true,
+          username: true,
+          firstName: true,
+          lastName: true,
+        },
+      },
+    },
     orderBy: {
       createdAt: "desc",
     },
@@ -33,6 +53,16 @@ const findAll = async (statusFilter?: ReportStatusFilter, userId?: number) => {
 const findById = async (id: number) => {
   return prisma.report.findUnique({
     where: { id },
+    include: {
+      user: {
+        select: {
+          id: true,
+          username: true,
+          firstName: true,
+          lastName: true,
+        },
+      },
+    },
   });
 };
 
@@ -46,6 +76,7 @@ const create = async (data: Report) => {
     photos: data.photoKeys,
     status: data.status,
     assignedOffice: (data as any).assignedOffice,
+    anonymous: (data as any).anonymous || false,
   };
 
   // Add user relation if user_id is provided
@@ -63,6 +94,16 @@ const create = async (data: Report) => {
 const findByStatus = async (status: ReportStatus) => {
   return prisma.report.findMany({
     where: { status: status as any },
+    include: {
+      user: {
+        select: {
+          id: true,
+          username: true,
+          firstName: true,
+          lastName: true,
+        },
+      },
+    },
     orderBy: { createdAt: "desc" },
   });
 }
@@ -89,6 +130,16 @@ const findAssignedReportsForOfficer = async (
       assignedOfficerId: officerId,
       ...(status ? { status: status } : {})
     },
+    include: {
+      user: {
+        select: {
+          id: true,
+          username: true,
+          firstName: true,
+          lastName: true,
+        },
+      },
+    },
     orderBy: { createdAt: "desc" },
   });
 }
@@ -106,6 +157,7 @@ const update = async (
     status: ReportStatus;
     rejectionReason: string;
     assignedOffice: string | null;
+    assignedOfficerId: number | null;
   }>,
 ) => {
   return prisma.report.update({

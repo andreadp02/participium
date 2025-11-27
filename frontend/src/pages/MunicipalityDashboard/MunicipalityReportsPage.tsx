@@ -55,6 +55,7 @@ export const AdminReportsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<
     "pending" | "approved" | "rejected"
   >("pending");
+  const [approvalError, setApprovalError] = useState<string>("");
 
   useEffect(() => {
     const fetchReports = async () => {
@@ -74,6 +75,7 @@ export const AdminReportsPage: React.FC = () => {
               r.photos ?? [],
               r.createdAt ?? "",
               r.rejectionReason,
+              r.user || null,
             ),
         );
         setReports(reportsData);
@@ -89,11 +91,13 @@ export const AdminReportsPage: React.FC = () => {
     setSelectedReport(report);
     setReviewAction(action);
     setRejectionReason("");
+    setApprovalError("");
     setShowReviewModal(true);
   };
 
   const handleSubmitReview = async (e: React.FormEvent) => {
     e.preventDefault();
+    setApprovalError("");
 
     if (selectedReport && reviewAction) {
       const assignedOffice =
@@ -109,8 +113,11 @@ export const AdminReportsPage: React.FC = () => {
           status: reviewAction === "approve" ? "ASSIGNED" : "REJECTED",
           motivation: reviewAction === "reject" ? rejectionReason : undefined,
         });
-      } catch (err) {
-        console.error("Error fetching reports:", err);
+      } catch (err: any) {
+        console.error("Error approving/rejecting report:", err);
+        const errorMessage = err.response?.data?.error || err.message || "An error occurred while processing the report";
+        setApprovalError(errorMessage);
+        return;
       }
 
       setReports(
@@ -456,7 +463,7 @@ export const AdminReportsPage: React.FC = () => {
                         center={[report.lat || 45.0, report.lng || 7.0]}
                         zoom={15}
                         style={{ height: "100%", width: "100%" }}
-                        scrollWheelZoom={false}
+                        scrollWheelZoom={true}
                       >
                         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                         <Marker
@@ -493,6 +500,23 @@ export const AdminReportsPage: React.FC = () => {
                           {report.category}
                         </p>
                       </div>
+                    </div>
+                  </div>
+
+                  {/* User Information */}
+                  <div className="flex items-center gap-3 p-3 bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl border border-amber-200">
+                    <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-amber-500 text-white shadow-md flex-shrink-0">
+                      <FileText className="h-5 w-5" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[10px] font-bold text-amber-600 uppercase tracking-wide">
+                        Submitted By
+                      </p>
+                      <p className="text-sm font-semibold text-slate-900 truncate">
+                        {report.isAnonymous || !report.user
+                          ? "Anonymous"
+                          : `${report.user.firstName} ${report.user.lastName}`}
+                      </p>
                     </div>
                   </div>
 
@@ -594,6 +618,23 @@ export const AdminReportsPage: React.FC = () => {
               </h2>
 
               <form onSubmit={handleSubmitReview} className="space-y-4">
+                {/* Error Alert */}
+                {approvalError && (
+                  <div className="rounded-xl bg-red-50 border-2 border-red-300 p-4">
+                    <div className="flex items-start gap-3">
+                      <XCircle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
+                      <div className="flex-1">
+                        <p className="text-sm font-bold text-red-900 mb-1">
+                          Error
+                        </p>
+                        <p className="text-sm text-red-800 leading-relaxed">
+                          {approvalError}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Report Summary */}
                 <div className="rounded-xl bg-slate-50 border border-slate-200 p-4">
                   <p className="text-sm font-semibold text-slate-900 mb-1">

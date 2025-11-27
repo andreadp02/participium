@@ -663,6 +663,143 @@ describe("ReportRoutes Integration (Get Reports)", () => {
   // });
 });
 
+describe("GET /api/reports/municipality-user/:municipalityUserId", () => {
+  const adminUser = {
+    username: "admin_muni_reports",
+    email: "admin_muni_reports@example.com",
+    firstName: "Admin",
+    lastName: "Muni",
+    password: "Adm1nMuni!",
+  };
+
+  const municipalityPayload = {
+    username: "muni_reports",
+    email: "muni_reports@example.com",
+    firstName: "Muni",
+    lastName: "Reports",
+    password: "MuniRep0rts!",
+    municipality_role_id: 1,
+  };
+
+  const citizenUser = {
+    username: "citizen_reports",
+    email: "citizen_reports@example.com",
+    firstName: "Citizen",
+    lastName: "Reports",
+    password: "CitizenRep1!",
+  };
+
+  beforeEach(async () => {
+    await prisma.report.deleteMany();
+    await prisma.user.deleteMany();
+  });
+
+  afterAll(async () => {
+    await prisma.report.deleteMany();
+    await prisma.user.deleteMany();
+    await prisma.$disconnect();
+  });
+
+  it("401 when request is unauthenticated", async () => {
+    await request(app)
+      .get("/api/reports/municipality-user/1")
+      .expect(401);
+  });
+
+  it("403 when municipality user requests reports for a different user id", async () => {
+    const { muniAgent, createdMunicipality } =
+      await createAdminAndCreateMunicipality(adminUser, municipalityPayload);
+
+    await muniAgent
+      .get(`/api/reports/municipality-user/${createdMunicipality.id + 1}`)
+      .expect(403)
+      .then((res: request.Response) => {
+        expect(res.body).toEqual({
+          error: "Forbidden",
+          message: "You can only access reports assigned to yourself",
+        });
+      });
+  });
+
+  it("200 returns assigned reports for the municipality user with status", async () => {
+    const { muniAgent, createdMunicipality } =
+      await createAdminAndCreateMunicipality(adminUser, municipalityPayload);
+    const citizenAgent = await createAndLogin(citizenUser);
+
+    const createdReport = await createReportAs(citizenAgent, {
+      title: "Overflowing trash can",
+      description: "Trash can near the park is overflowing",
+      category: "WASTE",
+      latitude: 45.05,
+      longitude: 7.65,
+      photos: [
+        {
+          buffer: Buffer.from("photo"),
+          name: "photo.jpg",
+          contentType: "image/jpeg",
+        },
+      ],
+    });
+
+    await prisma.report.update({
+      where: { id: createdReport.id },
+      data: {
+        status: "ASSIGNED",
+        assignedOfficerId: createdMunicipality.id,
+      },
+    });
+
+    const res = await muniAgent
+      .get(
+        `/api/reports/municipality-user/${createdMunicipality.id}?status=ASSIGNED`,
+      )
+      .expect(200);
+
+    expect(Array.isArray(res.body)).toBe(true);
+    expect(res.body.length).toBeGreaterThanOrEqual(1);
+    expect(res.body[0]).toHaveProperty("assignedOfficerId", createdMunicipality.id);
+  });
+
+  it("200 returns assigned reports for the municipality user", async () => {
+    const { muniAgent, createdMunicipality } =
+      await createAdminAndCreateMunicipality(adminUser, municipalityPayload);
+    const citizenAgent = await createAndLogin(citizenUser);
+
+    const createdReport = await createReportAs(citizenAgent, {
+      title: "Overflowing trash can",
+      description: "Trash can near the park is overflowing",
+      category: "WASTE",
+      latitude: 45.05,
+      longitude: 7.65,
+      photos: [
+        {
+          buffer: Buffer.from("photo"),
+          name: "photo.jpg",
+          contentType: "image/jpeg",
+        },
+      ],
+    });
+
+    await prisma.report.update({
+      where: { id: createdReport.id },
+      data: {
+        status: "ASSIGNED",
+        assignedOfficerId: createdMunicipality.id,
+      },
+    });
+
+    const res = await muniAgent
+      .get(
+        `/api/reports/municipality-user/${createdMunicipality.id}`,
+      )
+      .expect(200);
+
+    expect(Array.isArray(res.body)).toBe(true);
+    expect(res.body.length).toBeGreaterThanOrEqual(1);
+    expect(res.body[0]).toHaveProperty("assignedOfficerId", createdMunicipality.id);
+  });
+});
+
 describe("GET /api/reports (List Reports)", () => {
   const fakeUser = {
     username: "citizen1",

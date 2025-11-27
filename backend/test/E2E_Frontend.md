@@ -57,6 +57,42 @@
 **Status**: PASS
 
 ### TC-002: Report Creation Workflow
+**Expected Results**:
+- Registration succeeds with success message
+- User is redirected to login page
+- Login succeeds and redirects to dashboard
+
+**Actual Results**:
+- Registration succeeds with success message
+- User is redirected to login page
+- Login succeeds and redirects to dashboard
+
+**Status**: PASS
+
+#### Scenario: Registration with Invalid Data
+**Description**: Registration fails with invalid input.
+
+**Test Steps**:
+1. Navigate to `/register`
+2. Attempt registration with:
+   - Invalid email format
+   - Password too short (<6 characters)
+   - Empty required fields
+3. Submit form
+
+**Expected Results**:
+- Form validation prevents submission
+- Error messages displayed for each invalid field
+- Registration does not proceed
+
+**Actual Results**:
+- Form validation prevents submission
+- Error messages displayed for each invalid field
+- Registration does not proceed
+
+**Status**: PASS
+
+### TC-002: Report Creation Workflow
 
 #### Scenario: Successful Report Submission
 **Description**: Authenticated citizen creates and submits a report.

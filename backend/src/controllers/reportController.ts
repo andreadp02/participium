@@ -206,7 +206,7 @@ export const submitReport = async (req: Request, res: Response) => {
         longitude: Number(longitude),
         title,
         description,
-        anonymous: false, // Currently not used
+        anonymous: anonymous === "true" || anonymous === true,
         category,
         photoKeys: tempKeys, // Pass temporary keys
       },

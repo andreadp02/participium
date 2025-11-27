@@ -66,6 +66,13 @@ export interface Report {
   status?: ReportStatus;
   rejectionReason?: string;
   assignedOffice?: string;
+  user_id?: number | null;
+  user?: {
+    id: number;
+    username: string;
+    firstName: string;
+    lastName: string;
+  } | null;
 }
 
 export type ReportStatus =
@@ -246,6 +253,19 @@ export const getReports = async (
  */
 export const getReportById = async (id: string | number): Promise<Report> => {
   const response = await api.get(`/reports/${id}`);
+  return response.data;
+};
+
+/**
+ * Get reports assigned to a municipality officer
+ */
+export const getAssignedReports = async (
+  userId: number,
+  statusFilter?: string,
+): Promise<Report[]> => {
+  const response = await api.get(`/reports/municipality-user/${userId}`, {
+    params: statusFilter ? { status: statusFilter } : undefined,
+  });
   return response.data;
 };
 
