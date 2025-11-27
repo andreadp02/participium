@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { StatusBadge, type ReportStatus } from "./StatusBadge";
 
 export interface Report {
@@ -11,22 +12,32 @@ export interface Report {
 }
 
 export const ReportsTable: React.FC<{ data: Report[] }> = ({ data }) => {
+  const navigate = useNavigate();
+
+  const handleRowClick = (reportId: string) => {
+    // Extract numeric ID from "RPT-123" format
+    const numericId = reportId.replace("RPT-", "");
+    navigate(`/report/${numericId}`);
+  };
+
   return (
     <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-      <div className="overflow-x-auto">
-        <table className="min-w-full text-left text-sm">
+      <table className="w-full text-left text-sm">
           <thead className="bg-slate-50 text-slate-600">
             <tr>
               <th className="px-4 py-3 font-semibold">Report</th>
               <th className="px-4 py-3 font-semibold">Category</th>
               <th className="px-4 py-3 font-semibold">Created</th>
               <th className="px-4 py-3 font-semibold">Status</th>
-              <th className="px-4 py-3 font-semibold">Location</th>
             </tr>
           </thead>
           <tbody>
             {data.map((r) => (
-              <tr key={r.id} className="border-t border-slate-100">
+              <tr 
+                key={r.id} 
+                className="border-t border-slate-100 hover:bg-slate-50 cursor-pointer transition-colors"
+                onClick={() => handleRowClick(r.id)}
+              >
                 <td className="px-4 py-3">
                   <div className="font-medium text-slate-900">{r.title}</div>
                   <div className="text-xs text-slate-500">{r.id}</div>
@@ -36,12 +47,10 @@ export const ReportsTable: React.FC<{ data: Report[] }> = ({ data }) => {
                 <td className="px-4 py-3">
                   <StatusBadge status={r.status} />
                 </td>
-                <td className="px-4 py-3 text-slate-700">{r.location}</td>
               </tr>
             ))}
           </tbody>
         </table>
-      </div>
       {/* simple footer */}
       <div className="flex items-center justify-between px-4 py-3 text-xs text-slate-500 bg-slate-50 border-t border-slate-200">
         <span>{data.length} results</span>

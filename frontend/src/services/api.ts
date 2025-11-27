@@ -66,6 +66,13 @@ export interface Report {
   status?: ReportStatus;
   rejectionReason?: string;
   assignedOffice?: string;
+  user_id?: number | null;
+  user?: {
+    id: number;
+    username: string;
+    firstName: string;
+    lastName: string;
+  } | null;
 }
 
 export type ReportStatus =

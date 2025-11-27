@@ -16,19 +16,19 @@ const MapPage: React.FC = () => {
         const data = await getReports();
         console.debug("GET /api/reports ->", data);
         const mapped = (data ?? []).map((r: any) => {
-          console.debug("map report", r.id, r.latitude, r.longitude);
           return new Report(
             Number(r.latitude ?? r.lat ?? 0),
             Number(r.longitude ?? r.lng ?? 0),
             r.title ?? "",
             (r.status as any) ?? ReportStatus.PENDING,
-            r.anonymous,
+            r.anonymous ?? false,
             r.id,
             r.description,
             r.category,
             r.photos,
             r.createdAt,
             r.rejectionReason,
+            r.user || null,
           );
         });
         setReports(mapped);
@@ -51,12 +51,14 @@ const MapPage: React.FC = () => {
             Number(r.longitude ?? r.lng ?? 0),
             r.title ?? "",
             (r.status as any) ?? ReportStatus.PENDING,
+            r.anonymous ?? false,
             r.id,
             r.description,
-            r.anonymous,
             r.category,
             r.photos,
             r.createdAt,
+            r.rejectionReason,
+            r.user || null,
           );
           setReports((prev) => [rep, ...prev]);
           return;

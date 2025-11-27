@@ -74,6 +74,7 @@ export const AdminReportsPage: React.FC = () => {
               r.photos ?? [],
               r.createdAt ?? "",
               r.rejectionReason,
+              r.user || null,
             ),
         );
         setReports(reportsData);
@@ -456,7 +457,7 @@ export const AdminReportsPage: React.FC = () => {
                         center={[report.lat || 45.0, report.lng || 7.0]}
                         zoom={15}
                         style={{ height: "100%", width: "100%" }}
-                        scrollWheelZoom={false}
+                        scrollWheelZoom={true}
                       >
                         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                         <Marker
@@ -493,6 +494,23 @@ export const AdminReportsPage: React.FC = () => {
                           {report.category}
                         </p>
                       </div>
+                    </div>
+                  </div>
+
+                  {/* User Information */}
+                  <div className="flex items-center gap-3 p-3 bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl border border-amber-200">
+                    <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-amber-500 text-white shadow-md flex-shrink-0">
+                      <FileText className="h-5 w-5" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[10px] font-bold text-amber-600 uppercase tracking-wide">
+                        Submitted By
+                      </p>
+                      <p className="text-sm font-semibold text-slate-900 truncate">
+                        {report.isAnonymous || !report.user
+                          ? "Anonymous"
+                          : `${report.user.firstName} ${report.user.lastName}`}
+                      </p>
                     </div>
                   </div>
 

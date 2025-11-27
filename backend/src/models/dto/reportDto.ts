@@ -16,6 +16,14 @@ export interface ReportResponseDto {
   title: string;
   description: string;
   category: string;
-  anonymous?: boolean;
+  anonymous: boolean;
   photos: string[];
+  status?: string;
+  user_id?: number | null;
+  user?: {
+    id: number;
+    username: string;
+    firstName: string;
+    lastName: string;
+  } | null;
 }

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { getReportById } from "src/services/api";
 
 // Reverse map backend enum -> human-friendly labels (keep in sync with form)
@@ -17,6 +17,7 @@ const ENUM_TO_LABEL: Record<string, string> = {
 
 const ReportDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [report, setReport] = useState<any | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -34,16 +35,16 @@ const ReportDetailsPage: React.FC = () => {
     fetch();
   }, [id]);
 
-  const backLink = "/dashboard/new-report";
-  const backText = "Back to Dashboard";
-
   if (error) {
     return (
       <main className="p-6">
         <p className="text-red-600">{error}</p>
-        <Link to={backLink} className="text-indigo-600 underline">
-          {backText}
-        </Link>
+        <button 
+          onClick={() => navigate(-1)} 
+          className="text-indigo-600 hover:underline"
+        >
+          ← Go Back
+        </button>
       </main>
     );
   }
@@ -62,6 +63,17 @@ const ReportDetailsPage: React.FC = () => {
       <p className="text-sm text-slate-500 mb-4">
         Created: {new Date(report.createdAt).toLocaleString()}
       </p>
+      
+      {/* User Information */}
+      <div className="mb-4">
+        <strong>Submitted by:</strong>{" "}
+        <span>
+          {report.anonymous || !report.user 
+            ? "Anonymous" 
+            : `${report.user.firstName} ${report.user.lastName}`}
+        </span>
+      </div>
+
       <div className="mb-4">
         <strong>Category:</strong>{" "}
         <span>{ENUM_TO_LABEL[report.category] ?? report.category}</span>
@@ -88,9 +100,12 @@ const ReportDetailsPage: React.FC = () => {
       )}
 
       <div className="mt-6">
-        <Link to={backLink} className="text-indigo-600 hover:underline">
-          ← {backText}
-        </Link>
+        <button 
+          onClick={() => navigate(-1)} 
+          className="text-indigo-600 hover:underline"
+        >
+          ← Go Back
+        </button>
       </div>
     </main>
   );

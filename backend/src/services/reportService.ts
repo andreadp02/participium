@@ -5,6 +5,23 @@ import imageService from "@services/imageService";
 import { ReportStatus } from "@models/enums";
 import { stat } from "fs";
 
+// Helper function to hide user info for anonymous reports
+const sanitizeReport = (report: any): ReportResponseDto => {
+  const sanitized = {
+    ...report,
+    photos: report.photos || [],
+    user_id: report.user_id,
+  };
+
+  // If report is anonymous, remove user details but keep user_id for filtering
+  if (report.anonymous) {
+    sanitized.user = null;
+    // Keep user_id so the user can see their own anonymous reports in their dashboard
+  }
+
+  return sanitized as ReportResponseDto;
+};
+
 // Helper function to map string to ReportStatus enum
 const mapStringToStatus = (status: string): ReportStatus => {
   const statusUpper = status.toUpperCase();
@@ -27,10 +44,7 @@ const findAll = async (
   // paths (e.g. "<reportId>/<file>") and will build the full URL as
   // `${backendOrigin}/uploads/${path}`. Avoid returning data URLs here to
   // keep payload size small and let the client fetch images when needed.
-  return reports.map((report) => ({
-    ...report,
-    photos: report.photos || [],
-  }));
+  return reports.map(sanitizeReport);
 };
 
 const findById = async (id: number): Promise<ReportResponseDto | null> => {
@@ -41,10 +55,7 @@ const findById = async (id: number): Promise<ReportResponseDto | null> => {
   }
   // Return relative paths (not data URLs). The frontend will request
   // `/uploads/{relativePath}` to fetch each image.
-  return {
-    ...report,
-    photos: report.photos || [],
-  };
+  return sanitizeReport(report);
 };
 
 const findByStatus = async (status: string): Promise<ReportResponseDto[]> => {
@@ -57,10 +68,7 @@ const findByStatus = async (status: string): Promise<ReportResponseDto[]> => {
     return [];
   }
 
-  return reports.map((report: any) => ({
-    ...report,
-    photos: report.photos || [],
-  }));
+  return reports.map(sanitizeReport);
 };
 
 const pickOfficerForService = async (officeName: string | undefined): Promise<number | null> => {
@@ -160,7 +168,7 @@ const submitReport = async (
   // Shortcut: if empty, delegate directly to repository.create so tests can mock it.
   if (data && Object.keys(data).length === 0) {
     const created = await reportRepository.create(data as any);
-    return created as ReportResponseDto;
+    return sanitizeReport(created);
   }
 
   if (!data.title || data.title.trim().length === 0) {
@@ -187,7 +195,7 @@ const submitReport = async (
   const report = await reportRepository.create({
     ...data,
     photoKeys: [],
-    user_id: data.anonymous ? null : user_id,
+    user_id: user_id, // Always save user_id, even for anonymous reports
     status: ReportStatus.PENDING_APPROVAL,
   });
 
@@ -208,10 +216,7 @@ const submitReport = async (
     // non-fatal
   }
 
-  return {
-    ...(updatedReport as any),
-    photos: updatedReport.photos || [],
-  } as any;
+  return sanitizeReport(updatedReport);
 };
 
 const findAssignedReportsForOfficer = async (
@@ -222,10 +227,7 @@ const findAssignedReportsForOfficer = async (
 
   const reports = await reportRepository.findAssignedReportsForOfficer(officerId, statusEnum);
 
-  return reports.map((report) => ({
-    ...report,
-    photos: report.photos || [],
-  }));
+  return reports.map(sanitizeReport);
 }
 
 const deleteReport = async (id: number): Promise<ReportResponseDto> => {
@@ -240,10 +242,7 @@ const deleteReport = async (id: number): Promise<ReportResponseDto> => {
 
   await imageService.deleteImages((deletedReport as any).photos ?? []);
 
-  return {
-    ...deletedReport,
-    photos: [],
-  };
+  return sanitizeReport({ ...deletedReport, photos: [] });
 };
 
 export default {
