@@ -23,6 +23,7 @@ export const CONFIG = {
   // Application settings
   APP_HOST: process.env.HOST || "localhost",
   APP_PORT: Number(process.env.PORT) || 4000,
+  BACKEND_URL: (process.env.HOST || "localhost") + ":" + (process.env.PORT || "4000"),
 
   // Database settings
   DATABASE_URL: process.env.DATABASE_URL,
@@ -42,6 +43,9 @@ export const CONFIG = {
     AUTH: APP_BASE_URL + "auth",
     USERS: APP_BASE_URL + "users",
     REPORTS: APP_BASE_URL + "reports",
-    UPLOADS: "/uploads",
+    // Serve uploads under the API base so frontend URLs using the API
+    // base (e.g. http://host:port/api/uploads/...) resolve correctly.
+    UPLOADS: APP_BASE_URL + "uploads",
+    USER_PROFILES: "/user-profiles",
   },
 };

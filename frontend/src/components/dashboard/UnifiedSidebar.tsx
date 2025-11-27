@@ -69,6 +69,11 @@ const ROLE_CONFIGS: Record<UserRole, RoleConfig> = {
         label: "Messages",
         icon: <MessageSquare className="h-4 w-4" />,
       },
+      {
+        href: "/dashboard/settings",
+        label: "Settings",
+        icon: <Settings className="h-4 w-4" />,
+      },
     ],
   },
   ADMIN: {
@@ -158,15 +163,41 @@ interface UnifiedSidebarProps {
   role: UserRole;
   mobileMenuOpen: boolean;
   setMobileMenuOpen: (open: boolean) => void;
+  municipalityRole?: string;
 }
 
 export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({
   role,
   mobileMenuOpen,
   setMobileMenuOpen,
+  municipalityRole,
 }) => {
   const { pathname } = useLocation();
   const config = ROLE_CONFIGS[role];
+
+  // Filter nav items based on municipality role
+  const filteredNavItems = React.useMemo(() => {
+    if (role !== "MUNICIPALITY") {
+      return config.navItems;
+    }
+
+    // For municipality users, check if they can access each page
+    const isPublicRelations = municipalityRole
+      ?.toLowerCase()
+      .includes("municipal public relations officer");
+
+    return config.navItems.filter((item) => {
+      // Show "Review Reports" only to public relations officers
+      if (item.href === "/municipality/reports" && !isPublicRelations) {
+        return false;
+      }
+      // Show "Technical Reports" to all municipality users except public relations officers
+      if (item.href === "/municipality/technical-reports" && isPublicRelations) {
+        return false;
+      }
+      return true;
+    });
+  }, [role, municipalityRole, config.navItems]);
 
   const navContent = (
     <>
@@ -198,7 +229,7 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto p-3 space-y-1">
-        {config.navItems.map((item) => {
+        {filteredNavItems.map((item) => {
           const active = pathname === item.href;
           return (
             <Link

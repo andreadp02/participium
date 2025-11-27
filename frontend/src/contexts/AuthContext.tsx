@@ -8,10 +8,16 @@ import {
 export type UserRole = "ADMIN" | "MUNICIPALITY" | "CITIZEN";
 
 interface User {
+  id?: number;
   firstName?: string;
   lastName?: string;
   username?: string;
   role?: UserRole | string;
+  municipality_role_id?: number;
+  municipality_role?: {
+    id: number;
+    name: string;
+  };
 }
 
 interface AuthContextType {

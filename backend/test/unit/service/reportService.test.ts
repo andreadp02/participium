@@ -3,6 +3,7 @@ jest.mock("@repositories/reportRepository", () => {
     findAll: jest.fn(),
     findById: jest.fn(),
     findByStatus: jest.fn(),
+    findAssignedReportsForOfficer: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
     deleteById: jest.fn(),
@@ -15,6 +16,7 @@ jest.mock("@services/imageService", () => {
     persistImagesForReport: jest.fn(),
     getMultipleImages: jest.fn(),
     deleteImages: jest.fn(),
+    preloadCache: jest.fn(),
   };
   return { __esModule: true, default: mImage };
 });
@@ -22,12 +24,14 @@ jest.mock("@services/imageService", () => {
 import reportService from "@services/reportService";
 import reportRepository from "@repositories/reportRepository";
 import imageService from "@services/imageService";
+import { userRepository } from "@repositories/userRepository";
 import { ReportStatus } from "@models/enums";
 
 type RepoMock = {
   findAll: jest.Mock;
   findById: jest.Mock;
   findByStatus: jest.Mock;
+  findAssignedReportsForOfficer: jest.Mock;
   create: jest.Mock;
   update: jest.Mock;
   deleteById: jest.Mock;
@@ -41,6 +45,10 @@ type ImageMock = {
 
 const repo = reportRepository as unknown as RepoMock;
 const img = imageService as unknown as ImageMock;
+const findLeastLoadedOfficerSpy = jest.spyOn(
+  userRepository,
+  "findLeastLoadedOfficerByOfficeName",
+);
 
 const makeReport = (overrides: Partial<any> = {}) => ({
   id: 1,
@@ -50,6 +58,7 @@ const makeReport = (overrides: Partial<any> = {}) => ({
   description: "Descrizione",
   category: "WASTE",
   photos: ["p1", "p2"],
+  status: ReportStatus.PENDING_APPROVAL,
   createdAt: new Date("2025-11-04T14:30:00Z"),
   ...overrides,
 });
@@ -67,6 +76,7 @@ const makeCreateDto = (overrides: Partial<any> = {}) => ({
 describe("reportService", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    findLeastLoadedOfficerSpy.mockReset();
   });
 
   // -------- findAll --------
@@ -74,14 +84,36 @@ describe("reportService", () => {
     it("returns reports with images resolved", async () => {
       const rows = [makeReport({ id: 2 })];
       repo.findAll.mockResolvedValue(rows);
-      img.getMultipleImages.mockResolvedValue(["url1"]);
 
       const res = await reportService.findAll();
 
       expect(repo.findAll).toHaveBeenCalledTimes(1);
-      expect(img.getMultipleImages).toHaveBeenCalledWith(rows[0].photos);
-      expect(res[0].photos).toEqual(["url1"]);
+      expect(res[0].photos).toEqual(rows[0].photos);
     });
+
+    // it("filters reports by status when statusFilter is provided", async () => {
+    //   const approvedReports = [makeReport({ id: 1, status: "ASSIGNED" })];
+    //   repo.findAll.mockResolvedValue(approvedReports);
+
+    //   const res = await reportService.findAll(ReportStatus.ASSIGNED);
+
+    //   expect(repo.findAll).toHaveBeenCalledWith(ReportStatus.ASSIGNED);
+    //   expect(res[0].photos).toEqual(approvedReports[0].photos);
+    // });
+
+    // it("returns all reports when no statusFilter", async () => {
+    //   const allReports = [
+    //     makeReport({ id: 1, status: "PENDING" }),
+    //     makeReport({ id: 2, status: "ASSIGNED" })
+    //   ];
+    //   repo.findAll.mockResolvedValue(allReports);
+    //   img.getMultipleImages.mockResolvedValue(["url1"]);
+
+    //   const res = await reportService.findAll();
+
+    //   expect(repo.findAll).toHaveBeenCalledWith(undefined);
+    //   expect(res).toHaveLength(2);
+    // });
   });
 
   // -------- findById --------
@@ -89,13 +121,11 @@ describe("reportService", () => {
     it("returns report with images when found", async () => {
       const row = makeReport({ id: 42 });
       repo.findById.mockResolvedValue(row);
-      img.getMultipleImages.mockResolvedValue(["url42"]);
 
       const res = await reportService.findById(42);
 
       expect(repo.findById).toHaveBeenCalledWith(42);
-      expect(img.getMultipleImages).toHaveBeenCalledWith(row.photos);
-      expect(res).toEqual({ ...row, photos: ["url42"] });
+      expect(res).toEqual({ ...row, photos: row.photos || [] });
     });
 
     it("returns null when not found", async () => {
@@ -111,40 +141,83 @@ describe("reportService", () => {
   // -------- findByStatus --------
   describe("findByStatus", () => {
     it("maps string status to enum and returns reports with images", async () => {
-      const rows = [makeReport({ id: 5, status: ReportStatus.ASSIGNED })];
-      repo.findByStatus.mockResolvedValue(rows);
-      img.getMultipleImages.mockResolvedValue(["u"]);
+      const reports = [makeReport({ id: 1, status: "ASSIGNED" })];
+      repo.findByStatus.mockResolvedValue(reports);
 
       const res = await reportService.findByStatus("ASSIGNED");
 
       expect(repo.findByStatus).toHaveBeenCalledWith(ReportStatus.ASSIGNED);
-      expect(res[0].photos).toEqual(["u"]);
+      expect(res[0].photos).toEqual(reports[0].photos);
     });
 
     it("throws for invalid status string", async () => {
       await expect(reportService.findByStatus("BADSTATUS")).rejects.toThrow();
+    });
+
+    it("returns empty array when no reports found", async () => {
+      repo.findByStatus.mockResolvedValue(null);
+
+      const res = await reportService.findByStatus("PENDING_APPROVAL");
+
+      expect(repo.findByStatus).toHaveBeenCalledWith(ReportStatus.PENDING_APPROVAL);
+      expect(res).toEqual([]);
     });
   });
 
   // -------- updateReportStatus --------
   describe("updateReportStatus", () => {
     it("updates status and returns updated status", async () => {
+      const existing = makeReport({ id: 1, status: "PENDING_APPROVAL" });
+      repo.findById.mockResolvedValue(existing);
       const updated = makeReport({ id: 1, status: ReportStatus.ASSIGNED });
       repo.update.mockResolvedValue(updated);
+      findLeastLoadedOfficerSpy.mockResolvedValue({ id: 50 } as any);
+
+      const res = await reportService.updateReportStatus(
+        1,
+        "ASSIGNED",
+      );
+
+      expect(repo.update).toHaveBeenCalledWith(1, {
+        status: ReportStatus.ASSIGNED,
+        rejectionReason: undefined,
+        assignedOffice: "Environmental Services - Waste Management",
+      });
+      expect(res).toBe(ReportStatus.ASSIGNED);
+    });
+
+    it("throws for invalid status string", async () => {
+      await expect(
+        reportService.updateReportStatus(1, "BAD"),
+      ).rejects.toThrow();
+    });
+
+    it("assigns default office when category not recognized", async () => {
+      const existing = makeReport({ id: 1, status: "PENDING_APPROVAL", category: "UNKNOWN_CATEGORY" });
+      repo.findById.mockResolvedValue(existing);
+      const updated = makeReport({ id: 1, status: ReportStatus.ASSIGNED });
+      repo.update.mockResolvedValue(updated);
+      findLeastLoadedOfficerSpy.mockResolvedValue({ id: 77 } as any);
 
       const res = await reportService.updateReportStatus(1, "ASSIGNED");
 
       expect(repo.update).toHaveBeenCalledWith(1, {
         status: ReportStatus.ASSIGNED,
         rejectionReason: undefined,
+        assignedOffice: "General Services Office",
       });
       expect(res).toBe(ReportStatus.ASSIGNED);
     });
 
-    it("throws for invalid status", async () => {
+    it("throws error when report status is not PENDING_APPROVAL", async () => {
+      const existing = makeReport({ id: 1, status: ReportStatus.ASSIGNED });
+      repo.findById.mockResolvedValue(existing);
+
       await expect(
-        reportService.updateReportStatus(1, "BAD"),
-      ).rejects.toThrow();
+        reportService.updateReportStatus(1, "ASSIGNED"),
+      ).rejects.toThrow(
+        "Invalid state transition: only reports in PENDING_APPROVAL can be updated. Current status: ASSIGNED",
+      );
     });
   });
 
@@ -177,13 +250,15 @@ describe("reportService", () => {
         ...created,
         photos: ["/img/r/1.jpg", "/img/r/2.jpg"],
       });
-      img.getMultipleImages.mockResolvedValue(["BINARY1", "BINARY2"]);
+      // img.getMultipleImages.mockResolvedValue(["BINARY1", "BINARY2"]);
 
       const res = await reportService.submitReport(dto as any, 1);
 
       expect(repo.create).toHaveBeenCalledWith({
         ...dto,
         photoKeys: [],
+        status: "PENDING_APPROVAL",
+        user_id: 1,
       });
 
       expect(img.persistImagesForReport).toHaveBeenCalledWith(
@@ -193,14 +268,10 @@ describe("reportService", () => {
       expect(repo.update).toHaveBeenCalledWith(123, {
         photos: ["/img/r/1.jpg", "/img/r/2.jpg"],
       });
-      expect(img.getMultipleImages).toHaveBeenCalledWith([
-        "/img/r/1.jpg",
-        "/img/r/2.jpg",
-      ]);
       expect(res).toEqual(
         expect.objectContaining({
           id: 123,
-          photos: ["BINARY1", "BINARY2"],
+          photos: ["/img/r/1.jpg", "/img/r/2.jpg"]
         }),
       );
     });
@@ -212,7 +283,7 @@ describe("reportService", () => {
       repo.create.mockResolvedValue(created);
       img.persistImagesForReport.mockResolvedValue(["p1"]);
       repo.update.mockResolvedValue(updated);
-      img.getMultipleImages.mockResolvedValue(["url_p1"]);
+      // img.getMultipleImages.mockResolvedValue(["url_p1"]);
 
       const res = await reportService.submitReport(dto as any, 123);
 
@@ -230,7 +301,8 @@ describe("reportService", () => {
       expect(repo.update).toHaveBeenCalledWith(created.id, {
         photos: ["p1"],
       });
-      expect(res.photos).toEqual(["url_p1"]);
+      expect(res.photos).toEqual(["p1"]);
+      expect(res.photos).toEqual(["p1"]);
     });
 
     it("throws if missing required fields", async () => {
@@ -268,7 +340,10 @@ describe("reportService", () => {
   // -------- deleteReport --------
   describe("deleteReport", () => {
     it("calls repo.deleteById and imageService.deleteImages (with photos) and returns the deleted report", async () => {
+      const report = makeReport({ id: 7, photos: ["pA", "pB"] });
+      repo.findById.mockResolvedValue(report);
       const deleted = makeReport({ id: 7, photos: ["pA", "pB"] });
+      repo.findById.mockResolvedValue(deleted);
       repo.deleteById.mockResolvedValue(deleted);
       img.deleteImages.mockResolvedValue(undefined);
 
@@ -276,11 +351,15 @@ describe("reportService", () => {
 
       expect(repo.deleteById).toHaveBeenCalledWith(7);
       expect(img.deleteImages).toHaveBeenCalledWith(["pA", "pB"]);
-      expect(res).toBe(deleted);
+      expect(res).toEqual({ ...deleted, photos: [] });
+      expect(res).toEqual({ ...deleted, photos: [] });
     });
 
     it("calls deleteImages with [] when report has no photos", async () => {
+      const report = makeReport({ id: 8, photos: undefined });
+      repo.findById.mockResolvedValue(report);
       const deleted = makeReport({ id: 8, photos: undefined });
+      repo.findById.mockResolvedValue(deleted);
       repo.deleteById.mockResolvedValue(deleted);
 
       await reportService.deleteReport(8);
@@ -289,10 +368,12 @@ describe("reportService", () => {
     });
 
     it("propagates repository errors", async () => {
+      const report = makeReport({ id: 3 });
+      repo.findById.mockResolvedValue(report);
       const err = new Error("delete fail");
       repo.deleteById.mockRejectedValue(err);
 
-      await expect(reportService.deleteReport(3)).rejects.toBe(err);
+      await expect(reportService.deleteReport(3)).rejects.toThrow(err);
       expect(img.deleteImages).not.toHaveBeenCalled();
     });
 
@@ -308,7 +389,8 @@ describe("reportService", () => {
       expect(repo.findById).toHaveBeenCalledWith(7);
       expect(repo.deleteById).toHaveBeenCalledWith(7);
       expect(img.deleteImages).toHaveBeenCalledWith(report.photos);
-      expect(res.photos).toEqual(["p1"]);
+      expect(res.photos).toEqual([]);
+      expect(res.photos).toEqual([]);
       expect(res.id).toBe(7);
     });
 
@@ -317,6 +399,76 @@ describe("reportService", () => {
       await expect(reportService.deleteReport(999)).rejects.toThrow(
         "Report not found",
       );
+    });
+  });
+
+  describe("findAssignedReportsForOfficer", () => {
+    it("returns reports for officer with photos normalized", async () => {
+      const reports = [makeReport({ photos: undefined })];
+      repo.findAssignedReportsForOfficer.mockResolvedValue(reports);
+
+      const res = await reportService.findAssignedReportsForOfficer(12);
+
+      expect(repo.findAssignedReportsForOfficer).toHaveBeenCalledWith(12, undefined);
+      expect(res).toEqual([
+        expect.objectContaining({ photos: [] }),
+      ]);
+    });
+
+    it("maps provided status string before querying repository", async () => {
+      const reports = [makeReport({ status: ReportStatus.ASSIGNED })];
+      repo.findAssignedReportsForOfficer.mockResolvedValue(reports);
+
+      const res = await reportService.findAssignedReportsForOfficer(
+        5,
+        "ASSIGNED" as unknown as ReportStatus,
+      );
+
+      expect(repo.findAssignedReportsForOfficer).toHaveBeenCalledWith(
+        5,
+        ReportStatus.ASSIGNED,
+      );
+      expect(res).toHaveLength(1);
+    });
+
+    it("throws when status string is invalid", async () => {
+      await expect(
+        reportService.findAssignedReportsForOfficer(
+          1,
+          "INVALID" as unknown as ReportStatus,
+        ),
+      ).rejects.toThrow("Invalid status");
+    });
+  });
+
+  describe("pickOfficerForService", () => {
+    it("returns null when office name is missing", async () => {
+      const res = await reportService.pickOfficerForService(undefined);
+
+      expect(findLeastLoadedOfficerSpy).not.toHaveBeenCalled();
+      expect(res).toBeNull();
+    });
+
+    it("returns null when repository finds no officer", async () => {
+      findLeastLoadedOfficerSpy.mockResolvedValue(null);
+
+      const res = await reportService.pickOfficerForService("Ghost Office");
+
+      expect(findLeastLoadedOfficerSpy).toHaveBeenCalledWith(
+        "Ghost Office",
+      );
+      expect(res).toBeNull();
+    });
+
+    it("returns officer id when repository resolves an officer", async () => {
+      findLeastLoadedOfficerSpy.mockResolvedValue({ id: 77 } as any);
+
+      const res = await reportService.pickOfficerForService("Environmental Services - Waste Management");
+
+      expect(findLeastLoadedOfficerSpy).toHaveBeenCalledWith(
+        "Environmental Services - Waste Management",
+      );
+      expect(res).toBe(77);
     });
   });
 });

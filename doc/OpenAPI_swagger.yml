@@ -135,8 +135,7 @@ paths:
       tags: [Reports]
       summary: List all reports
       description: >
-        Returns the list of all reports.
-        **Requires role: ADMIN or MUNICIPALITY**. //TODO check roles
+        Returns the list of all reports. 
       security:
         - cookieAuth: []
       parameters:
@@ -145,7 +144,7 @@ paths:
           schema:
             type: string
             enum:
-              - PENDING_APPROVAL
+              - ASSIGNED
           description: Filter reports by status
       responses:
         '200':
@@ -283,6 +282,68 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  /reports/municipality-users/{roleId}:
+    get:
+      tags: [Reports]
+      summary: Get reports by municipality role
+      description: >
+        Get reports by municipality role ID.
+        **Requires role: MUNICIPALITY**.
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: roleId
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: Municipality role ID
+      responses:
+        '200':
+          description: OK - Reports successfully retrieved
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Report'
+        '400':
+          description: Bad Request 
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Bad Request - Validation error"
+                message: "Invalid input data"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - You don't have municipality permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Not Found - Role not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Not Found"
+                message: "Role not found"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /users:
     # registration endpoint
@@ -328,6 +389,12 @@ paths:
               example:
                 error: "Conflict Error"
                 message: "Username or email already exists"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
     get:
       tags: [Users]
       summary: List all users
@@ -353,6 +420,34 @@ paths:
                 $ref: '#/components/schemas/Error'
         '403':
           description: Forbidden - You don't have admin permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    patch:
+      tags: [Users]
+      summary: Account configuration
+      description: >
+        Require role: CITIZEN.
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserConfiguration'
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Bad Request
           content:
             application/json:
               schema:
@@ -424,7 +519,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-
     delete:
       tags: [Users]
       summary: Delete user
@@ -649,6 +743,22 @@ components:
           format: password
           example: "P@ssw0rd!"
 
+    UserConfiguration:
+      type: object
+      properties:
+        photo:
+          type: string
+          format: binary
+          description: "JPEG, JPG or PNG image file"
+        telegramUsername:
+          type: string
+          pattern: '^@[a-zA-Z0-9_]{5,32}$'
+          example: "@Rossi"
+        notificationsEnabled:
+          type: string
+          example: true
+          description: Boolean
+
     User:
       type: object 
       properties:
@@ -661,6 +771,19 @@ components:
         username:
           type: string
           example: "mrossi"
+        role:
+          type: string
+          example: "CITIZEN"
+        telegramUsername:
+          type: string
+          example: "@Rossi"
+        notificationsEnabled:
+          type: boolean
+          example: true
+        profilePhoto:
+          type: string
+          format: uri
+          example: "https://example.com/photos/mrossi_profile.jpg"
 
     LoginRequest:
       type: object

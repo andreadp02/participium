@@ -222,6 +222,12 @@ describe("authController", () => {
         firstName: "Mario",
         lastName: "Rossi",
         username: "mrossi",
+        role: undefined,
+        municipality_role_id: undefined,
+        municipality_role: null,
+        notificationsEnabled: undefined,
+        profilePhoto: "localhost:4000/user-profiles/undefined",
+        telegramUsername: undefined,
       });
     });
 
@@ -277,6 +283,12 @@ describe("authController", () => {
         firstName: "Mario",
         lastName: "Rossi",
         username: "mrossi",
+        role: undefined,
+        municipality_role_id: undefined,
+        municipality_role: null,
+        notificationsEnabled: undefined,
+        profilePhoto: "localhost:4000/user-profiles/undefined",
+        telegramUsername: undefined,
       });
     });
 

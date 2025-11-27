@@ -61,12 +61,19 @@ export const authService = {
       throw new Error("Invalid password");
     }
 
+    // Re-fetch the user with relations (municipality_role) to return full user
+    const fullUser = await userRepository.findUserById(user.id);
+
+    if (!fullUser) {
+      throw new Error("User not found after authentication");
+    }
+
     const token = jwt.sign(
-      { id: user.id, email: user.email, role: user.role },
+      { id: fullUser.id, email: fullUser.email, role: fullUser.role },
       SECRET_KEY,
       { expiresIn: "1h" },
     );
-    return { user, token };
+    return { user: fullUser, token };
   },
 
   async verifyAuth(req: any) {
@@ -118,29 +125,5 @@ export const authService = {
     );
 
     return user;
-  },
-
-  async getAllUsers() {
-    return await userRepository.getAllUsers();
-  },
-
-  async getUserById(userId: number) {
-    return await userRepository.findUserById(userId);
-  },
-
-  async deleteUser(userId: number) {
-    const user = await userRepository.findUserById(userId);
-    if (!user) {
-      throw new Error("User not found");
-    }
-    return await userRepository.deleteUser(userId);
-  },
-
-  async getAllMunicipalityRoles() {
-    return await roleRepository.getAllMunicipalityRoles();
-  },
-
-  async getMunicipalityUsers() {
-    return await userRepository.getUsersByRole(roleType.MUNICIPALITY);
   },
 };

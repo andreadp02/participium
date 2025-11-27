@@ -4,6 +4,7 @@ jest.mock("@database", () => ({
       create: jest.fn(),
       findUnique: jest.fn(),
       findMany: jest.fn(),
+      findFirst: jest.fn(),
       delete: jest.fn(),
     },
   },
@@ -17,6 +18,7 @@ type PrismaMock = {
     create: jest.Mock;
     findUnique: jest.Mock;
     findMany: jest.Mock;
+    findFirst: jest.Mock;
     delete: jest.Mock;
   };
 };
@@ -38,6 +40,7 @@ describe("userRepository", () => {
     prismaMock.user.create.mockReset();
     prismaMock.user.findUnique.mockReset();
     prismaMock.user.findMany.mockReset();
+    prismaMock.user.findFirst.mockReset();
     prismaMock.user.delete.mockReset();
   });
 
@@ -76,6 +79,21 @@ describe("userRepository", () => {
 
       expect(prismaMock.user.findUnique).toHaveBeenCalledWith({
         where: { email: u.email },
+        select: {
+          id: true,
+          username: true,
+          email: true,
+          password: true,
+          firstName: true,
+          lastName: true,
+          role: true,
+          createdAt: true,
+          municipality_role_id: true,
+          municipality_role: true,
+          profilePhoto: true,
+          telegramUsername: true,
+          notifications: true,
+        },
       });
       expect(res).toBe(u);
     });
@@ -97,6 +115,21 @@ describe("userRepository", () => {
 
       expect(prismaMock.user.findUnique).toHaveBeenCalledWith({
         where: { username: u.username },
+        select: {
+          id: true,
+          username: true,
+          email: true,
+          password: true,
+          firstName: true,
+          lastName: true,
+          role: true,
+          createdAt: true,
+          municipality_role_id: true,
+          municipality_role: true,
+          profilePhoto: true,
+          telegramUsername: true,
+          notifications: true,
+        },
       });
       expect(res).toBe(u);
     });
@@ -128,6 +161,9 @@ describe("userRepository", () => {
           createdAt: true,
           municipality_role_id: true,
           municipality_role: true,
+          profilePhoto: true,
+          telegramUsername: true,
+          notifications: true,
         },
       });
       expect(res).toBe(u);
@@ -230,6 +266,9 @@ describe("userRepository", () => {
           createdAt: true,
           municipality_role_id: true,
           municipality_role: true,
+          profilePhoto: true,
+          telegramUsername: true,
+          notifications: true,
         },
       });
       expect(res).toBe(users);
@@ -252,6 +291,9 @@ describe("userRepository", () => {
           createdAt: true,
           municipality_role_id: true,
           municipality_role: true,
+          profilePhoto: true,
+          telegramUsername: true,
+          notifications: true,
         },
       });
       expect(res).toBe(users);
@@ -281,7 +323,20 @@ describe("userRepository", () => {
 
       expect(prismaMock.user.findMany).toHaveBeenCalledWith({
         where: { role: "MUNICIPALITY" },
-        include: { municipality_role: true },
+        select: {
+          id: true,
+          username: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          role: true,
+          createdAt: true,
+          municipality_role_id: true,
+          municipality_role: true,
+          profilePhoto: true,
+          telegramUsername: true,
+          notifications: true,
+        },
       });
       expect(res).toBe(users);
     });
@@ -294,9 +349,63 @@ describe("userRepository", () => {
 
       expect(prismaMock.user.findMany).toHaveBeenCalledWith({
         where: { role: "ADMIN" },
-        include: { municipality_role: true },
+        select: {
+          id: true,
+          username: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          role: true,
+          createdAt: true,
+          municipality_role_id: true,
+          municipality_role: true,
+          profilePhoto: true,
+          telegramUsername: true,
+          notifications: true,
+        },
       });
       expect(res).toBe(users);
+    });
+  });
+
+  describe("findLeastLoadedOfficerByOfficeName", () => {
+    it("queries officers by office name ordered by assigned report count", async () => {
+      const officer = makeUser({ id: 9, role: "MUNICIPALITY" });
+      prismaMock.user.findFirst.mockResolvedValue(officer);
+
+      const res = await userRepository.findLeastLoadedOfficerByOfficeName("Public Works");
+
+      expect(prismaMock.user.findFirst).toHaveBeenCalledWith({
+        where: {
+          role: "MUNICIPALITY",
+          municipality_role: { name: "Public Works" },
+        },
+        orderBy: {
+          assignedReports: {
+            _count: "asc",
+          },
+        },
+      });
+      expect(res).toBe(officer);
+    });
+
+    it("returns null when no matching officer is found", async () => {
+      prismaMock.user.findFirst.mockResolvedValue(null);
+
+      const res = await userRepository.findLeastLoadedOfficerByOfficeName("Ghost Office");
+
+      expect(prismaMock.user.findFirst).toHaveBeenCalledWith({
+        where: {
+          role: "MUNICIPALITY",
+          municipality_role: { name: "Ghost Office" },
+        },
+        orderBy: {
+          assignedReports: {
+            _count: "asc",
+          },
+        },
+      });
+      expect(res).toBeNull();
     });
   });
 });

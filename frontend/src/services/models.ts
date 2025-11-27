@@ -9,7 +9,13 @@ export class Report {
   createdAt: string;
   status: ReportStatus;
   rejectionReason?: string;
-  // isAnonymous: boolean;
+  isAnonymous: boolean;
+  user?: {
+    id: number;
+    username: string;
+    firstName: string;
+    lastName: string;
+  } | null;
   // assignedOffice?: string;
   // submittedBy?: string;
 
@@ -18,13 +24,19 @@ export class Report {
     lng: number,
     title: string,
     status: string,
+    isAnonymous: boolean,
     id?: number,
     description?: string,
     category?: string,
     photos?: string[],
     createdAt?: string,
     rejectionReason?: string,
-    // isAnonymous?: boolean,
+    user?: {
+      id: number;
+      username: string;
+      firstName: string;
+      lastName: string;
+    } | null,
     // assignedOffice?: string
     // submittedBy?: string;
   ) {
@@ -38,9 +50,10 @@ export class Report {
     this.createdAt = createdAt || new Date().toISOString();
     this.status = parseReportStatus(status);
     this.rejectionReason = rejectionReason;
+    this.user = user;
     // this.assignedOffice = assignedOffice;
     // this.submittedBy = submittedBy;
-    // this.isAnonymous = isAnonymous;
+    this.isAnonymous = isAnonymous;
   }
 }
 

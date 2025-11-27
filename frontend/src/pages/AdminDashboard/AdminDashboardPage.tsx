@@ -3,7 +3,6 @@ import { AdminDashboardLayout } from "../../components/dashboard/AdminDashboardL
 import { motion } from "framer-motion";
 import {
   FileText,
-  Users,
   CheckCircle2,
   Clock,
   AlertCircle,
@@ -305,8 +304,6 @@ export const AdminDashboardPage: React.FC = () => {
                 </div>
               </div>
             </motion.div>
-
-         
           </div>
         </div>
       </div>
