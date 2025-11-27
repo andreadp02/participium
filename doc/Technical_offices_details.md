@@ -5,9 +5,10 @@ Municipal staff can review, approve, assign, and resolve reports through a struc
 
 ## System Features
 
-- Citizen portal to submit detailed reports with title, description, photos (1-3 images), and precise location (latitude/longitude)
+- Citizen portal to submit detailed reports with title, description, category, photos (1-3 images), and precise location (latitude/longitude)
+- Municipal public relation officer approves or rejects reports with rejection reasons
 - Automatic category-based assignment to municipal users 
-- Technical officer dashboard for reviewing, approving, or rejecting reports with optional rejection reasons
+- Technical officer dashboard for reviewing reports and updating report status
 - Interactive map for viewing reports and creating new ones
 - User authentication with roles: Citizen, Municipality, Admin
 - Image upload and storage with temporary and persistent handling
@@ -21,6 +22,7 @@ When a report is approved, the system assigns it to the correct office based on 
 
 | Technical Office | Category | Description |
 | ---------------- | -------- | ----------- |
+| Municipal public relation officer | All | Approve or rejects all reports |
 | environmental protection officer | WATER_SUPPLY_DRINKING_WATER | Water leaks, hydrants, public fountains |
 | urban planning specialist | ARCHITECTURAL_BARRIERS | Accessibility issues, ramps, physical barriers |
 | public works project manager | SEWER_SYSTEM | Drainage problems, blocked or damaged sewers |
