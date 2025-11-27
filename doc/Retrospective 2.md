@@ -64,10 +64,10 @@ Task done: 47
   - Total hours spent: 8h
   - Nr of automated unit test cases: 224 
   - Coverage: 76.07%(Stmts), 70.94%(Branch), 80.58%(Funcs), 75.6%(lines)
-- E2E testing:
+- E2E testing (considering both frontend and backend):
   - Total hours estimated: 15h
   - Total hours spent: 12h
-  - Nr of test cases: 80
+  - Nr of test cases: 88
 - Code review 
   - Total hours estimated: 5h
   - Total hours spent: 5h 10m 
@@ -77,23 +77,13 @@ Task done: 47
 ## ASSESSMENT
 
 - What did go wrong in the sprint?
-  - The underestimating the time of the tasks
-  - # story done vs estimated
 - What caused your errors in estimation (if any)?
-  - Thinking of the stories were as easy as what we estimated but it wasn't
 - What lessons did you learn (both positive and negative) in this sprint?
-  - Talking more with each other
-  - Have more scrum meeting
-  - Pay attention to each other
 
 - Which improvement goals set in the previous retrospective were you able to achieve? 
-  - No previous retrospective
 - Which ones you were not able to achieve? Why?
-  - No previous retrospective
 - Improvement goals for the next sprint and how to achieve them (technical tasks, team coordination, etc.)
 
   > Propose one or two
-    Improve team work and increase scrum meetings
 
 - One thing you are proud of as a Team!!
-  - We are transparent in acknowledging when we are wrong and how to improve
