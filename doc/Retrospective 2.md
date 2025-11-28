@@ -77,13 +77,27 @@ Task done: 47
 ## ASSESSMENT
 
 - What did go wrong in the sprint?
+  - We started working late, loosing almost a week.
+  - High coupling between tasks of different individuals, some people had to wait for their teammates to finish the tasks.
+
 - What caused your errors in estimation (if any)?
+  - We underestimate bugs and errors to fix, that they made us delay the work, but we were close to the initial estimation.
+
 - What lessons did you learn (both positive and negative) in this sprint?
+  - We should organize our work better so we can work in parallel on multiple stories and actually get them all done, for example doing a document at the start of the sprint that explain well all the workflow and the business logic to implement.
+  - We should focus more on quality rather than quantity. This would be helpful for the later sprint, in order to have less technical debt.
 
 - Which improvement goals set in the previous retrospective were you able to achieve? 
-- Which ones you were not able to achieve? Why?
-- Improvement goals for the next sprint and how to achieve them (technical tasks, team coordination, etc.)
+  - We did more scrum meeting and communicate better within each other.
 
-  > Propose one or two
+- Which ones you were not able to achieve? Why?
+  - We did a good improvement in terms of team work, but we were late again for the demo presentation because the vision of business logic and technical details to implement were different between the teammates.
+
+- Improvement goals for the next sprint and how to achieve them (technical tasks, team coordination, etc.)
+  - Prioritize some tasks to avoid waiting queue. 
+  - Works consistently.
+  - Doing a document to have a clear vision of the things to implement and the business logic.
 
 - One thing you are proud of as a Team!!
+  - There is a very good environment.
+  - We face difficulties with a good communication, without arguing.
