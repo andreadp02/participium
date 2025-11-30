@@ -6,6 +6,7 @@ import { Register } from "src/pages/RegisterPage";
 import UserDashboardPage from "./pages/UserDashboard/UserDashboardPage";
 import NewReportPage from "./pages/UserDashboard/NewReportPage";
 import UserSettingsPage from "./pages/UserDashboard/UserSettingsPage";
+import NotificationsPage from "./pages/UserDashboard/NotificationsPage";
 import AdminDashboardPage from "./pages/AdminDashboard/AdminDashboardPage";
 import AdminUsersPage from "./pages/AdminDashboard/AdminUsersPage";
 import MunicipalityReportsPage from "./pages/MunicipalityDashboard/MunicipalityReportsPage";
@@ -56,6 +57,14 @@ function App() {
               element={
                 <ProtectedRoute requiredRole="CITIZEN">
                   <UserSettingsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/notifications"
+              element={
+                <ProtectedRoute requiredRole="CITIZEN">
+                  <NotificationsPage />
                 </ProtectedRoute>
               }
             />

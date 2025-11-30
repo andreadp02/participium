@@ -1,157 +1,150 @@
 import React, { useState } from "react";
 import { DashboardLayout } from "../../components/dashboard/DashboardLayout";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Bell,
   MessageSquare,
-  CheckCircle2,
-  XCircle,
-  Clock,
   Send,
-  Info,
+  AlertCircle,
+  CheckCircle,
+  Clock,
+  ArrowRight,
+  X,
 } from "lucide-react";
 
-interface Notification {
+// Sample data structure - will be replaced with API calls later
+interface StatusNotification {
   id: number;
-  reportId: string;
+  reportId: number;
   reportTitle: string;
-  type: "status_change" | "message" | "info";
-  status?: string;
-  message?: string;
-  sender?: string;
+  oldStatus: string;
+  newStatus: string;
   timestamp: string;
   read: boolean;
 }
 
-interface Message {
+interface MessageNotification {
   id: number;
-  reportId: string;
+  reportId: number;
   reportTitle: string;
   sender: string;
-  senderRole: "citizen" | "municipality";
-  content: string;
+  senderRole: string;
+  message: string;
   timestamp: string;
   read: boolean;
 }
 
 export const NotificationsPage: React.FC = () => {
-  const [notifications, setNotifications] = useState<Notification[]>([
+  const [activeTab, setActiveTab] = useState<"status" | "messages">("status");
+  const [selectedMessage, setSelectedMessage] = useState<number | null>(null);
+  const [replyText, setReplyText] = useState("");
+  const [sending, setSending] = useState(false);
+
+  // Sample data - will be fetched from API
+  const [statusNotifications] = useState<StatusNotification[]>([
     {
       id: 1,
-      reportId: "RPT-001",
-      reportTitle: "Broken streetlight near Via Garibaldi",
-      type: "status_change",
-      status: "ASSIGNED",
-      timestamp: "2025-11-25 14:30",
+      reportId: 1,
+      reportTitle: "Broken streetlight on Main Street",
+      oldStatus: "PENDING_APPROVAL",
+      newStatus: "ASSIGNED",
+      timestamp: "2025-11-30 10:30",
       read: false,
     },
     {
       id: 2,
-      reportId: "RPT-002",
-      reportTitle: "Overflowing trash bin",
-      type: "message",
-      message: "We are scheduling the intervention for next Monday.",
-      sender: "Environmental Services",
-      timestamp: "2025-11-25 10:15",
-      read: false,
+      reportId: 2,
+      reportTitle: "Pothole on Via Roma",
+      oldStatus: "ASSIGNED",
+      newStatus: "IN_PROGRESS",
+      timestamp: "2025-11-29 15:45",
+      read: true,
     },
     {
       id: 3,
-      reportId: "RPT-001",
-      reportTitle: "Broken streetlight near Via Garibaldi",
-      type: "status_change",
-      status: "IN_PROGRESS",
-      timestamp: "2025-11-24 16:45",
+      reportId: 1,
+      reportTitle: "Broken streetlight on Main Street",
+      oldStatus: "IN_PROGRESS",
+      newStatus: "RESOLVED",
+      timestamp: "2025-11-28 09:15",
       read: true,
     },
   ]);
 
-  const [messages, setMessages] = useState<Message[]>([
+  const [messageNotifications] = useState<MessageNotification[]>([
     {
       id: 1,
-      reportId: "RPT-002",
-      reportTitle: "Overflowing trash bin",
-      sender: "Environmental Services",
-      senderRole: "municipality",
-      content: "We are scheduling the intervention for next Monday.",
-      timestamp: "2025-11-25 10:15",
+      reportId: 1,
+      reportTitle: "Broken streetlight on Main Street",
+      sender: "Marco Rossi",
+      senderRole: "Technical Office",
+      message: "We have scheduled the repair for tomorrow morning. The work should take approximately 2 hours.",
+      timestamp: "2025-11-30 11:00",
       read: false,
+    },
+    {
+      id: 2,
+      reportId: 2,
+      reportTitle: "Pothole on Via Roma",
+      sender: "Laura Bianchi",
+      senderRole: "Public Works",
+      message: "Thank you for your report. We are currently assessing the situation and will provide an update soon.",
+      timestamp: "2025-11-29 16:20",
+      read: true,
     },
   ]);
 
-  const [selectedReport, setSelectedReport] = useState<string | null>(null);
-  const [replyMessage, setReplyMessage] = useState("");
-  const [activeTab, setActiveTab] = useState<"notifications" | "messages">("notifications");
+  const unreadStatusCount = statusNotifications.filter((n) => !n.read).length;
+  const unreadMessagesCount = messageNotifications.filter((m) => !m.read).length;
 
-  const unreadNotifications = notifications.filter((n) => !n.read).length;
-  const unreadMessages = messages.filter((m) => !m.read).length;
-
-  const markAsRead = (notificationId: number) => {
-    setNotifications(
-      notifications.map((n) =>
-        n.id === notificationId ? { ...n, read: true } : n
-      )
-    );
+  const getStatusColor = (status: string) => {
+    const colors: Record<string, string> = {
+      PENDING_APPROVAL: "bg-yellow-100 text-yellow-800 border-yellow-300",
+      ASSIGNED: "bg-blue-100 text-blue-800 border-blue-300",
+      IN_PROGRESS: "bg-indigo-100 text-indigo-800 border-indigo-300",
+      RESOLVED: "bg-green-100 text-green-800 border-green-300",
+      REJECTED: "bg-red-100 text-red-800 border-red-300",
+      SUSPENDED: "bg-orange-100 text-orange-800 border-orange-300",
+    };
+    return colors[status] || "bg-gray-100 text-gray-800 border-gray-300";
   };
 
-  const markMessageAsRead = (messageId: number) => {
-    setMessages(
-      messages.map((m) => (m.id === messageId ? { ...m, read: true } : m))
-    );
+  const getStatusLabel = (status: string) => {
+    const labels: Record<string, string> = {
+      PENDING_APPROVAL: "Pending Approval",
+      ASSIGNED: "Assigned",
+      IN_PROGRESS: "In Progress",
+      RESOLVED: "Resolved",
+      REJECTED: "Rejected",
+      SUSPENDED: "Suspended",
+    };
+    return labels[status] || status;
   };
 
-  const handleSendReply = (reportId: string) => {
-    if (replyMessage.trim()) {
-      // TODO: Send message to API
-      console.log("Sending reply to", reportId, ":", replyMessage);
-      setReplyMessage("");
-      setSelectedReport(null);
-    }
-  };
-
-  const getStatusIcon = (status?: string) => {
+  const getStatusIcon = (status: string) => {
     switch (status) {
-      case "ASSIGNED":
-        return <CheckCircle2 className="h-5 w-5 text-green-600" />;
-      case "IN_PROGRESS":
-        return <Clock className="h-5 w-5 text-blue-600" />;
       case "RESOLVED":
-        return <CheckCircle2 className="h-5 w-5 text-emerald-600" />;
+        return <CheckCircle className="h-4 w-4" />;
+      case "IN_PROGRESS":
+        return <Clock className="h-4 w-4" />;
       case "REJECTED":
-        return <XCircle className="h-5 w-5 text-red-600" />;
+        return <AlertCircle className="h-4 w-4" />;
       default:
-        return <Info className="h-5 w-5 text-slate-600" />;
+        return <Bell className="h-4 w-4" />;
     }
   };
 
-  const getStatusLabel = (status?: string) => {
-    switch (status) {
-      case "ASSIGNED":
-        return "Assigned to Technical Office";
-      case "IN_PROGRESS":
-        return "Work in Progress";
-      case "RESOLVED":
-        return "Issue Resolved";
-      case "REJECTED":
-        return "Report Rejected";
-      default:
-        return status;
-    }
-  };
-
-  const getStatusColor = (status?: string) => {
-    switch (status) {
-      case "ASSIGNED":
-        return "from-green-50 to-emerald-50 border-green-200";
-      case "IN_PROGRESS":
-        return "from-blue-50 to-indigo-50 border-blue-200";
-      case "RESOLVED":
-        return "from-emerald-50 to-teal-50 border-emerald-200";
-      case "REJECTED":
-        return "from-red-50 to-rose-50 border-red-200";
-      default:
-        return "from-slate-50 to-gray-50 border-slate-200";
-    }
+  const handleSendReply = async () => {
+    if (!replyText.trim()) return;
+    
+    setSending(true);
+    // Simulate API call
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    setSending(false);
+    setReplyText("");
+    setSelectedMessage(null);
+    // Show success message
+    alert("Reply sent successfully!");
   };
 
   return (
@@ -168,278 +161,270 @@ export const NotificationsPage: React.FC = () => {
         </div>
 
         {/* Tabs */}
-        <div className="border-b-2 border-slate-200">
-          <div className="flex gap-1">
+        <div className="bg-white rounded-2xl shadow-lg border-2 border-slate-200 overflow-hidden">
+          <div className="flex border-b-2 border-slate-200">
             <button
-              onClick={() => setActiveTab("notifications")}
-              className={`relative px-6 py-3 text-sm font-bold transition-all ${
-                activeTab === "notifications"
-                  ? "text-indigo-700 border-b-3 border-indigo-600"
-                  : "text-slate-600 hover:text-slate-900"
+              onClick={() => setActiveTab("status")}
+              className={`flex-1 px-6 py-4 text-sm font-bold transition-all relative ${
+                activeTab === "status"
+                  ? "bg-indigo-50 text-indigo-700"
+                  : "bg-white text-slate-600 hover:bg-slate-50"
               }`}
             >
-              <span className="flex items-center gap-2">
-                <Bell className="h-4 w-4" />
-                Notifications
-                {unreadNotifications > 0 && (
-                  <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-2 rounded-full text-xs font-bold bg-red-500 text-white">
-                    {unreadNotifications}
+              <span className="flex items-center justify-center gap-2">
+                <Bell className="h-5 w-5" />
+                Status Updates
+                {unreadStatusCount > 0 && (
+                  <span className="inline-flex items-center justify-center min-w-[24px] h-6 px-2 rounded-full text-xs font-bold bg-red-500 text-white animate-pulse">
+                    {unreadStatusCount}
                   </span>
                 )}
               </span>
-              {activeTab === "notifications" && (
-                <div className="absolute bottom-0 left-0 right-0 h-1 bg-indigo-600 rounded-t-full"></div>
+              {activeTab === "status" && (
+                <motion.div
+                  layoutId="activeTab"
+                  className="absolute bottom-0 left-0 right-0 h-1 bg-indigo-600"
+                />
               )}
             </button>
 
             <button
               onClick={() => setActiveTab("messages")}
-              className={`relative px-6 py-3 text-sm font-bold transition-all ${
+              className={`flex-1 px-6 py-4 text-sm font-bold transition-all relative ${
                 activeTab === "messages"
-                  ? "text-indigo-700 border-b-3 border-indigo-600"
-                  : "text-slate-600 hover:text-slate-900"
+                  ? "bg-indigo-50 text-indigo-700"
+                  : "bg-white text-slate-600 hover:bg-slate-50"
               }`}
             >
-              <span className="flex items-center gap-2">
-                <MessageSquare className="h-4 w-4" />
+              <span className="flex items-center justify-center gap-2">
+                <MessageSquare className="h-5 w-5" />
                 Messages
-                {unreadMessages > 0 && (
-                  <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-2 rounded-full text-xs font-bold bg-red-500 text-white">
-                    {unreadMessages}
+                {unreadMessagesCount > 0 && (
+                  <span className="inline-flex items-center justify-center min-w-[24px] h-6 px-2 rounded-full text-xs font-bold bg-red-500 text-white animate-pulse">
+                    {unreadMessagesCount}
                   </span>
                 )}
               </span>
               {activeTab === "messages" && (
-                <div className="absolute bottom-0 left-0 right-0 h-1 bg-indigo-600 rounded-t-full"></div>
+                <motion.div
+                  layoutId="activeTab"
+                  className="absolute bottom-0 left-0 right-0 h-1 bg-indigo-600"
+                />
               )}
             </button>
           </div>
-        </div>
 
-        {/* Notifications Tab */}
-        {activeTab === "notifications" && (
-          <div className="space-y-3">
-            {notifications.length === 0 ? (
-              <div className="rounded-2xl border-2 border-slate-200 bg-white p-12 text-center">
-                <Bell className="h-16 w-16 text-slate-300 mx-auto mb-4" />
-                <p className="text-lg font-semibold text-slate-600">
-                  No notifications yet
-                </p>
-                <p className="text-sm text-slate-500 mt-2">
-                  You'll receive updates when there are changes to your reports
-                </p>
-              </div>
-            ) : (
-              notifications.map((notification, index) => (
+          <div className="p-6">
+            <AnimatePresence mode="wait">
+              {/* Status Updates Tab */}
+              {activeTab === "status" && (
                 <motion.div
-                  key={notification.id}
-                  initial={{ opacity: 0, y: 10 }}
+                  key="status"
+                  initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                  onClick={() => markAsRead(notification.id)}
-                  className={`rounded-2xl border-2 bg-gradient-to-br overflow-hidden cursor-pointer transition-all hover:shadow-lg ${
-                    notification.read
-                      ? "border-slate-200 from-white to-slate-50/30 opacity-75"
-                      : "border-indigo-200 from-white to-indigo-50/30 shadow-md"
-                  }`}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="space-y-4"
                 >
-                  <div className="p-5">
-                    <div className="flex items-start gap-4">
-                      <div
-                        className={`flex items-center justify-center w-12 h-12 rounded-xl shadow-md flex-shrink-0 ${
-                          notification.type === "status_change"
-                            ? "bg-gradient-to-br from-blue-500 to-indigo-600 text-white"
-                            : "bg-gradient-to-br from-purple-500 to-pink-600 text-white"
+                  {statusNotifications.length === 0 ? (
+                    <div className="text-center py-12">
+                      <Bell className="h-16 w-16 text-slate-300 mx-auto mb-4" />
+                      <p className="text-lg font-semibold text-slate-600">
+                        No status updates
+                      </p>
+                      <p className="text-sm text-slate-500 mt-2">
+                        You'll be notified when your reports change status
+                      </p>
+                    </div>
+                  ) : (
+                    statusNotifications.map((notification, index) => (
+                      <motion.div
+                        key={notification.id}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                        className={`rounded-xl border-2 p-5 transition-all ${
+                          notification.read
+                            ? "bg-slate-50 border-slate-200 opacity-75"
+                            : "bg-white border-indigo-200 shadow-md"
                         }`}
                       >
-                        {notification.type === "status_change" ? (
-                          getStatusIcon(notification.status)
-                        ) : (
-                          <MessageSquare className="h-6 w-6" />
-                        )}
-                      </div>
-
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-3 mb-2">
+                        <div className="flex items-start justify-between gap-4">
                           <div className="flex-1">
-                            <p className="text-sm font-bold text-indigo-600 uppercase tracking-wide">
-                              Report {notification.reportId}
-                            </p>
-                            <h3 className="text-base font-bold text-slate-900 mt-1">
+                            <div className="flex items-center gap-3 mb-3">
+                              <span className="text-sm font-bold text-indigo-600">
+                                Report #{notification.reportId}
+                              </span>
+                              {!notification.read && (
+                                <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                              )}
+                            </div>
+                            <h3 className="text-base font-bold text-slate-900 mb-3">
                               {notification.reportTitle}
                             </h3>
+
+                            <div className="flex items-center gap-3 flex-wrap">
+                              <span
+                                className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold border-2 ${getStatusColor(
+                                  notification.oldStatus
+                                )}`}
+                              >
+                                {getStatusIcon(notification.oldStatus)}
+                                {getStatusLabel(notification.oldStatus)}
+                              </span>
+                              <ArrowRight className="h-4 w-4 text-slate-400" />
+                              <span
+                                className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold border-2 ${getStatusColor(
+                                  notification.newStatus
+                                )}`}
+                              >
+                                {getStatusIcon(notification.newStatus)}
+                                {getStatusLabel(notification.newStatus)}
+                              </span>
+                            </div>
+
+                            <p className="text-xs text-slate-500 mt-3">
+                              {notification.timestamp}
+                            </p>
                           </div>
-                          {!notification.read && (
-                            <div className="w-3 h-3 rounded-full bg-red-500 flex-shrink-0 mt-1"></div>
-                          )}
                         </div>
-
-                        {notification.type === "status_change" && (
-                          <div
-                            className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl border-2 bg-gradient-to-br ${getStatusColor(
-                              notification.status
-                            )}`}
-                          >
-                            {getStatusIcon(notification.status)}
-                            <span className="text-sm font-bold text-slate-900">
-                              {getStatusLabel(notification.status)}
-                            </span>
-                          </div>
-                        )}
-
-                        {notification.type === "message" && (
-                          <div className="bg-purple-50 border-2 border-purple-200 rounded-xl p-4 mt-2">
-                            <p className="text-sm font-semibold text-purple-900 mb-1">
-                              Message from {notification.sender}
-                            </p>
-                            <p className="text-sm text-purple-800">
-                              {notification.message}
-                            </p>
-                          </div>
-                        )}
-
-                        <p className="text-xs text-slate-500 mt-3">
-                          {notification.timestamp}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
+                      </motion.div>
+                    ))
+                  )}
                 </motion.div>
-              ))
-            )}
-          </div>
-        )}
+              )}
 
-        {/* Messages Tab */}
-        {activeTab === "messages" && (
-          <div className="space-y-4">
-            {messages.length === 0 ? (
-              <div className="rounded-2xl border-2 border-slate-200 bg-white p-12 text-center">
-                <MessageSquare className="h-16 w-16 text-slate-300 mx-auto mb-4" />
-                <p className="text-lg font-semibold text-slate-600">
-                  No messages yet
-                </p>
-                <p className="text-sm text-slate-500 mt-2">
-                  Municipal operators can send you messages about your reports
-                </p>
-              </div>
-            ) : (
-              messages.map((message, index) => (
+              {/* Messages Tab */}
+              {activeTab === "messages" && (
                 <motion.div
-                  key={message.id}
-                  initial={{ opacity: 0, y: 10 }}
+                  key="messages"
+                  initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                  onClick={() => markMessageAsRead(message.id)}
-                  className={`rounded-2xl border-2 bg-white overflow-hidden transition-all hover:shadow-lg ${
-                    message.read
-                      ? "border-slate-200 opacity-75"
-                      : "border-purple-200 shadow-md"
-                  }`}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="space-y-4"
                 >
-                  <div className="p-5">
-                    <div className="flex items-start gap-4">
-                      <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 text-white shadow-md flex-shrink-0">
-                        <MessageSquare className="h-6 w-6" />
-                      </div>
-
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-3 mb-3">
-                          <div>
-                            <p className="text-sm font-bold text-purple-600 uppercase tracking-wide">
-                              Report {message.reportId}
-                            </p>
-                            <h3 className="text-base font-bold text-slate-900 mt-1">
-                              {message.reportTitle}
-                            </h3>
-                          </div>
-                          {!message.read && (
-                            <div className="w-3 h-3 rounded-full bg-red-500 flex-shrink-0 mt-1"></div>
-                          )}
-                        </div>
-
-                        <div className="bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200 rounded-xl p-4">
-                          <div className="flex items-center gap-2 mb-2">
-                            <div className="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center text-xs font-bold">
-                              {message.sender.charAt(0)}
-                            </div>
-                            <div>
-                              <p className="text-sm font-bold text-purple-900">
-                                {message.sender}
-                              </p>
-                              <p className="text-xs text-purple-700">
-                                Municipal Operator
-                              </p>
-                            </div>
-                          </div>
-                          <p className="text-sm text-slate-800 leading-relaxed">
-                            {message.content}
-                          </p>
-                        </div>
-
-                        <div className="flex items-center justify-between mt-4">
-                          <p className="text-xs text-slate-500">
-                            {message.timestamp}
-                          </p>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedReport(message.reportId);
-                            }}
-                            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold transition-colors"
-                          >
-                            <Send className="h-4 w-4" />
-                            Reply
-                          </button>
-                        </div>
-
-                        {/* Reply Box */}
-                        {selectedReport === message.reportId && (
-                          <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: "auto" }}
-                            className="mt-4 p-4 bg-slate-50 rounded-xl border-2 border-slate-200"
-                          >
-                            <label className="block text-sm font-bold text-slate-700 mb-2">
-                              Your Reply
-                            </label>
-                            <textarea
-                              value={replyMessage}
-                              onChange={(e) => setReplyMessage(e.target.value)}
-                              placeholder="Type your message here..."
-                              rows={3}
-                              className="w-full rounded-lg border-2 border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none transition resize-none"
-                            />
-                            <div className="flex gap-2 mt-3">
-                              <button
-                                onClick={() =>
-                                  handleSendReply(message.reportId)
-                                }
-                                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold transition-colors"
-                              >
-                                <Send className="h-4 w-4" />
-                                Send Reply
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setSelectedReport(null);
-                                  setReplyMessage("");
-                                }}
-                                className="px-4 py-2 rounded-lg border-2 border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-sm font-semibold transition-colors"
-                              >
-                                Cancel
-                              </button>
-                            </div>
-                          </motion.div>
-                        )}
-                      </div>
+                  {messageNotifications.length === 0 ? (
+                    <div className="text-center py-12">
+                      <MessageSquare className="h-16 w-16 text-slate-300 mx-auto mb-4" />
+                      <p className="text-lg font-semibold text-slate-600">
+                        No messages yet
+                      </p>
+                      <p className="text-sm text-slate-500 mt-2">
+                        Municipal staff will send you messages about your reports
+                      </p>
                     </div>
-                  </div>
+                  ) : (
+                    messageNotifications.map((message, index) => (
+                      <motion.div
+                        key={message.id}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                        className={`rounded-xl border-2 overflow-hidden transition-all ${
+                          message.read
+                            ? "bg-slate-50 border-slate-200 opacity-75"
+                            : "bg-white border-purple-200 shadow-md"
+                        }`}
+                      >
+                        <div className="p-5">
+                          <div className="flex items-start justify-between gap-4 mb-4">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-3 mb-2">
+                                <span className="text-sm font-bold text-purple-600">
+                                  Report #{message.reportId}
+                                </span>
+                                {!message.read && (
+                                  <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                                )}
+                              </div>
+                              <h3 className="text-base font-bold text-slate-900">
+                                {message.reportTitle}
+                              </h3>
+                            </div>
+                          </div>
+
+                          <div className="bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200 rounded-lg p-4 mb-4">
+                            <div className="flex items-center gap-3 mb-3">
+                              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center text-white font-bold shadow-md">
+                                {message.sender.charAt(0)}
+                              </div>
+                              <div>
+                                <p className="text-sm font-bold text-purple-900">
+                                  {message.sender}
+                                </p>
+                                <p className="text-xs text-purple-700">
+                                  {message.senderRole}
+                                </p>
+                              </div>
+                            </div>
+                            <p className="text-sm text-slate-800 leading-relaxed">
+                              {message.message}
+                            </p>
+                          </div>
+
+                          <div className="flex items-center justify-between">
+                            <p className="text-xs text-slate-500">
+                              {message.timestamp}
+                            </p>
+                            <button
+                              onClick={() => setSelectedMessage(message.id)}
+                              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold transition-all shadow-md hover:shadow-lg"
+                            >
+                              <Send className="h-4 w-4" />
+                              Reply
+                            </button>
+                          </div>
+
+                          {/* Reply Box */}
+                          <AnimatePresence>
+                            {selectedMessage === message.id && (
+                              <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: "auto" }}
+                                exit={{ opacity: 0, height: 0 }}
+                                className="mt-4 pt-4 border-t-2 border-slate-200"
+                              >
+                                <label className="block text-sm font-bold text-slate-700 mb-2">
+                                  Your Reply
+                                </label>
+                                <textarea
+                                  value={replyText}
+                                  onChange={(e) => setReplyText(e.target.value)}
+                                  placeholder="Type your message here..."
+                                  rows={4}
+                                  className="w-full rounded-lg border-2 border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none transition resize-none"
+                                />
+                                <div className="flex gap-2 mt-3">
+                                  <button
+                                    onClick={handleSendReply}
+                                    disabled={sending || !replyText.trim()}
+                                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white text-sm font-bold transition-all shadow-md"
+                                  >
+                                    <Send className="h-4 w-4" />
+                                    {sending ? "Sending..." : "Send Reply"}
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      setSelectedMessage(null);
+                                      setReplyText("");
+                                    }}
+                                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border-2 border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-sm font-bold transition-all"
+                                  >
+                                    <X className="h-4 w-4" />
+                                    Cancel
+                                  </button>
+                                </div>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </div>
+                      </motion.div>
+                    ))
+                  )}
                 </motion.div>
-              ))
-            )}
+              )}
+            </AnimatePresence>
           </div>
-        )}
+        </div>
       </div>
     </DashboardLayout>
   );

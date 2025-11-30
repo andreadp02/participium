@@ -11,7 +11,7 @@ import {
   MapPin,
   BarChart3,
   Settings,
-  MessageSquare,
+  Bell,
   X,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
@@ -65,9 +65,9 @@ const ROLE_CONFIGS: Record<UserRole, RoleConfig> = {
         icon: <BarChart3 className="h-4 w-4" />,
       },
       {
-        href: "/dashboard/messages",
-        label: "Messages",
-        icon: <MessageSquare className="h-4 w-4" />,
+        href: "/dashboard/notifications",
+        label: "Notifications",
+        icon: <Bell className="h-4 w-4" />,
       },
       {
         href: "/dashboard/settings",
