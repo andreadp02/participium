@@ -97,11 +97,6 @@ function CustomMarker({
       const zoomLevel = 16;
       mapEvents.setView(e.latlng, zoomLevel, { animate: true });
     },
-    move() {
-      if (!showMarker) return;
-      const pos = mapEvents.getCenter();
-      setPosition(pos);
-    },
     click(e) {
       const pos = e.latlng;
       setPosition(pos);
