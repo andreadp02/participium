@@ -26,4 +26,7 @@
 	- Re-run the full automated suite for every fix.
 	- Document residual risks when a full mitigation is not feasible and schedule follow-up work.
 
+### Sprint 3 issues to handle
+For this sprint we will handle all reliability issues and maintainability issues of severity "high" and "medium"
+
 
