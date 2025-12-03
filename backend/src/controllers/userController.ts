@@ -115,9 +115,9 @@ export const userController = {
 
   async getUserById(req: Request, res: Response) {
     try {
-      const userId = parseInt(req.params.id);
+      const userId = Number.parseInt(req.params.id);
 
-      if (isNaN(userId)) {
+      if (Number.isNaN(userId)) {
         return res
           .status(400)
           .json({ error: "Bad Request", message: "Invalid user ID" });
@@ -142,9 +142,9 @@ export const userController = {
 
   async deleteUser(req: Request, res: Response) {
     try {
-      const userId = parseInt(req.params.id);
+      const userId = Number.parseInt(req.params.id);
 
-      if (isNaN(userId)) {
+      if (Number.isNaN(userId)) {
         return res
           .status(400)
           .json({ error: "Bad Request", message: "Invalid user ID" });
@@ -220,7 +220,8 @@ export const userController = {
       // Convert notificationsEnabled from string to boolean if it exists
       let notificationsEnabledBool: boolean | undefined = undefined;
       if (notificationsEnabled !== undefined) {
-        notificationsEnabledBool = notificationsEnabled === "true" || notificationsEnabled === true;
+        notificationsEnabledBool =
+          notificationsEnabled === "true" || notificationsEnabled === true;
       }
 
       await userService.updateCitizenProfile(

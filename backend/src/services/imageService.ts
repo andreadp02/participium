@@ -1,6 +1,6 @@
-import fs from "fs";
-import path from "path";
-import crypto from "crypto";
+import fs from "node:fs";
+import path from "node:path";
+import crypto from "node:crypto";
 import { redisClient } from "@redis";
 
 interface ImageData {
@@ -70,7 +70,7 @@ const persistImagesForReport = async (
       console.warn(`Failed to get temporary image from Redis: ${error}`);
       imageDataString = null;
     }
-    
+
     let imageObject;
     if (!imageDataString) {
       // For testing or when Redis is not available, create dummy image
