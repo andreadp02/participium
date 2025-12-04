@@ -94,9 +94,9 @@ const ReportForm: React.FC<ReportFormProps> = ({
     }
 
     // Validate file types
-    const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif"];
+    const validTypes = new Set(["image/jpeg", "image/jpg", "image/png", "image/gif"]);
     const invalidFiles = files.filter(
-      (file) => !validTypes.includes(file.type),
+      (file) => !validTypes.has(file.type),
     );
 
     if (invalidFiles.length > 0) {
