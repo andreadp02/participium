@@ -84,44 +84,63 @@ const ReportForm: React.FC<ReportFormProps> = ({
     fetchAddress();
   }, [lat, lng]);
 
+  const createFilePreview = (file: File) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPhotoPreviews((prev) => [...prev, reader.result as string]);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const validatePhotoCount = (currentCount: number, newCount: number): string | null => {
+    if (currentCount + newCount > 3) {
+      return "Maximum 3 photos allowed";
+    }
+    return null;
+  };
+
+  const validateFileTypes = (files: File[]): string | null => {
+    const validTypes = new Set(["image/jpeg", "image/jpg", "image/png", "image/gif"]);
+    const invalidFiles = files.filter((file) => !validTypes.has(file.type));
+    
+    if (invalidFiles.length > 0) {
+      return "Only image files (JPEG, PNG, GIF) are allowed";
+    }
+    return null;
+  };
+
+  const validateFileSizes = (files: File[]): string | null => {
+    const oversizedFiles = files.filter((file) => file.size > 5 * 1024 * 1024);
+    if (oversizedFiles.length > 0) {
+      return "Each photo must be less than 5MB";
+    }
+    return null;
+  };
+
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
 
-    // Validate number of photos (max 3)
-    if (photos.length + files.length > 3) {
-      setError("Maximum 3 photos allowed");
+    const countError = validatePhotoCount(photos.length, files.length);
+    if (countError) {
+      setError(countError);
       return;
     }
 
-    // Validate file types
-    const validTypes = new Set(["image/jpeg", "image/jpg", "image/png", "image/gif"]);
-    const invalidFiles = files.filter(
-      (file) => !validTypes.has(file.type),
-    );
-
-    if (invalidFiles.length > 0) {
-      setError("Only image files (JPEG, PNG, GIF) are allowed");
+    const typeError = validateFileTypes(files);
+    if (typeError) {
+      setError(typeError);
       return;
     }
 
-    // Validate file sizes (max 5MB each)
-    const oversizedFiles = files.filter((file) => file.size > 5 * 1024 * 1024);
-    if (oversizedFiles.length > 0) {
-      setError("Each photo must be less than 5MB");
+    const sizeError = validateFileSizes(files);
+    if (sizeError) {
+      setError(sizeError);
       return;
     }
 
     setError("");
     setPhotos([...photos, ...files]);
-
-    // Create previews
-    files.forEach((file) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPhotoPreviews((prev) => [...prev, reader.result as string]);
-      };
-      reader.readAsDataURL(file);
-    });
+    files.forEach(createFilePreview);
   };
 
   const removePhoto = (index: number) => {
@@ -129,27 +148,28 @@ const ReportForm: React.FC<ReportFormProps> = ({
     setPhotoPreviews(photoPreviews.filter((_, i) => i !== index));
   };
 
+  const validateForm = (): string | null => {
+    if (!title.trim()) {
+      return "Title is required";
+    }
+    if (!description.trim()) {
+      return "Description is required";
+    }
+    if (!category) {
+      return "Please select a category";
+    }
+    if (photos.length === 0) {
+      return "At least one photo is required";
+    }
+    return null;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validation
-    if (!title.trim()) {
-      setError("Title is required");
-      return;
-    }
-
-    if (!description.trim()) {
-      setError("Description is required");
-      return;
-    }
-
-    if (!category) {
-      setError("Please select a category");
-      return;
-    }
-
-    if (photos.length === 0) {
-      setError("At least one photo is required");
+    const validationError = validateForm();
+    if (validationError) {
+      setError(validationError);
       return;
     }
 
