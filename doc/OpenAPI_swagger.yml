@@ -713,6 +713,226 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /users/external-users:
+    post:
+      tags: [Users]
+      summary: Create a external company user for maintenance
+      description: >
+        Create an account for a external company.
+        **Requires role: ADMIN**.
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExternalUserCreateRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUser'
+        '400':
+          description: Bad Request - Missing or invalid data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Bad Request"
+                message: "Missing required fields: email, username, companyName, password, category"
+        '401':
+          description: Unauthorized - Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - admin permissions required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Conflict - Email or username already in use
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Conflict Error"
+                message: "Email is already in use"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    get:
+      tags: [Users]
+      summary: List external company accounts
+      description: >
+        Returns the external company accounts.
+        **Requires role: ADMIN**.
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AdminUser'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - You don't have admin permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      
+  /reports/{report_id}/external-maintainers/{em_id}:
+   post:
+      tags: [Reports]
+      summary: Assign a report in ASSIGNED status to an external maintainer
+      description: >
+        Assign a report to an external maintainer by ID. Can be done only by technical municipality users.
+        **Requires role: MUNICIPALITY**.
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: report_id
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: Report ID
+        - in: path
+          name: em_id
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: External maintainer user ID
+      responses:
+        '204':
+          description: OK - Report successfully assigned
+        '400':
+          description: Bad Request - Invalid ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Bad Request"
+                message: "Invalid report ID"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - You don't have municipality permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Not Found - Report not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Not Found"
+                message: "Report not found"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /reports/external-maintainers/{id}:
+    get:
+      tags: [Reports]
+      summary: Get reports assigned to an external maintainer
+      description: >
+        Get reports assigned to an external maintainer by ID.
+        **Requires role: MUNICIPALITY, EXTERNAL_MAINTAINER**.
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: External maintainer user ID
+      responses:
+        '200':
+          description: OK - Reports successfully retrieved
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Report'
+        '400':
+          description: Bad Request 
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Bad Request - Validation error"
+                message: "Invalid input data"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - You don't have permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Not Found - External maintainer not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Not Found"
+                message: "External maintainer not found"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
 
 components:
   schemas:    
@@ -772,8 +992,7 @@ components:
           type: string
           example: "mrossi"
         role:
-          type: string
-          example: "CITIZEN"
+          $ref: '#/components/schemas/Role'
         telegramUsername:
           type: string
           example: "@Rossi"
@@ -999,6 +1218,11 @@ components:
         lastName:
           type: string
           example: "Rossi"
+        companyName:
+          type: string
+          example: "Enel X"
+        maintenanceCategory:
+          $ref: '#/components/schemas/ReportCategory'
         username:
           type: string
           example: "mrossi"
@@ -1007,9 +1231,7 @@ components:
           format: email
           example: "mario.rossi@example.com"
         role:
-          type: string
-          example: "CITIZEN"
-          description: User role (can be CITIZEN, ADMIN, MUNICIPALITY)
+          $ref: '#/components/schemas/Role'
         municipality_role_id:
           type: integer
           format: int64
@@ -1027,13 +1249,38 @@ components:
     Role:
       type: string
       enum:
-        [
-          ADMIN,
-          CITIZEN,
-          MUNICIPALITY, 
-          EXTERNAL_MAINTAINER
-        ]
+          - ADMIN,
+          - CITIZEN,
+          - MUNICIPALITY, 
+          - EXTERNAL_MAINTAINER
       example: "ADMIN"
+
+    ExternalUserCreateRequest:
+      description: External company user related to a specific maintenance category
+      type: object
+      required:
+        - email
+        - username
+        - companyName
+        - password
+        - category
+      properties:
+        email:
+          type: string
+          format: email
+          example: "tecnico.comune@example.it"
+        username:
+          type: string
+          example: "tcomune"
+        companyName:
+          type: string
+          example: "Teodoro"
+        password:
+          type: string
+          format: password
+          example: "Str0ngP@ss!"
+        category:
+          $ref: '#/components/schemas/ReportCategory'
 
     Error:
       type: object
