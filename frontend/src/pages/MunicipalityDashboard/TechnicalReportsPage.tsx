@@ -479,12 +479,12 @@ export const TechnicalReportsPage: React.FC = () => {
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                           {report.photos.map((photo, idx) => (
                             <div
-                              key={idx}
+                              key={photo}
                               className="group relative aspect-square rounded-lg overflow-hidden border-2 border-slate-200 bg-white hover:border-indigo-400 transition-all cursor-pointer"
                             >
                               <img
                                 src={photo}
-                                alt={`Report photo ${idx + 1}`}
+                                alt={`Report ${idx + 1}`}
                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                               />
                               <div className="absolute inset-0 bg-gradient-to-t from-slate-900/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
