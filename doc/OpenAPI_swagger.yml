@@ -209,10 +209,11 @@ paths:
 
     post:
       tags: [Reports]
-      summary: Validate a report
+      summary: Change report status
       description: >
-        Validate a pending report by ID.
-        **Requires role: MUNICIPALITY**.
+        Change the status of a report by ID. For rejection a motivation is required.
+        Municipal public officer can also change the category of the report.
+        **Requires role: MUNICIPALITY, EXTERNAL_MAINTAINER**.
       security:
         - cookieAuth: []
       parameters:
