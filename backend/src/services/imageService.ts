@@ -36,9 +36,15 @@ const storeTemporaryImages = async (images: ImageData[]): Promise<string[]> => {
     };
 
     try {
-      await redisClient.setex(tempKey, CACHE_EXPIRY, JSON.stringify(imageObject));
+      await redisClient.setex(
+        tempKey,
+        CACHE_EXPIRY,
+        JSON.stringify(imageObject),
+      );
     } catch (error) {
-      console.warn(`Failed to store temporary image in Redis: ${error}, skipping`);
+      console.warn(
+        `Failed to store temporary image in Redis: ${error}, skipping`,
+      );
     }
     tempKeys.push(tempKey);
   }
