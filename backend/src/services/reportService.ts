@@ -2,8 +2,8 @@ import reportRepository from "@repositories/reportRepository";
 import { userRepository } from "@repositories/userRepository";
 import { CreateReportDto, ReportDto } from "@dto/reportDto";
 import imageService from "@services/imageService";
-import { ReportStatus } from "@models/enums";
-import { stat } from "node:fs";
+import { ReportStatus, roleType } from "@models/enums";
+import { instanceOfExternalMaintainerUserDto } from "@models/dto/userDto";
 
 // Helper function to hide user info for anonymous reports
 const sanitizeReport = (report: any): ReportDto => {
@@ -116,9 +116,9 @@ const updateReportStatus = async (
         .toString()
         .trim()
         .toUpperCase()
-        .replace(/\s+/g, "_")
-        .replace(/[–—]/g, "_")
-        .replace(/[^A-Z0-9_]/g, "");
+        .replaceAll(/\s+/g, "_")
+        .replaceAll(/[–—]/g, "_")
+        .replaceAll(/[^A-Z0-9_]/g, "");
 
     const key = normalize(rawCategory);
 
@@ -225,7 +225,7 @@ const submitReport = async (
   try {
     await imageService.preloadCache(imagePaths);
   } catch (e) {
-    // non-fatal
+    console.warn("Failed to preload report images", e);
   }
 
   return sanitizeReport(updatedReport);
@@ -260,6 +260,42 @@ const deleteReport = async (id: number): Promise<ReportDto> => {
   return sanitizeReport({ ...deletedReport, photos: [] });
 };
 
+const assignToExternalMaintainer = async (
+  reportId: number,
+  externalMaintainerId: number,
+): Promise<ReportDto> => {
+  const [report, externalMaintainer] = await Promise.all([
+    reportRepository.findById(reportId),
+    userRepository.findUserById(
+      externalMaintainerId,
+      roleType.EXTERNAL_MAINTAINER,
+    ),
+  ]);
+
+  if (!report) {
+    throw new Error("Report not found");
+  }
+
+  if (!externalMaintainer || !instanceOfExternalMaintainerUserDto(externalMaintainer)) {
+    throw new Error("External maintainer not found");
+  }
+
+  if (externalMaintainer.category !== report.category) {
+    throw new Error(
+      `External maintainer category "${externalMaintainer.category}" does not match report category "${report.category}"`,
+    );
+  }
+
+  const updatedReport = await reportRepository.update(
+    reportId,
+    {
+      externalMaintainerId,
+    },
+  );
+
+  return sanitizeReport(updatedReport);
+};
+
 export default {
   findAll,
   findById,
@@ -269,4 +305,5 @@ export default {
   deleteReport,
   updateReportStatus,
   pickOfficerForService,
+  assignToExternalMaintainer,
 };

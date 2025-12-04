@@ -1,5 +1,4 @@
 import { prisma } from "@database";
-import { CreateReportDto } from "@dto/reportDto";
 import { Report } from "@models/entities/report";
 import { ReportStatus } from "@models/enums";
 
@@ -158,6 +157,7 @@ const update = async (
     rejectionReason: string;
     assignedOffice: string | null;
     assignedOfficerId: number | null;
+    externalMaintainerId: number | null;
   }>,
 ) => {
   return prisma.report.update({

@@ -5,6 +5,7 @@ import {
   getReportById,
   approveOrRejectReport,
   getReportsForMunicipalityUser,
+  assignToExternalMaintainer,
 } from "@controllers/reportController";
 import { isAuthenticated } from "@middlewares/authMiddleware";
 import {
@@ -39,6 +40,13 @@ router.get(
   isAuthenticated,
   isMunicipalityStrict,
   getReportsForMunicipalityUser,
+);
+
+router.post(
+  "/:report_id/external-maintainers/:em_id",
+  isAuthenticated,
+  isMunicipalityStrict,
+  assignToExternalMaintainer,
 );
 
 export default router;

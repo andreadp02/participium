@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import reportService from "@services/reportService";
 import imageService from "@services/imageService";
-import { stat } from "node:fs";
 import { roleType } from "@models/enums";
 
 const VALID_CATEGORIES = [
@@ -272,5 +271,40 @@ export const deleteReport = async (req: Request, res: Response) => {
   } catch (error) {
     // Generic error for delete failures
     res.status(500).json({ error: "Failed to delete report" });
+  }
+};
+
+export const assignToExternalMaintainer = async (
+  req: Request,
+  res: Response,
+) => {
+  try {
+    const rawReportId = req.params.report_id ?? req.params.reportId;
+    const rawMaintainerId = req.params.em_id ?? req.params.externalMaintainerId;
+
+    const reportId = Number.parseInt(String(rawReportId));
+    const externalMaintainerId = Number.parseInt(String(rawMaintainerId));
+
+    if (Number.isNaN(reportId) || Number.isNaN(externalMaintainerId)) {
+      return res.status(400).json({
+        error: "Validation Error",
+        message: "Invalid report or external maintainer id",
+      });
+    }
+
+    const updatedReport = await reportService.assignToExternalMaintainer(
+      reportId,
+      externalMaintainerId,
+    );
+
+    return res.status(200).json(updatedReport);
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error
+        ? error.message
+        : "Failed to assign external maintainer";
+    const statusCode =
+      error instanceof Error && /not found/i.test(error.message) ? 404 : 500;
+    return res.status(statusCode).json({ error: errorMessage });
   }
 };

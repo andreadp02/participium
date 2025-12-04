@@ -2,15 +2,12 @@ import { prisma } from "@database";
 import { buildParamsObject, throwBadRequestIfMissingObject } from "@utils";
 import { roleType } from "@models/enums";
 import { AnyUserDto, mapPrismaUserToDto } from "@dto/userDto";
-import { AuthenticationError } from "@errors/AuthenticationError";
 
 // Base fields common to all users
 const baseSelect = {
   id: true,
   username: true,
   email: true,
-  firstName: true,
-  lastName: true,
   createdAt: true,
 };
 
@@ -19,19 +16,30 @@ const baseSelect = {
  */
 const roleSelectMap: Record<roleType, any> = {
   [roleType.CITIZEN]: {
+    firstName: true,
+    lastName: true,
     profilePhoto: true,
     telegramUsername: true,
     notifications: true,
   },
   [roleType.MUNICIPALITY]: {
+    firstName: true,
+    lastName: true,
     municipality_role_id: true,
     municipality_role: true,
   },
-  [roleType.ADMIN]: {},
+  [roleType.ADMIN]: {
+    firstName: true,
+    lastName: true,
+  },
+  [roleType.EXTERNAL_MAINTAINER]: {
+    companyName: true,
+    category: true,
+  },
 };
 
 const selectExtras = (role: roleType, needPass: boolean = false) => {
-  const extra = { ...(roleSelectMap[role] ?? {}) };
+  const extra = roleSelectMap[role] ? { ...roleSelectMap[role] } : {};
   if (needPass) extra.password = true;
   return { ...baseSelect, ...extra };
 };
@@ -45,6 +53,8 @@ const userTable = (role: roleType) => {
       return "admin_user";
     case roleType.MUNICIPALITY:
       return "municipality_user";
+    case roleType.EXTERNAL_MAINTAINER:
+      return "external_maintainer";
   }
 };
 
@@ -52,14 +62,12 @@ export const userRepository = {
   async createUser(
     email: string,
     username: string,
-    firstName: string,
-    lastName: string,
     password: string,
     role: roleType = roleType.CITIZEN,
     override: object = {}, // check the prisma schema for the correct field name
   ): Promise<AnyUserDto> {
     const params = buildParamsObject(
-      { email, username, firstName, lastName, password, role },
+      { email, username, password, role },
       override,
     );
     throwBadRequestIfMissingObject(params);
@@ -68,8 +76,6 @@ export const userRepository = {
       data: {
         email,
         username,
-        firstName,
-        lastName,
         password,
         ...override,
       },

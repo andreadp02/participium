@@ -1249,9 +1249,9 @@ components:
     Role:
       type: string
       enum:
-          - ADMIN,
-          - CITIZEN,
-          - MUNICIPALITY, 
+          - ADMIN
+          - CITIZEN
+          - MUNICIPALITY
           - EXTERNAL_MAINTAINER
       example: "ADMIN"
 
