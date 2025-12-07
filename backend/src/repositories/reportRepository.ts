@@ -1,8 +1,17 @@
 import { prisma } from "@database";
 import { Report } from "@models/entities/report";
 import { ReportStatus } from "@models/enums";
+import { createCommentDto } from "@models/dto/commentDto";
+import { add } from "winston";
 
 type ReportStatusFilter = "ASSIGNED";
+
+interface AddCommentPersistenceData {
+  reportId: number;
+  content: string;
+  municipalityUserId: number | null;
+  externalMaintainerId: number | null;
+}
 
 const findAll = async (statusFilter?: ReportStatusFilter, userId?: number) => {
   // If userId is provided, citizen wants to see their own reports + ASSIGNED reports
@@ -172,6 +181,24 @@ const findByExternalMaintainerId = async (externalMaintainerId: number) => {
   });
 }
 
+const addCommentToReport = async (data: AddCommentPersistenceData) => {
+  return prisma.comment.create({
+    data: {
+      reportId: data.reportId,
+      content: data.content,
+      municipalityUserId: data.municipalityUserId,
+      externalMaintainerId: data.externalMaintainerId,
+    },
+  });
+}
+
+const getCommentsByReportId = async (reportId: number) => {
+  return prisma.comment.findMany({
+    where: { reportId },
+    orderBy: { createdAt: "asc" },
+  });
+}
+
 export default {
   findAll,
   findById,
@@ -182,4 +209,6 @@ export default {
   update,
   findByStatusesAndCategories,
   findByExternalMaintainerId,
+  addCommentToReport,
+  getCommentsByReportId
 };

@@ -6,14 +6,17 @@ import {
   approveOrRejectReport,
   getReportsForMunicipalityUser,
   assignToExternalMaintainer,
-  getReportsForExternalMaintainer
+  getReportsForExternalMaintainer,
+  addCommentToReport,
+  getCommentOfAReportById
 } from "@controllers/reportController";
 import { isAuthenticated } from "@middlewares/authMiddleware";
 import {
   isCitizen,
   isMunicipality,
   isMunicipalityStrict,
-  isExternalMaintainer
+  isExternalMaintainer,
+  isMunicipalityOrExternalMaintainer
 } from "@middlewares/roleMiddleware";
 import { uploadArray } from "@middlewares/uploadMiddleware";
 
@@ -51,7 +54,19 @@ router.post(
   assignToExternalMaintainer,
 );
 
-// TODO
 router.get("/external-maintainers/:externalMaintainersId", isAuthenticated, isMunicipalityStrict, isExternalMaintainer, getReportsForExternalMaintainer);
+
+/**
+ * Add a comment to a report - requires municipality user or external maintainer role
+ * @route   POST /api/reports/{report_id}/comments
+ */
+router.post(
+  "/:report_id/comments",
+  isAuthenticated,
+  isMunicipalityOrExternalMaintainer,
+  addCommentToReport
+)
+
+router.get("/:report_id/comments", isAuthenticated, isMunicipalityOrExternalMaintainer, getCommentOfAReportById)
 
 export default router;

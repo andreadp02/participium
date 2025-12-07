@@ -1,6 +1,7 @@
 import reportRepository from "@repositories/reportRepository";
 import { userRepository } from "@repositories/userRepository";
 import { CreateReportDto, ReportDto } from "@dto/reportDto";
+import { createCommentDto, CommentDto } from "@models/dto/commentDto";
 import imageService from "@services/imageService";
 import { ReportStatus, roleType, Category } from "@models/enums";
 import { instanceOfExternalMaintainerUserDto } from "@models/dto/userDto";
@@ -326,6 +327,68 @@ const findReportsForExternalMaintainer = async (
   return reports.map(sanitizeReport);
 }
 
+const addCommentToReport = async (
+  dto: createCommentDto
+): Promise<CommentDto> => {
+  const { reportId, authorId, authorType, content } = dto;
+
+  const report = await reportRepository.findById(reportId);
+  if (!report) {
+    throw new Error("Report not found");
+  }
+
+  let municipalityUserId: number | null = null;
+  let externalMaintainerId: number | null = null;
+
+  if (authorType === "MUNICIPALITY") {
+    municipalityUserId = authorId;
+  } else if (authorType === "EXTERNAL_MAINTAINER") {
+    externalMaintainerId = authorId;
+  } else {
+    throw new Error("Invalid author type");
+  }
+
+  const created = await reportRepository.addCommentToReport({
+    reportId,
+    content,
+    municipalityUserId,
+    externalMaintainerId,
+  })
+
+  const result: CommentDto = {
+    id: created.id,
+    reportId: created.reportId,
+    municipalityUserId: created.municipalityUserId,
+    externalMaintainerId: created.externalMaintainerId,
+    content: created.content,
+    createdAt: created.createdAt,
+    updatedAt: created.updatedAt,
+  }
+
+  return result;
+}
+
+const getCommentsOfAReportById = async (
+  reportId: number
+): Promise<CommentDto[]> => {
+  const report = await reportRepository.findById(reportId);
+  if (!report) {
+    throw new Error("Report not found");
+  }
+
+  const comments = await reportRepository.getCommentsByReportId(reportId);
+
+  return comments.map((comment: CommentDto) => ({
+    id: comment.id,
+    reportId: comment.reportId,
+    municipalityUserId: comment.municipalityUserId,
+    externalMaintainerId: comment.externalMaintainerId,
+    content: comment.content,
+    createdAt: comment.createdAt,
+    updatedAt: comment.updatedAt,
+  }));
+}
+
 export default {
   findAll,
   findById,
@@ -337,4 +400,6 @@ export default {
   pickOfficerForService,
   assignToExternalMaintainer,
   findReportsForExternalMaintainer,
+  addCommentToReport,
+  getCommentsOfAReportById
 };

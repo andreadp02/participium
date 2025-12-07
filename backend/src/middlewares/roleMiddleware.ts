@@ -85,6 +85,32 @@ export const isExternalMaintainer = (
   next();
 }
 
+export const isMunicipalityOrExternalMaintainer = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  if (!req.user) {
+    return res.status(401).json({
+      error: "Authentication Error",
+      message: "User not authenticated",
+    });
+  }
+
+  if (
+    req.role !== roleType.MUNICIPALITY &&
+    req.role !== roleType.EXTERNAL_MAINTAINER
+  ) {
+    return res.status(403).json({
+      error: "Authorization Error",
+      message:
+        "Access denied. Municipality or External Maintainer role required.",
+    });
+  }
+
+  next();
+}
+
 export const isCitizen = (req: Request, res: Response, next: NextFunction) => {
   if (!req.user) {
     return res.status(401).json({

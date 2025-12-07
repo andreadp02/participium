@@ -2,6 +2,9 @@ import { Request, Response } from "express";
 import reportService from "@services/reportService";
 import imageService from "@services/imageService";
 import { roleType } from "@models/enums";
+import { report } from "process";
+import { commentAuthorType } from "@models/dto/commentDto";
+import { userService } from "@services/userService";
 
 const VALID_CATEGORIES = [
   "WATER_SUPPLY_DRINKING_WATER",
@@ -337,6 +340,93 @@ export const getReportsForExternalMaintainer = async (
     );
 
     return res.status(200).json(reports);
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error
+        ? error.message
+        : "Failed to retrieve reports for external maintainer";
+    const statusCode =
+      error instanceof Error && /not found/i.test(error.message) ? 404 : 500;
+    return res.status(statusCode).json({ error: errorMessage });
+  }
+}
+
+export const addCommentToReport = async (req: Request, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
+        error: "Authentication Error",
+        message: "User not authenticated",
+      });
+    }
+
+    const reportId = Number.parseInt(req.params.report_id);
+    if (Number.isNaN(reportId)) {
+      return res.status(400).json({
+        error: "Bad Request",
+        message: "Invalid report id",
+      });
+    }
+
+    const authorType: commentAuthorType = 
+      req.role === roleType.MUNICIPALITY
+        ? "MUNICIPALITY"
+        : "EXTERNAL_MAINTAINER";
+
+    const response = await reportService.addCommentToReport({
+      reportId,
+      authorId: req.user.id,
+      authorType,
+      content: req.body.content,
+    });
+
+    if (!response) {
+      return res.status(404).json({
+        error: "Not Found",
+        message: "Report not found",
+      });
+    }
+
+    return res.status(201).json(response);
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error
+        ? error.message
+        : "Failed to add comment to report";
+    const statusCode =
+      error instanceof Error && /not found/i.test(error.message) ? 404 : 500;
+    return res.status(statusCode).json({ error: errorMessage });
+  }
+};
+
+
+export const getCommentOfAReportById = async (req: Request, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
+        error: "Authentication Error",
+        message: "User not authenticated",
+      });
+    }
+
+    const reportId = Number.parseInt(req.params.report_id);
+    if (Number.isNaN(reportId)) {
+      return res.status(400).json({
+        error: "Bad Request",
+        message: "Invalid report id",
+      });
+    }
+
+    const response = await reportService.getCommentsOfAReportById(reportId);
+
+    if (!response) {
+      return res.status(404).json({
+        error: "Not Found",
+        message: "Report not found",
+      });
+    }
+
+    return res.status(200).json(response);
   } catch (error) {
     const errorMessage =
       error instanceof Error

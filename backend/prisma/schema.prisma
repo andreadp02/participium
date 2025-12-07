@@ -110,7 +110,7 @@ model comment {
   external_maintainer_id Int?
   content                String
   createdAt              DateTime  @default(now())
-  updatedAt              DateTime  @updatedAt
+  updatedAt              DateTime?  @updatedAt
 
   report               report              @relation(fields: [reportId], references: [id], onDelete: Cascade)
   municipality_user    municipality_user?  @relation(fields: [municipality_user_id], references: [id], onDelete: SetNull)
