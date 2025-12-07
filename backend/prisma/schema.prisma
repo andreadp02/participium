@@ -103,6 +103,25 @@ model municipality_role {
   users municipality_user[]
 }
 
+model comment {
+  id                     Int       @id @default(autoincrement())
+  reportId              Int
+  municipality_user_id   Int?
+  external_maintainer_id Int?
+  content                String
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+
+  report               report              @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  municipality_user    municipality_user?  @relation(fields: [municipality_user_id], references: [id], onDelete: SetNull)
+  external_maintainer  external_maintainer? @relation(fields: [external_maintainer_id], references: [id], onDelete: SetNull)
+
+  @@index([reportId])
+  @@index([municipality_user_id])
+  @@index([external_maintainer_id])
+}
+
+
 enum Category {
   WATER_SUPPLY_DRINKING_WATER
   ARCHITECTURAL_BARRIERS
