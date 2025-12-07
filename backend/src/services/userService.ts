@@ -39,13 +39,22 @@ export const userService = {
     // Hash the password
     const hashedPassword = await bcrypt.hash(newUser.password, 10);
 
+    // Extract firstName and lastName from newUser if not in override
+    const mergedOverride = {
+      ...((newUser as any).firstName && { firstName: (newUser as any).firstName }),
+      ...((newUser as any).lastName && { lastName: (newUser as any).lastName }),
+      ...((newUser as any).companyName && { companyName: (newUser as any).companyName }),
+      ...((newUser as any).category && { category: (newUser as any).category }),
+      ...override,
+    };
+
     // Create the user
     const user = await userRepository.createUser(
       newUser.email,
       newUser.username, 
       hashedPassword,
       role,
-      override,
+      mergedOverride,
     );
 
     return buildUserDto(user)!;
