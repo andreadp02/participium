@@ -35,6 +35,7 @@ model municipality_user {
   municipality_role    municipality_role? @relation(fields: [municipality_role_id], references: [id], onDelete: Restrict)
   assignedReports      report[]           @relation("OfficerAssignments")
   messages     message[]          @relation("municipalityMessages")
+  comments     comment[]
 }
 
 model admin_user {
@@ -58,6 +59,7 @@ model external_maintainer {
   createdAt DateTime @default(now())
   category  Category
   reports   report[]
+  comments  comment[]
 }
 
 model report {
@@ -79,7 +81,7 @@ model report {
   assignedOfficer municipality_user? @relation("OfficerAssignments", fields: [assignedOfficerId], references: [id], onDelete: SetNull)
   externalMaintainerId Int?
   externalMaintainer external_maintainer? @relation(fields: [externalMaintainerId], references: [id], onDelete: SetNull)
-  
+  comments   comment[]
 
   @@index([assignedOfficerId])
 }

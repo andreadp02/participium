@@ -1,7 +1,14 @@
 import React, { useState } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Users, CheckCircle2, AlertCircle, Loader2, Briefcase } from "lucide-react";
+import {
+  X,
+  Users,
+  CheckCircle2,
+  AlertCircle,
+  Loader2,
+  Briefcase,
+} from "lucide-react";
 
 interface ExternalMaintainer {
   id: string;
@@ -25,30 +32,109 @@ interface AssignMaintainerModalProps {
 const getMaintainersByCategory = (category: string): ExternalMaintainer[] => {
   const maintainersMap: Record<string, ExternalMaintainer[]> = {
     "Public Lighting": [
-      { id: "m1", name: "Enel X", company: "Enel Group", specialty: "Public Lighting", activeReports: 5, rating: 4.8 },
-      { id: "m2", name: "Lighting Solutions Ltd", company: "LS Group", specialty: "Street Lights", activeReports: 3, rating: 4.5 },
-      { id: "m3", name: "Illumina Services", company: "Illumina Corp", specialty: "LED Systems", activeReports: 7, rating: 4.7 },
+      {
+        id: "m1",
+        name: "Enel X",
+        company: "Enel Group",
+        specialty: "Public Lighting",
+        activeReports: 5,
+        rating: 4.8,
+      },
+      {
+        id: "m2",
+        name: "Lighting Solutions Ltd",
+        company: "LS Group",
+        specialty: "Street Lights",
+        activeReports: 3,
+        rating: 4.5,
+      },
+      {
+        id: "m3",
+        name: "Illumina Services",
+        company: "Illumina Corp",
+        specialty: "LED Systems",
+        activeReports: 7,
+        rating: 4.7,
+      },
     ],
     "Roads & Urban Furnishings": [
-      { id: "m4", name: "Urban Works Co", company: "UW Group", specialty: "Road Maintenance", activeReports: 4, rating: 4.6 },
-      { id: "m5", name: "Pavement Solutions", company: "PS Ltd", specialty: "Pavement Repair", activeReports: 6, rating: 4.4 },
+      {
+        id: "m4",
+        name: "Urban Works Co",
+        company: "UW Group",
+        specialty: "Road Maintenance",
+        activeReports: 4,
+        rating: 4.6,
+      },
+      {
+        id: "m5",
+        name: "Pavement Solutions",
+        company: "PS Ltd",
+        specialty: "Pavement Repair",
+        activeReports: 6,
+        rating: 4.4,
+      },
     ],
-    "Waste": [
-      { id: "m6", name: "EcoClean Services", company: "EcoClean Group", specialty: "Waste Management", activeReports: 8, rating: 4.9 },
-      { id: "m7", name: "Green Waste Solutions", company: "GWS Corp", specialty: "Recycling", activeReports: 5, rating: 4.3 },
+    Waste: [
+      {
+        id: "m6",
+        name: "EcoClean Services",
+        company: "EcoClean Group",
+        specialty: "Waste Management",
+        activeReports: 8,
+        rating: 4.9,
+      },
+      {
+        id: "m7",
+        name: "Green Waste Solutions",
+        company: "GWS Corp",
+        specialty: "Recycling",
+        activeReports: 5,
+        rating: 4.3,
+      },
     ],
     "Water Supply – Drinking Water": [
-      { id: "m8", name: "AquaTech Services", company: "AquaTech Group", specialty: "Water Systems", activeReports: 4, rating: 4.7 },
-      { id: "m9", name: "H2O Maintenance", company: "H2O Corp", specialty: "Water Supply", activeReports: 3, rating: 4.5 },
+      {
+        id: "m8",
+        name: "AquaTech Services",
+        company: "AquaTech Group",
+        specialty: "Water Systems",
+        activeReports: 4,
+        rating: 4.7,
+      },
+      {
+        id: "m9",
+        name: "H2O Maintenance",
+        company: "H2O Corp",
+        specialty: "Water Supply",
+        activeReports: 3,
+        rating: 4.5,
+      },
     ],
     "Sewer System": [
-      { id: "m10", name: "DrainPro Services", company: "DrainPro Ltd", specialty: "Sewer Maintenance", activeReports: 6, rating: 4.6 },
+      {
+        id: "m10",
+        name: "DrainPro Services",
+        company: "DrainPro Ltd",
+        specialty: "Sewer Maintenance",
+        activeReports: 6,
+        rating: 4.6,
+      },
     ],
   };
 
-  return maintainersMap[category] || [
-    { id: "m99", name: "General Contractors", company: "Multi-Service", specialty: "General Maintenance", activeReports: 2, rating: 4.0 },
-  ];
+  return (
+    maintainersMap[category] || [
+      {
+        id: "m99",
+        name: "General Contractors",
+        company: "Multi-Service",
+        specialty: "General Maintenance",
+        activeReports: 2,
+        rating: 4.0,
+      },
+    ]
+  );
 };
 
 export const AssignMaintainerModal: React.FC<AssignMaintainerModalProps> = ({
@@ -59,7 +145,8 @@ export const AssignMaintainerModal: React.FC<AssignMaintainerModalProps> = ({
   reportTitle,
   onAssign,
 }) => {
-  const [selectedMaintainer, setSelectedMaintainer] = useState<ExternalMaintainer | null>(null);
+  const [selectedMaintainer, setSelectedMaintainer] =
+    useState<ExternalMaintainer | null>(null);
   const [assigning, setAssigning] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
@@ -72,9 +159,11 @@ export const AssignMaintainerModal: React.FC<AssignMaintainerModalProps> = ({
     // Simulate API call
     setTimeout(() => {
       onAssign(selectedMaintainer.id, selectedMaintainer.name);
-      setSuccessMessage(`Report successfully assigned to ${selectedMaintainer.name}!`);
+      setSuccessMessage(
+        `Report successfully assigned to ${selectedMaintainer.name}!`,
+      );
       setAssigning(false);
-      
+
       // Close modal after showing success message
       setTimeout(() => {
         setSuccessMessage(null);
@@ -129,9 +218,7 @@ export const AssignMaintainerModal: React.FC<AssignMaintainerModalProps> = ({
               <p className="text-sm font-bold text-slate-900 mb-1">
                 {reportTitle}
               </p>
-              <p className="text-xs text-slate-600">
-                Report ID: {reportId}
-              </p>
+              <p className="text-xs text-slate-600">Report ID: {reportId}</p>
             </div>
 
             {/* Success Message */}
@@ -157,7 +244,9 @@ export const AssignMaintainerModal: React.FC<AssignMaintainerModalProps> = ({
                     Specialized Contractors Available
                   </p>
                   <p className="text-xs text-blue-700">
-                    These external maintainers specialize in <strong>{reportCategory}</strong> and can handle this intervention.
+                    These external maintainers specialize in{" "}
+                    <strong>{reportCategory}</strong> and can handle this
+                    intervention.
                   </p>
                 </div>
               </div>
@@ -185,11 +274,13 @@ export const AssignMaintainerModal: React.FC<AssignMaintainerModalProps> = ({
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
-                          <div className={`p-1.5 rounded-lg ${
-                            selectedMaintainer?.id === maintainer.id
-                              ? "bg-indigo-600"
-                              : "bg-slate-600"
-                          }`}>
+                          <div
+                            className={`p-1.5 rounded-lg ${
+                              selectedMaintainer?.id === maintainer.id
+                                ? "bg-indigo-600"
+                                : "bg-slate-600"
+                            }`}
+                          >
                             <Briefcase className="h-4 w-4 text-white" />
                           </div>
                           <div>
@@ -201,7 +292,7 @@ export const AssignMaintainerModal: React.FC<AssignMaintainerModalProps> = ({
                             </p>
                           </div>
                         </div>
-                        
+
                         <div className="ml-8 space-y-1">
                           <p className="text-xs text-indigo-600 font-medium">
                             Specialty: {maintainer.specialty}
@@ -244,7 +335,8 @@ export const AssignMaintainerModal: React.FC<AssignMaintainerModalProps> = ({
                   Assignment Details
                 </p>
                 <p className="text-xs text-indigo-800">
-                  <strong>{selectedMaintainer.name}</strong> will be assigned to manage this intervention.
+                  <strong>{selectedMaintainer.name}</strong> will be assigned to
+                  manage this intervention.
                 </p>
                 <ul className="mt-1 ml-4 text-xs text-indigo-700 space-y-0.5 list-disc">
                   <li>View and update the report status</li>

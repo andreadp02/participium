@@ -616,7 +616,7 @@ export const TechnicalReportsPage: React.FC = () => {
                           Add Comment
                         </button>
                       </div>
-                      
+
                       {/* Assign to External Maintainer */}
                       <button
                         onClick={() => handleAssignToMaintainer(report)}
