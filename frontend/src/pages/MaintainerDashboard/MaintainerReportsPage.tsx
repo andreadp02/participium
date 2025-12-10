@@ -532,15 +532,13 @@ export const MaintainerReportsPage: React.FC = () => {
 
                     {/* Action Button */}
                     <div className="pt-4 border-t border-slate-200 flex flex-col sm:flex-row gap-3">
-                      {report.status !== "Resolved" && (
-                        <button
-                          onClick={() => handleStatusChange(report)}
-                          className="flex-1 rounded-xl bg-orange-600 hover:bg-orange-700 px-6 py-3 text-base font-bold text-white shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2"
-                        >
-                          <Wrench className="h-5 w-5" />
-                          Update Status
-                        </button>
-                      )}
+                      <button
+                        onClick={() => handleStatusChange(report)}
+                        className="flex-1 rounded-xl bg-orange-600 hover:bg-orange-700 px-6 py-3 text-base font-bold text-white shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2"
+                      >
+                        <Wrench className="h-5 w-5" />
+                        Update Status
+                      </button>
                       <button
                         onClick={() => handleOpenComments(report)}
                         disabled={report.status === "Resolved"}
