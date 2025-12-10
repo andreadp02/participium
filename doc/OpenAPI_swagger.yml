@@ -209,10 +209,11 @@ paths:
 
     post:
       tags: [Reports]
-      summary: Validate a report
+      summary: Change report status
       description: >
-        Validate a pending report by ID.
-        **Requires role: MUNICIPALITY**.
+        Change the status of a report by ID. For rejection a motivation is required.
+        Municipal public officer can also change the category of the report.
+        **Requires role: MUNICIPALITY, EXTERNAL_MAINTAINER**.
       security:
         - cookieAuth: []
       parameters:
@@ -282,23 +283,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-  /reports/municipality-users/{roleId}:
+  /reports/municipality-users/{municipalityUserId}:
     get:
       tags: [Reports]
-      summary: Get reports by municipality role
+      summary: Get reports by municipality user ID
       description: >
-        Get reports by municipality role ID.
+        Get reports by municipality user ID.
         **Requires role: MUNICIPALITY**.
       security:
         - cookieAuth: []
       parameters:
         - in: path
-          name: roleId
+          name: municipalityUserId
           required: true
           schema:
             type: integer
             format: int64
-          description: Municipality role ID
+          description: Municipality user ID
       responses:
         '200':
           description: OK - Reports successfully retrieved
@@ -344,6 +345,138 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+
+  /reports/{id}/comments:
+    post:
+      tags: [Reports]
+      summary: Add internal comment to a report
+      description: >
+        Add an internal comment to a report by ID.
+        **Requires role: MUNICIPALITY_USER or EXTERNAL_MAINTAINER**.
+        Comments are not visible to citizens.
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: Report ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommentRequest'
+      responses:
+        '201':
+          description: Created - Comment successfully added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+        '400':
+          description: Bad Request - Invalid report ID or input data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Bad Request"
+                message: "Invalid report ID"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - You don't have municipality or external maintainer permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Not Found - Report not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Not Found"
+                message: "Report not found"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    get:
+      tags: [Reports]
+      summary: Get internal comments for a report
+      description: >
+        Get internal comments for a report by ID.
+        **Requires role: MUNICIPALITY_USER or EXTERNAL_MAINTAINER**.
+        Comments are not visible to citizens.
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: Report ID
+      responses:
+        '200':
+          description: OK - Comments successfully retrieved
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Comment'
+        '400':
+          description: Bad Request - Invalid report ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Bad Request"
+                message: "Invalid report ID"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - You don't have municipality or external maintainer permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Not Found - Report not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Not Found"
+                message: "Report not found"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
 
   /users:
     # registration endpoint
@@ -713,6 +846,219 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /users/external-users:
+    post:
+      tags: [Users]
+      summary: Create a external company user for maintenance
+      description: >
+        Create an account for a external company.
+        **Requires role: ADMIN**.
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExternalUserCreateRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUser'
+        '400':
+          description: Bad Request - Missing or invalid data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Bad Request"
+                message: "Missing required fields: email, username, companyName, password, category"
+        '401':
+          description: Unauthorized - Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - admin permissions required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Conflict - Email or username already in use
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Conflict Error"
+                message: "Email is already in use"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    get:
+      tags: [Users]
+      summary: List external company accounts
+      description: >
+        Returns the external company accounts.
+        **Requires role: ADMIN**.
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AdminUser'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - You don't have admin permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      
+  /reports/{report_id}/external-maintainers:
+   post:
+      tags: [Reports]
+      summary: Assign a report in ASSIGNED status to an external maintainer
+      description: >
+        Assign a report to an external maintainer. Can be done only by technical municipality users.
+        **Requires role: MUNICIPALITY**.
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: report_id
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: Report ID
+      responses:
+        '204':
+          description: OK - Report successfully assigned
+        '400':
+          description: Bad Request - Invalid ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Bad Request"
+                message: "Invalid report ID"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - You don't have municipality permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Not Found - Report not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Not Found"
+                message: "Report not found"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /reports/external-maintainers/{id}:
+    get:
+      tags: [Reports]
+      summary: Get reports assigned to an external maintainer
+      description: >
+        Get reports assigned to an external maintainer by ID.
+        **Requires role: MUNICIPALITY, EXTERNAL_MAINTAINER**.
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: External maintainer user ID
+      responses:
+        '200':
+          description: OK - Reports successfully retrieved
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Report'
+        '400':
+          description: Bad Request 
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Bad Request - Validation error"
+                message: "Invalid input data"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - You don't have permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Not Found - External maintainer not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Not Found"
+                message: "External maintainer not found"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
 
 components:
   schemas:    
@@ -772,8 +1118,7 @@ components:
           type: string
           example: "mrossi"
         role:
-          type: string
-          example: "CITIZEN"
+          $ref: '#/components/schemas/Role'
         telegramUsername:
           type: string
           example: "@Rossi"
@@ -799,7 +1144,10 @@ components:
           type: string
           format: password
           example: "P@ssw0rd!"
-
+        role:
+          $ref: '#/components/schemas/Role'
+          description: Optional. If not provided, the system will search across all user types (citizen, municipality, admin, external maintainer) 
+          
     ReportCategory:
       type: string
       enum:
@@ -996,6 +1344,11 @@ components:
         lastName:
           type: string
           example: "Rossi"
+        companyName:
+          type: string
+          example: "Enel X"
+        maintenanceCategory:
+          $ref: '#/components/schemas/ReportCategory'
         username:
           type: string
           example: "mrossi"
@@ -1004,9 +1357,7 @@ components:
           format: email
           example: "mario.rossi@example.com"
         role:
-          type: string
-          example: "CITIZEN"
-          description: User role (can be CITIZEN, ADMIN, MUNICIPALITY)
+          $ref: '#/components/schemas/Role'
         municipality_role_id:
           type: integer
           format: int64
@@ -1020,6 +1371,87 @@ components:
           type: string
           format: date-time
           example: "2025-11-04T14:30:00Z"
+    
+    Role:
+      type: string
+      enum:
+          - ADMIN
+          - CITIZEN
+          - MUNICIPALITY
+          - EXTERNAL_MAINTAINER
+      example: "ADMIN"
+
+    ExternalUserCreateRequest:
+      description: External company user related to a specific maintenance category
+      type: object
+      required:
+        - email
+        - username
+        - companyName
+        - password
+        - category
+      properties:
+        email:
+          type: string
+          format: email
+          example: "tecnico.comune@example.it"
+        username:
+          type: string
+          example: "tcomune"
+        companyName:
+          type: string
+          example: "Teodoro"
+        password:
+          type: string
+          format: password
+          example: "Str0ngP@ss!"
+        category:
+          $ref: '#/components/schemas/ReportCategory'
+
+    CommentRequest:
+      type: object
+      required:
+        - content
+      properties:
+        content:
+          type: string
+          example: "The issue has been scheduled for repair."
+
+    Comment:
+      type: object
+      properties:
+        id: 
+          type: integer
+          format: int64
+          example: 1
+        reportId:
+          type: integer
+          format: int64
+          example: 1
+        municipalityUserId:
+          type: integer
+          format: int64
+          nullable: true
+          example: 3
+        externalMaintainerId:
+          type: integer
+          format: int64
+          nullable: true
+          example: 5
+        content:
+          type: string
+          example: "The issue has been scheduled for repair."
+        createdAt:
+          type: string
+          format: date-time
+          example: "2025-11-05T10:15:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2025-11-05T10:15:00Z"
+      description: >
+        Internal comment on a report. Exactly one between municipalityUserId and
+        externalMaintainerId is non-null (the author of the comment).
 
     Error:
       type: object

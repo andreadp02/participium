@@ -8,8 +8,10 @@ import NewReportPage from "./pages/UserDashboard/NewReportPage";
 import UserSettingsPage from "./pages/UserDashboard/UserSettingsPage";
 import AdminDashboardPage from "./pages/AdminDashboard/AdminDashboardPage";
 import AdminUsersPage from "./pages/AdminDashboard/AdminUsersPage";
+import AdminExternalMaintainersPage from "./pages/AdminDashboard/AdminExternalMaintainersPage";
 import MunicipalityReportsPage from "./pages/MunicipalityDashboard/MunicipalityReportsPage";
 import MunicipalityTechnicalReportsPage from "./pages/MunicipalityDashboard/TechnicalReportsPage";
+import MaintainerReportsPage from "./pages/MaintainerDashboard/MaintainerReportsPage";
 import { NavBar } from "src/components/Navbar";
 import { Footer } from "src/components/Footer";
 import { AuthProvider } from "src/contexts/AuthContext";
@@ -17,8 +19,14 @@ import { ProtectedRoute } from "src/components/ProtectedRoute";
 
 import LandingPage from "src/pages/LandingPage";
 
-// import MapPage from "./pages/MapPage";
 import ReportDetailsPage from "./pages/ReportDetailsPage";
+
+import NotFound from "./components/NotFound";
+import ComingSoon from "./components/ComingSoon";
+import { DashboardLayout } from "./components/dashboard/DashboardLayout";
+import { AdminDashboardLayout } from "./components/dashboard/AdminDashboardLayout";
+import { MunicipalityDashboardLayout } from "./components/dashboard/MunicipalityDashboardLayout";
+import { ExternalMaintainerDashboardLayout } from "./components/dashboard/ExternalMaintainerDashboardLayout";
 
 function App() {
   return (
@@ -29,14 +37,6 @@ function App() {
             {/* User Dashboard routes - protected, CITIZEN role */}
             <Route
               path="/dashboard"
-              element={
-                <ProtectedRoute requiredRole="CITIZEN">
-                  <UserDashboardPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard/*"
               element={
                 <ProtectedRoute requiredRole="CITIZEN">
                   <UserDashboardPage />
@@ -56,6 +56,16 @@ function App() {
               element={
                 <ProtectedRoute requiredRole="CITIZEN">
                   <UserSettingsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/*"
+              element={
+                <ProtectedRoute requiredRole="CITIZEN">
+                  <DashboardLayout>
+                    <ComingSoon />
+                  </DashboardLayout>
                 </ProtectedRoute>
               }
             />
@@ -85,6 +95,25 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/admin/external-maintainers"
+              element={
+                <ProtectedRoute requiredRole="ADMIN">
+                  <AdminExternalMaintainersPage />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/admin/*"
+              element={
+                <ProtectedRoute requiredRole="ADMIN">
+                  <AdminDashboardLayout>
+                    <ComingSoon />
+                  </AdminDashboardLayout>
+                </ProtectedRoute>
+              }
+            />
 
             {/* Municipality Dashboard routes - protected, MUNICIPALITY role */}
             <Route
@@ -107,6 +136,37 @@ function App() {
               }
             />
 
+            <Route
+              path="/municipality/*"
+              element={
+                <ProtectedRoute requiredRole="MUNICIPALITY">
+                  <MunicipalityDashboardLayout>
+                    <ComingSoon />
+                  </MunicipalityDashboardLayout>
+                </ProtectedRoute>
+              }
+            />
+
+            {/* External Maintainer Dashboard routes - protected, EXTERNAL_MAINTAINER role */}
+            <Route
+              path="/maintainer/reports"
+              element={
+                <ProtectedRoute requiredRole="EXTERNAL_MAINTAINER">
+                  <MaintainerReportsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/maintainer/*"
+              element={
+                <ProtectedRoute requiredRole="EXTERNAL_MAINTAINER">
+                  <ExternalMaintainerDashboardLayout>
+                    <ComingSoon />
+                  </ExternalMaintainerDashboardLayout>
+                </ProtectedRoute>
+              }
+            />
+
             {/* Public routes - with navbar/footer */}
             <Route
               path="*"
@@ -119,6 +179,7 @@ function App() {
                     <Route path="/register" element={<Register />} />
                     {/* <Route path="/map" element={<MapPage />} /> */}
                     <Route path="/report/:id" element={<ReportDetailsPage />} />
+                    <Route path="*" element={<NotFound />} />
                   </Routes>
                   <Footer />
                 </>

@@ -1,3 +1,4 @@
+/*
 import messageRepository, {
   CreateMessageDto,
   MessageResponseDto,
@@ -6,8 +7,6 @@ import messageRepository, {
 const sendMessage = async (
   data: CreateMessageDto,
 ): Promise<MessageResponseDto> => {
-
-
   if (!data.title || data.title.trim().length === 0) {
     throw new Error("Title is required");
   }
@@ -33,10 +32,12 @@ const getReceivedMessages = async (
   return await messageRepository.findByRecipientId(userId);
 };
 
-const getMessageById = async (
-  id: number,
-): Promise<MessageResponseDto | null> => {
-  return await messageRepository.findById(id);
+const getMessageById = async (id: number): Promise<MessageResponseDto> => {
+  const message = await messageRepository.findById(id);
+  if (!message) {
+    throw new Error("Message not found");
+  }
+  return message;
 };
 
 const markMessageAsRead = async (id: number): Promise<MessageResponseDto> => {
@@ -55,3 +56,4 @@ export default {
   getMessageById,
   markMessageAsRead,
 };
+*/

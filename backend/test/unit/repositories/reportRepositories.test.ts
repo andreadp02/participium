@@ -63,6 +63,14 @@ describe("reportRepository", () => {
               lastName: true,
             },
           },
+          externalMaintainer: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              companyName: true,
+            },
+          },
         },
         orderBy: { createdAt: "desc" },
       });
@@ -84,6 +92,14 @@ describe("reportRepository", () => {
               username: true,
               firstName: true,
               lastName: true,
+            },
+          },
+          externalMaintainer: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              companyName: true,
             },
           },
         },
@@ -112,10 +128,54 @@ describe("reportRepository", () => {
               lastName: true,
             },
           },
+          externalMaintainer: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              companyName: true,
+            },
+          },
         },
         orderBy: { createdAt: "desc" },
       });
       expect(res).toBe(allReports);
+    });
+
+    it("returns citizen own reports and ASSIGNED reports when userId is provided", async () => {
+      const userReports = [
+        makeReport({ id: 1, status: "PENDING_APPROVAL", user_id: 5 }),
+        makeReport({ id: 2, status: "ASSIGNED", user_id: 3 }),
+      ];
+      prismaMock.report.findMany.mockResolvedValue(userReports);
+
+      const res = await reportRepository.findAll(undefined, 5);
+
+      expect(prismaMock.report.findMany).toHaveBeenCalledWith({
+        where: {
+          OR: [{ user_id: 5 }, { status: "ASSIGNED" }],
+        },
+        include: {
+          user: {
+            select: {
+              id: true,
+              username: true,
+              firstName: true,
+              lastName: true,
+            },
+          },
+          externalMaintainer: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              companyName: true,
+            },
+          },
+        },
+        orderBy: { createdAt: "desc" },
+      });
+      expect(res).toBe(userReports);
     });
   });
 
@@ -138,6 +198,14 @@ describe("reportRepository", () => {
               username: true,
               firstName: true,
               lastName: true,
+            },
+          },
+          externalMaintainer: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              companyName: true,
             },
           },
         },
@@ -164,6 +232,14 @@ describe("reportRepository", () => {
               username: true,
               firstName: true,
               lastName: true,
+            },
+          },
+          externalMaintainer: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              companyName: true,
             },
           },
         },
@@ -198,6 +274,14 @@ describe("reportRepository", () => {
               username: true,
               firstName: true,
               lastName: true,
+            },
+          },
+          externalMaintainer: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              companyName: true,
             },
           },
         },
@@ -511,6 +595,14 @@ describe("reportRepository", () => {
               lastName: true,
             },
           },
+          externalMaintainer: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              companyName: true,
+            },
+          },
         },
         orderBy: { createdAt: "desc" },
       });
@@ -543,6 +635,14 @@ describe("reportRepository", () => {
               lastName: true,
             },
           },
+          externalMaintainer: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              companyName: true,
+            },
+          },
         },
         orderBy: { createdAt: "desc" },
       });
@@ -565,10 +665,100 @@ describe("reportRepository", () => {
               lastName: true,
             },
           },
+          externalMaintainer: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              companyName: true,
+            },
+          },
         },
         orderBy: { createdAt: "desc" },
       });
       expect(res).toEqual([]);
+    });
+  });
+
+  // -------- findByExternalMaintainerId --------
+  describe("findByExternalMaintainerId", () => {
+    it("should find all reports assigned to external maintainer", async () => {
+      const maintainerId = 1;
+      const reports = [
+        makeReport({ id: 1, externalMaintainerId: maintainerId }),
+        makeReport({ id: 2, externalMaintainerId: maintainerId }),
+      ];
+      prismaMock.report.findMany.mockResolvedValue(reports);
+
+      const res =
+        await reportRepository.findByExternalMaintainerId(maintainerId);
+
+      expect(prismaMock.report.findMany).toHaveBeenCalledWith({
+        where: { externalMaintainerId: maintainerId },
+      });
+      expect(res).toEqual(reports);
+    });
+
+    it("should return empty array when no reports found", async () => {
+      prismaMock.report.findMany.mockResolvedValue([]);
+
+      const res = await reportRepository.findByExternalMaintainerId(999);
+
+      expect(res).toEqual([]);
+    });
+  });
+
+  // ---------- addCommentToReport / getCommentsByReportId ----------
+  describe("comment persistence", () => {
+    it("addCommentToReport calls prisma.comment.create with proper data", async () => {
+      const created = {
+        id: 10,
+        reportId: 2,
+        content: "c",
+        municipality_user_id: 3,
+        external_maintainer_id: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      const prismaMock = prisma as any;
+      prismaMock.comment = prismaMock.comment || {};
+      prismaMock.comment.create = jest.fn().mockResolvedValue(created);
+
+      const reportRepository =
+        require("@repositories/reportRepository").default;
+
+      const res = await reportRepository.addCommentToReport({
+        reportId: 2,
+        content: "c",
+        municipality_user_id: 3,
+        external_maintainer_id: null,
+      });
+
+      expect(prismaMock.comment.create).toHaveBeenCalledWith({
+        data: {
+          reportId: 2,
+          content: "c",
+          municipality_user_id: 3,
+          external_maintainer_id: null,
+        },
+      });
+      expect(res).toBe(created);
+    });
+
+    it("getCommentsByReportId calls prisma.comment.findMany and orders by createdAt asc", async () => {
+      const prismaMock = prisma as any;
+      prismaMock.comment = prismaMock.comment || {};
+      prismaMock.comment.findMany = jest.fn().mockResolvedValue([]);
+
+      const reportRepository =
+        require("@repositories/reportRepository").default;
+      const res = await reportRepository.getCommentsByReportId(5);
+
+      expect(prismaMock.comment.findMany).toHaveBeenCalledWith({
+        where: { reportId: 5 },
+        orderBy: { createdAt: "asc" },
+      });
+      expect(Array.isArray(res)).toBe(true);
     });
   });
 });

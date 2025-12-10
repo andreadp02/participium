@@ -16,16 +16,50 @@ model user {
   lastName             String
   password             String
   createdAt            DateTime           @default(now())
-  municipality_role_id Int?
-  role                 roleType           @default(CITIZEN)
   profilePhoto         String?
   telegramUsername     String?
   notifications        Boolean            @default(true)
-  municipality_role    municipality_role? @relation(fields: [municipality_role_id], references: [id], onDelete: Restrict)
   reports              report[]           @relation("CitizenReports")
+  messages         message[]          @relation("userMessages")
+}
+
+model municipality_user {
+  id              Int      @id @default(autoincrement())
+  username             String             @unique
+  email                String             @unique
+  firstName            String
+  lastName             String
+  password             String
+  createdAt            DateTime           @default(now())
+  municipality_role_id Int?
+  municipality_role    municipality_role? @relation(fields: [municipality_role_id], references: [id], onDelete: Restrict)
   assignedReports      report[]           @relation("OfficerAssignments")
-  sentMessages         message[]          @relation("sentMessages")
-  receivedMessages     message[]          @relation("receivedMessages")
+  messages     message[]          @relation("municipalityMessages")
+  comments     comment[]
+}
+
+model admin_user {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  email     String   @unique
+  firstName String
+  lastName  String
+  password  String
+  createdAt DateTime @default(now())
+}
+
+model external_maintainer {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  email     String   @unique
+  firstName String
+  lastName String
+  password  String
+  companyName String
+  createdAt DateTime @default(now())
+  category  Category
+  reports   report[]
+  comments  comment[]
 }
 
 model report {
@@ -44,7 +78,10 @@ model report {
   user_id     Int?
   user        user? @relation("CitizenReports", fields: [user_id], references: [id], onDelete: Restrict)
   assignedOfficerId Int?
-  assignedOfficer user? @relation("OfficerAssignments", fields: [assignedOfficerId], references: [id], onDelete: SetNull)
+  assignedOfficer municipality_user? @relation("OfficerAssignments", fields: [assignedOfficerId], references: [id], onDelete: SetNull)
+  externalMaintainerId Int?
+  externalMaintainer external_maintainer? @relation(fields: [externalMaintainerId], references: [id], onDelete: SetNull)
+  comments   comment[]
 
   @@index([assignedOfficerId])
 }
@@ -55,23 +92,37 @@ model message {
   content       String
   sentAt        DateTime @default(now())
   readAt        DateTime?
-  sender_id     Int
-  recipient_id  Int
-  sender        user     @relation("sentMessages", fields: [sender_id], references: [id], onDelete: Restrict)
-  recipient     user     @relation("receivedMessages", fields: [recipient_id], references: [id], onDelete: Restrict)
+  user_id     Int
+  municipality_user_id  Int
+  user        user     @relation("userMessages", fields: [user_id], references: [id], onDelete: Restrict)
+  municipality_user     municipality_user     @relation("municipalityMessages", fields: [municipality_user_id], references: [id], onDelete: Restrict)
+  sent_by_municipality Boolean @default(true)
 }
 
 model municipality_role {
   id    Int    @id @default(autoincrement())
   name  String @unique
-  users user[]
+  users municipality_user[]
 }
 
-enum roleType {
-  CITIZEN
-  ADMIN
-  MUNICIPALITY
+model comment {
+  id                     Int       @id @default(autoincrement())
+  reportId              Int
+  municipality_user_id   Int?
+  external_maintainer_id Int?
+  content                String
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime?  @updatedAt
+
+  report               report              @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  municipality_user    municipality_user?  @relation(fields: [municipality_user_id], references: [id], onDelete: SetNull)
+  external_maintainer  external_maintainer? @relation(fields: [external_maintainer_id], references: [id], onDelete: SetNull)
+
+  @@index([reportId])
+  @@index([municipality_user_id])
+  @@index([external_maintainer_id])
 }
+
 
 enum Category {
   WATER_SUPPLY_DRINKING_WATER

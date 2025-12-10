@@ -1,7 +1,10 @@
 import { Request, Response } from "express";
 import reportService from "@services/reportService";
 import imageService from "@services/imageService";
-import { stat } from "fs";
+import { roleType } from "@models/enums";
+import { report } from "process";
+import { commentAuthorType } from "@models/dto/commentDto";
+import { userService } from "@services/userService";
 
 const VALID_CATEGORIES = [
   "WATER_SUPPLY_DRINKING_WATER",
@@ -20,7 +23,7 @@ type ReportStatusFilter = "ASSIGNED";
 export const getReports = async (_req: Request, res: Response) => {
   try {
     const { status } = _req.query as {
-      status?: string 
+      status?: string;
     };
 
     let statusFilter: ReportStatusFilter | undefined;
@@ -34,11 +37,12 @@ export const getReports = async (_req: Request, res: Response) => {
     }
 
     // CITIZEN: Can see their own reports + ASSIGNED reports
-    if (_req.user.role === "CITIZEN") {
+    if (_req.role === roleType.CITIZEN) {
       if (status !== undefined && status !== "ASSIGNED") {
         return res.status(400).json({
           error: "Validation Error",
-          message: "request/query/status must be equal to one of the allowed values: ASSIGNED",
+          message:
+            "request/query/status must be equal to one of the allowed values: ASSIGNED",
         });
       }
       userId = _req.user.id;
@@ -46,12 +50,16 @@ export const getReports = async (_req: Request, res: Response) => {
       // If no status is passed, show all their reports + ASSIGNED from others
     }
     // ADMIN/MUNICIPALITY: Can see all reports, optionally filtered by status
-    else if (_req.user.role === "ADMIN" || _req.user.role === "MUNICIPALITY") {
+    else if (
+      _req.role === roleType.ADMIN ||
+      _req.role === roleType.MUNICIPALITY
+    ) {
       // Allow filtering by status if provided
       if (status !== undefined && status !== "ASSIGNED") {
         return res.status(400).json({
           error: "Validation Error",
-          message: "request/query/status must be equal to one of the allowed values: ASSIGNED",
+          message:
+            "request/query/status must be equal to one of the allowed values: ASSIGNED",
         });
       }
       if (status === "ASSIGNED") {
@@ -60,7 +68,7 @@ export const getReports = async (_req: Request, res: Response) => {
     } else {
       return res.status(403).json({
         error: "Authorization Error",
-        message: `Access denied. Allowed roles: CITIZEN, ADMIN, MUNICIPALITY. Your role: ${_req.user.role}`,
+        message: `Access denied. Allowed roles: CITIZEN, ADMIN, MUNICIPALITY. Your role: ${_req.role}`,
       });
     }
 
@@ -72,16 +80,15 @@ export const getReports = async (_req: Request, res: Response) => {
   }
 };
 
-
 export const getReportById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const parsedId = parseInt(id);
-    
-    if (isNaN(parsedId)) {
+    const parsedId = Number.parseInt(id);
+
+    if (Number.isNaN(parsedId)) {
       return res.status(400).json({ error: "Invalid report ID" });
     }
-    
+
     const report = await reportService.findById(parsedId);
 
     if (!report) {
@@ -108,15 +115,33 @@ export const getReportByStatus = async (req: Request, res: Response) => {
 export const approveOrRejectReport = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    // Accept either `rejectionReason` or `motivation` coming from frontend
     const { status } = req.body;
     const rejectionReason = req.body.rejectionReason ?? req.body.motivation;
+    const userRole = req.role;
 
-    // Only allow setting ASSIGNED (accepted) or REJECTED
-    if (status !== "ASSIGNED" && status !== "REJECTED") {
-      return res
-        .status(400)
-        .json({ error: "Invalid status. Must be ASSIGNED or REJECTED." });
+    // Define allowed statuses based on user role
+    const municipalityStatuses = ["ASSIGNED", "REJECTED"];
+    const externalMaintainerStatuses = ["IN_PROGRESS", "SUSPENDED", "RESOLVED"];
+
+    const isMunicipalityRole = userRole === "MUNICIPALITY";
+    const isExternalMaintainerRole = userRole === "EXTERNAL_MAINTAINER";
+
+    // Validate status based on role
+    if (isMunicipalityRole && !municipalityStatuses.includes(status)) {
+      return res.status(400).json({
+        error:
+          "Invalid status. Municipality users can only set ASSIGNED or REJECTED.",
+      });
+    }
+
+    if (
+      isExternalMaintainerRole &&
+      !externalMaintainerStatuses.includes(status)
+    ) {
+      return res.status(400).json({
+        error:
+          "Invalid status. External maintainers can only set IN_PROGRESS, SUSPENDED or RESOLVED.",
+      });
     }
 
     if (
@@ -128,32 +153,39 @@ export const approveOrRejectReport = async (req: Request, res: Response) => {
       });
     }
 
-    const updatedStatus = await reportService.updateReportStatus(
-      parseInt(id),
-      status,
-      rejectionReason,
-    );
+    let result;
+    if (isExternalMaintainerRole) {
+      // External maintainer updating status
+      result = await reportService.updateReportStatusByExternalMaintainer(
+        Number.parseInt(id),
+        req.user!.id,
+        status,
+      );
+    } else {
+      // Municipality user approving/rejecting
+      result = await reportService.updateReportStatus(
+        Number.parseInt(id),
+        status,
+        rejectionReason,
+      );
+    }
 
-    res.status(204).json({ status: updatedStatus });
+    res.status(204).json({ status: result });
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Failed to update report status";
-    const statusCode =
-      error instanceof Error && error.message === "Report not found"
-        ? 404
-        : 500;
+    let statusCode = 500;
+    if (error instanceof Error) {
+      if (error.message === "Report not found") statusCode = 404;
+      else if (/not authorized/i.test(error.message)) statusCode = 403;
+      else if (/invalid/i.test(error.message)) statusCode = 400;
+    }
     res.status(statusCode).json({ error: errorMessage });
   }
 };
 
 export const submitReport = async (req: Request, res: Response) => {
   try {
-    // // Unit tests call submitReport with empty body ({}). Handle that case by delegating to service.
-    // if (req.body && Object.keys(req.body).length === 0) {
-    //   const created = await reportService.submitReport({} as any, 1);
-    //   return res.status(201).json(created);
-    // }
-
     const { latitude, longitude, anonymous, title, description, category } =
       req.body;
     const files = req.files as Express.Multer.File[];
@@ -210,7 +242,7 @@ export const submitReport = async (req: Request, res: Response) => {
         category,
         photoKeys: tempKeys, // Pass temporary keys
       },
-      req.user!.id
+      req.user!.id,
     );
 
     res.status(201).json(report);
@@ -221,9 +253,12 @@ export const submitReport = async (req: Request, res: Response) => {
   }
 };
 
-export const getReportsForMunicipalityUser = async (req: Request, res: Response) => {
+export const getReportsForMunicipalityUser = async (
+  req: Request,
+  res: Response,
+) => {
   try {
-    if(!req.user) {
+    if (!req.user) {
       return res.status(401).json({
         error: "Authentication Error",
         message: "User not authenticated",
@@ -231,40 +266,227 @@ export const getReportsForMunicipalityUser = async (req: Request, res: Response)
     }
 
     const municipalityUserId = Number(req.params.municipalityUserId);
-    if(!Number.isInteger(municipalityUserId) || municipalityUserId < 0) {
+    if (!Number.isInteger(municipalityUserId) || municipalityUserId < 0) {
       return res.status(400).json({
         error: "Bad Request",
         message: "Invalid municipality user ID",
-      })
+      });
     }
 
-    if(req.user.id !== municipalityUserId) {
+    if (req.user.id !== municipalityUserId) {
       return res.status(403).json({
         error: "Forbidden",
         message: "You can only access reports assigned to yourself",
       });
     }
 
-    const statusParam = typeof req.query.status === "string" ? req.query.status : undefined;
+    const statusParam =
+      typeof req.query.status === "string" ? req.query.status : undefined;
 
-    const reports = await reportService.findAssignedReportsForOfficer(municipalityUserId, statusParam);
+    const reports = await reportService.findAssignedReportsForOfficer(
+      municipalityUserId,
+      statusParam,
+    );
 
     return res.status(200).json(reports);
   } catch (error) {
     return res.status(500).json({
-      error: "Internal Server Error", 
+      error: "Internal Server Error",
       message: "Unable to fetch assigned reports for municipality user",
     });
   }
-}
+};
 
 export const deleteReport = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const deletedReport = await reportService.deleteReport(parseInt(id));
+    const deletedReport = await reportService.deleteReport(Number.parseInt(id));
     res.json(deletedReport);
   } catch (error) {
     // Generic error for delete failures
     res.status(500).json({ error: "Failed to delete report" });
+  }
+};
+
+export const assignToExternalMaintainer = async (
+  req: Request,
+  res: Response,
+) => {
+  try {
+    const rawReportId = req.params.report_id ?? req.params.reportId;
+    const reportId = Number.parseInt(String(rawReportId));
+
+    if (Number.isNaN(reportId)) {
+      return res.status(400).json({
+        error: "Validation Error",
+        message: "Invalid report or external maintainer id",
+      });
+    }
+
+    const updatedReport =
+      await reportService.assignToExternalMaintainer(reportId);
+
+    return res.status(200).json(updatedReport);
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error
+        ? error.message
+        : "Failed to assign external maintainer";
+    const statusCode =
+      error instanceof Error && /not found/i.test(error.message) ? 404 : 500;
+    return res.status(statusCode).json({ error: errorMessage });
+  }
+};
+
+export const getReportsForExternalMaintainer = async (
+  req: Request,
+  res: Response,
+) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
+        error: "Authentication Error",
+        message: "User not authenticated",
+      });
+    }
+
+    const externalMaintainerId = Number(req.params.externalMaintainersId);
+    if (!Number.isInteger(externalMaintainerId) || externalMaintainerId < 0) {
+      return res.status(400).json({
+        error: "Bad Request",
+        message: "Invalid external maintainer ID",
+      });
+    }
+
+    if (req.user.id !== externalMaintainerId) {
+      return res.status(403).json({
+        error: "Forbidden",
+        message: "You can only access reports assigned to yourself",
+      });
+    }
+
+    const reports =
+      await reportService.findReportsForExternalMaintainer(
+        externalMaintainerId,
+      );
+
+    return res.status(200).json(reports);
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error
+        ? error.message
+        : "Failed to retrieve reports for external maintainer";
+    const statusCode =
+      error instanceof Error && /not found/i.test(error.message) ? 404 : 500;
+    return res.status(statusCode).json({ error: errorMessage });
+  }
+};
+
+export const addCommentToReport = async (req: Request, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
+        error: "Authentication Error",
+        message: "User not authenticated",
+      });
+    }
+
+    const reportId = Number.parseInt(req.params.report_id);
+    if (Number.isNaN(reportId)) {
+      return res.status(400).json({
+        error: "Bad Request",
+        message: "Invalid report id",
+      });
+    }
+
+    if (!req.body.content || req.body.content.trim().length === 0) {
+      return res.status(400).json({
+        error: "Bad Request",
+        message: "Comment content cannot be empty",
+      });
+    }
+
+    const authorType: commentAuthorType =
+      req.role === roleType.MUNICIPALITY
+        ? "MUNICIPALITY"
+        : "EXTERNAL_MAINTAINER";
+
+    const response = await reportService.addCommentToReport({
+      reportId,
+      authorId: req.user.id,
+      authorType,
+      content: req.body.content,
+    });
+
+    if (!response) {
+      return res.status(404).json({
+        error: "Not Found",
+        message: "Report not found",
+      });
+    }
+
+    return res.status(201).json(response);
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error
+        ? error.message
+        : "Failed to add comment to report";
+    
+    // Check for specific error messages
+    if (error instanceof Error && /resolved/i.test(error.message)) {
+      return res.status(403).json({
+        error: "Forbidden",
+        message: errorMessage,
+      });
+    }
+    
+    if (error instanceof Error && /only comment on reports assigned/i.test(error.message)) {
+      return res.status(403).json({
+        error: "Forbidden",
+        message: errorMessage,
+      });
+    }
+    
+    const statusCode =
+      error instanceof Error && /not found/i.test(error.message) ? 404 : 500;
+    return res.status(statusCode).json({ error: errorMessage });
+  }
+};
+
+export const getCommentOfAReportById = async (req: Request, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
+        error: "Authentication Error",
+        message: "User not authenticated",
+      });
+    }
+
+    const reportId = Number.parseInt(req.params.report_id);
+    if (Number.isNaN(reportId)) {
+      return res.status(400).json({
+        error: "Bad Request",
+        message: "Invalid report id",
+      });
+    }
+
+    const response = await reportService.getCommentsOfAReportById(reportId);
+
+    if (!response) {
+      return res.status(404).json({
+        error: "Not Found",
+        message: "Report not found",
+      });
+    }
+
+    return res.status(200).json(response);
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error
+        ? error.message
+        : "Failed to retrieve reports for external maintainer";
+    const statusCode =
+      error instanceof Error && /not found/i.test(error.message) ? 404 : 500;
+    return res.status(statusCode).json({ error: errorMessage });
   }
 };

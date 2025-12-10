@@ -1,9 +1,17 @@
 import { prisma } from "@database";
-import { CreateReportDto } from "@dto/reportDto";
 import { Report } from "@models/entities/report";
 import { ReportStatus } from "@models/enums";
+import { createCommentDto } from "@models/dto/commentDto";
+import { add } from "winston";
 
 type ReportStatusFilter = "ASSIGNED";
+
+interface AddCommentPersistenceData {
+  reportId: number;
+  content: string;
+  municipality_user_id: number | null;
+  external_maintainer_id: number | null;
+}
 
 const findAll = async (statusFilter?: ReportStatusFilter, userId?: number) => {
   // If userId is provided, citizen wants to see their own reports + ASSIGNED reports
@@ -22,6 +30,14 @@ const findAll = async (statusFilter?: ReportStatusFilter, userId?: number) => {
             username: true,
             firstName: true,
             lastName: true,
+          },
+        },
+        externalMaintainer: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            companyName: true,
           },
         },
       },
@@ -43,6 +59,14 @@ const findAll = async (statusFilter?: ReportStatusFilter, userId?: number) => {
           lastName: true,
         },
       },
+      externalMaintainer: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          companyName: true,
+        },
+      },
     },
     orderBy: {
       createdAt: "desc",
@@ -60,6 +84,14 @@ const findById = async (id: number) => {
           username: true,
           firstName: true,
           lastName: true,
+        },
+      },
+      externalMaintainer: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          companyName: true,
         },
       },
     },
@@ -103,10 +135,18 @@ const findByStatus = async (status: ReportStatus) => {
           lastName: true,
         },
       },
+      externalMaintainer: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          companyName: true,
+        },
+      },
     },
     orderBy: { createdAt: "desc" },
   });
-}
+};
 
 const findByStatusesAndCategories = async (
   statuses: ReportStatus[],
@@ -123,12 +163,12 @@ const findByStatusesAndCategories = async (
 
 const findAssignedReportsForOfficer = async (
   officerId: number,
-  status?: ReportStatus
+  status?: ReportStatus,
 ) => {
   return prisma.report.findMany({
     where: {
       assignedOfficerId: officerId,
-      ...(status ? { status: status } : {})
+      ...(status ? { status: status } : {}),
     },
     include: {
       user: {
@@ -139,10 +179,18 @@ const findAssignedReportsForOfficer = async (
           lastName: true,
         },
       },
+      externalMaintainer: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          companyName: true,
+        },
+      },
     },
     orderBy: { createdAt: "desc" },
   });
-}
+};
 
 const deleteById = async (id: number) => {
   return prisma.report.delete({
@@ -158,6 +206,7 @@ const update = async (
     rejectionReason: string;
     assignedOffice: string | null;
     assignedOfficerId: number | null;
+    externalMaintainerId: number | null;
   }>,
 ) => {
   return prisma.report.update({
@@ -166,13 +215,40 @@ const update = async (
   });
 };
 
+const findByExternalMaintainerId = async (externalMaintainerId: number) => {
+  return prisma.report.findMany({
+    where: { externalMaintainerId },
+  });
+}
+
+const addCommentToReport = async (data: AddCommentPersistenceData) => {
+  return prisma.comment.create({
+    data: {
+      reportId: data.reportId,
+      content: data.content,
+      municipality_user_id: data.municipality_user_id,
+      external_maintainer_id: data.external_maintainer_id,
+    },
+  });
+}
+
+const getCommentsByReportId = async (reportId: number) => {
+  return prisma.comment.findMany({
+    where: { reportId },
+    orderBy: { createdAt: "asc" },
+  });
+}
+
 export default {
   findAll,
   findById,
-  findByStatus, 
+  findByStatus,
   create,
   findAssignedReportsForOfficer,
   deleteById,
   update,
   findByStatusesAndCategories,
+  findByExternalMaintainerId,
+  addCommentToReport,
+  getCommentsByReportId
 };

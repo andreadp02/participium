@@ -26,17 +26,58 @@ jest.mock("@controllers/reportController", () => ({
       municipalityUserId: req.params.municipalityUserId,
     }),
   ),
+  assignToExternalMaintainer: jest.fn((req: Request, res: Response) =>
+    res.json({
+      route: "assignToExternalMaintainer",
+      reportId: req.params.report_id,
+    }),
+  ),
+  getReportsForExternalMaintainer: jest.fn((req: Request, res: Response) =>
+    res.json({
+      route: "getReportsForExternalMaintainer",
+      maintainerId: req.params.externalMaintainersId,
+    }),
+  ),
+  // comment-related handlers used by router
+  addCommentToReport: jest.fn((req: Request, res: Response) =>
+    res.status(201).json({
+      route: "addCommentToReport",
+      reportId: req.params.report_id,
+      body: (req as any).body ?? {},
+    }),
+  ),
+  getCommentOfAReportById: jest.fn((req: Request, res: Response) =>
+    res.json({
+      route: "getCommentOfAReportById",
+      reportId: req.params.report_id,
+    }),
+  ),
 }));
 
 jest.mock("@middlewares/authMiddleware", () => ({
-  isAuthenticated: jest.fn((req: Request, res: Response, next: Function) => next()),
+  isAuthenticated: jest.fn((req: Request, res: Response, next: Function) =>
+    next(),
+  ),
 }));
 
 jest.mock("@middlewares/roleMiddleware", () => ({
-  isMunicipality: jest.fn((req: Request, res: Response, next: Function) => next()),
-  isMunicipalityStrict: jest.fn((req: Request, res: Response, next: Function) => next()),
+  isMunicipality: jest.fn((req: Request, res: Response, next: Function) =>
+    next(),
+  ),
+  isMunicipalityStrict: jest.fn((req: Request, res: Response, next: Function) =>
+    next(),
+  ),
+  // ensure router's import exists in tests
+  isMunicipalityOrExternalMaintainer: jest.fn(
+    (req: Request, res: Response, next: Function) => next(),
+  ),
   isCitizen: jest.fn((req: Request, res: Response, next: Function) => next()),
-  hasRole: jest.fn(() => (req: Request, res: Response, next: Function) => next()),
+  isExternalMaintainer: jest.fn((req: Request, res: Response, next: Function) =>
+    next(),
+  ),
+  hasRole: jest.fn(
+    () => (req: Request, res: Response, next: Function) => next(),
+  ),
 }));
 
 jest.mock("@middlewares/uploadMiddleware", () => ({
@@ -60,12 +101,15 @@ import {
   hasRole,
   isMunicipality,
   isMunicipalityStrict,
+  isMunicipalityOrExternalMaintainer,
   isCitizen,
 } from "@middlewares/roleMiddleware";
 
 const isAuthenticatedMock = isAuthenticated as jest.Mock;
 const isMunicipalityMock = isMunicipality as jest.Mock;
 const isMunicipalityStrictMock = isMunicipalityStrict as jest.Mock;
+const isMunicipalityOrExternalMaintainerMock =
+  isMunicipalityOrExternalMaintainer as jest.Mock;
 const isCitizenMock = isCitizen as jest.Mock;
 const hasRoleMock = hasRole as jest.Mock;
 
@@ -141,6 +185,9 @@ describe("reportRouter", () => {
       (req: any, res: any, next: any) => next(),
     );
     (isMunicipalityStrict as jest.Mock).mockImplementation(
+      (req: any, res: any, next: any) => next(),
+    );
+    (isMunicipalityOrExternalMaintainer as jest.Mock).mockImplementation(
       (req: any, res: any, next: any) => next(),
     );
     (hasRole as jest.Mock).mockImplementation(
@@ -341,7 +388,7 @@ describe("reportRouter", () => {
         .send({ action: "approve" });
 
       expect(isAuthenticatedMock).toHaveBeenCalled();
-      expect(isMunicipalityMock).toHaveBeenCalled();
+      expect(isMunicipalityOrExternalMaintainerMock).toHaveBeenCalled();
       expect(res.status).toBe(204);
       expect(approveOrRejectReport).toHaveBeenCalledTimes(1);
     });
@@ -367,20 +414,122 @@ describe("reportRouter", () => {
       (isAuthenticated as jest.Mock).mockImplementation(
         (req: any, res: any, next: any) => next(),
       );
-      // block municipality role
-      (isMunicipality as jest.Mock).mockImplementation((req: any, res: any) =>
-        res.status(403).send("forbidden"),
+      // block municipality-or-external-maintainer role
+      (isMunicipalityOrExternalMaintainer as jest.Mock).mockImplementation(
+        (req: any, res: any) => res.status(403).send("forbidden"),
       );
-
       const app = makeApp();
       const res = await request(app)
         .post("/api/reports/7")
         .send({ action: "reject" });
 
       expect(isAuthenticatedMock).toHaveBeenCalled();
-      expect(isMunicipalityMock).toHaveBeenCalled();
+      expect(isMunicipalityOrExternalMaintainerMock).toHaveBeenCalled();
       expect(res.status).toBe(403);
       expect(approveOrRejectReport).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("External Maintainer Routes", () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it("should assign report to external maintainer", async () => {
+      const app = makeApp();
+      const res = await request(app)
+        .post("/api/reports/1/external-maintainers/")
+        .send({ externalMaintainerId: 5 });
+
+      expect(res.status).toBe(200);
+    });
+
+    it("should get reports for external maintainer", async () => {
+      const app = makeApp();
+      const res = await request(app).get("/api/reports/external-maintainers/5");
+
+      expect(res.status).toBe(200);
+    });
+
+    it("should return 401 when not authenticated for external maintainer reports", async () => {
+      (isAuthenticated as jest.Mock).mockImplementation((req: any, res: any) =>
+        res.status(401).send("unauthorized"),
+      );
+
+      const app = makeApp();
+      const res = await request(app).get("/api/reports/external-maintainers/5");
+
+      expect(res.status).toBe(401);
+    });
+
+    it("should accept valid external maintainer id format", async () => {
+      (isAuthenticated as jest.Mock).mockImplementation(
+        (req: any, res: any, next: any) => next(),
+      );
+
+      const app = makeApp();
+      const res = await request(app).get(
+        "/api/reports/external-maintainers/123",
+      );
+
+      expect(res.status).toBe(200);
+    });
+  });
+
+  // ---------- Comments routes (unit / router-level) ----------
+  describe("Comments routes (unit/router)", () => {
+    it("POST /api/reports/:report_id/comments -> addCommentToReport (201) when authenticated", async () => {
+      const app = makeApp();
+
+      const res = await request(app)
+        .post("/api/reports/123/comments")
+        .send({ content: "Test comment" });
+
+      expect(isAuthenticatedMock).toHaveBeenCalled();
+      expect(isMunicipalityOrExternalMaintainerMock).toHaveBeenCalled();
+      expect(res.status).toBe(201);
+      expect(res.body).toHaveProperty("route", "addCommentToReport");
+      expect(res.body).toHaveProperty("reportId", "123");
+    });
+
+    it("POST /api/reports/:report_id/comments -> 401 when not authenticated", async () => {
+      (isAuthenticated as jest.Mock).mockImplementation((req: any, res: any) =>
+        res.status(401).json({ error: "Unauthorized" }),
+      );
+
+      const app = makeApp();
+      const res = await request(app)
+        .post("/api/reports/123/comments")
+        .send({ content: "x" });
+
+      expect(res.status).toBe(401);
+      const ctrl = require("@controllers/reportController");
+      expect(ctrl.addCommentToReport).not.toHaveBeenCalled();
+    });
+
+    it("GET /api/reports/:report_id/comments -> getCommentOfAReportById (200) when authenticated", async () => {
+      const app = makeApp();
+
+      const res = await request(app).get("/api/reports/123/comments");
+
+      expect(isAuthenticatedMock).toHaveBeenCalled();
+      expect(isMunicipalityOrExternalMaintainerMock).toHaveBeenCalled();
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveProperty("route", "getCommentOfAReportById");
+      expect(res.body).toHaveProperty("reportId", "123");
+    });
+
+    it("GET /api/reports/:report_id/comments -> 401 when not authenticated", async () => {
+      (isAuthenticated as jest.Mock).mockImplementation((req: any, res: any) =>
+        res.status(401).json({ error: "Unauthorized" }),
+      );
+
+      const app = makeApp();
+      const res = await request(app).get("/api/reports/123/comments");
+
+      expect(res.status).toBe(401);
+      const ctrl = require("@controllers/reportController");
+      expect(ctrl.getCommentOfAReportById).not.toHaveBeenCalled();
     });
   });
 });

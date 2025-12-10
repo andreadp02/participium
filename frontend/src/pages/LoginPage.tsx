@@ -24,6 +24,8 @@ export const Login: React.FC = () => {
         } else {
           navigate("/municipality/technical-reports", { replace: true });
         }
+      } else if (user.role === "EXTERNAL_MAINTAINER") {
+        navigate("/maintainer/reports", { replace: true });
       } else {
         navigate("/dashboard", { replace: true });
       }
@@ -77,6 +79,8 @@ export const Login: React.FC = () => {
         } else {
           navigate("/municipality/technical-reports");
         }
+      } else if (user.role === "EXTERNAL_MAINTAINER") {
+        navigate("/maintainer/reports");
       } else {
         // CITIZEN role or default
         navigate("/dashboard");
@@ -133,12 +137,16 @@ export const Login: React.FC = () => {
 
               {/* Username or Email */}
               <div className="flex flex-col gap-1 !w-full items-start justify-center ">
-                <label className="block text-sm font-medium text-slate-700 mb-1">
+                <label
+                  htmlFor="login-identifier"
+                  className="block text-sm font-medium text-slate-700 mb-1"
+                >
                   Username or Email
                 </label>
                 <div className="relative w-full">
                   <User className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
                   <input
+                    id="login-identifier"
                     type="text"
                     name="identifier"
                     value={formData.identifier}
@@ -152,12 +160,16 @@ export const Login: React.FC = () => {
 
               {/* Password */}
               <div className="flex flex-col gap-1 !w-full items-start justify-center ">
-                <label className="block text-sm font-medium text-slate-700 mb-1">
+                <label
+                  htmlFor="login-password"
+                  className="block text-sm font-medium text-slate-700 mb-1"
+                >
                   Password
                 </label>
                 <div className="relative w-full">
                   <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
                   <input
+                    id="login-password"
                     type="password"
                     name="password"
                     value={formData.password}

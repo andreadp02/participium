@@ -4,7 +4,7 @@ import { MapContainer, TileLayer, GeoJSON, useMap } from "react-leaflet";
 import ClusteredMarkers from "./ClusteredMarkers";
 
 import type { LatLngExpression } from "leaflet";
-import type { Report } from "src/services/models";
+import type { ReportModel } from "src/services/models";
 import CustomMarker from "./CustomMarker";
 
 /*
@@ -53,7 +53,7 @@ const MapPlaceholder: React.FC = () => {
 };
 
 type Props = {
-  reports: Report[];
+  reports: ReportModel[];
   markerDraggable?: boolean;
   markerLocation?: boolean;
 };
@@ -128,29 +128,64 @@ const MapView: React.FC<React.PropsWithChildren<Props>> = ({
       )}
 
       {/* Legend */}
-      <div className="absolute top-4 right-4 z-[1000] bg-white rounded-lg shadow-lg p-3 border border-slate-200">
+      <div className="absolute bottom-4 left-4 z-[1000] bg-white rounded-lg shadow-lg p-3 border border-slate-200">
         <div className="text-xs font-bold text-slate-700 mb-2">
           Report Status
         </div>
         <div className="space-y-1.5">
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-indigo-500 border border-indigo-600"></div>
+            <div
+              className="w-3 h-3 rounded-full"
+              style={{
+                backgroundColor: "#a855f7",
+                borderColor: "#9333ea",
+                borderWidth: "1px",
+              }}
+            ></div>
             <span className="text-xs text-slate-600">Pending</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-blue-500 border border-blue-600"></div>
+            <div
+              className="w-3 h-3 rounded-full"
+              style={{
+                backgroundColor: "#3b82f6",
+                borderColor: "#2563eb",
+                borderWidth: "1px",
+              }}
+            ></div>
             <span className="text-xs text-slate-600">Assigned</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-amber-500 border border-amber-600"></div>
+            <div
+              className="w-3 h-3 rounded-full"
+              style={{
+                backgroundColor: "#f59e0b",
+                borderColor: "#d97706",
+                borderWidth: "1px",
+              }}
+            ></div>
             <span className="text-xs text-slate-600">In Progress</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-green-500 border border-green-600"></div>
+            <div
+              className="w-3 h-3 rounded-full"
+              style={{
+                backgroundColor: "#22c55e",
+                borderColor: "#16a34a",
+                borderWidth: "1px",
+              }}
+            ></div>
             <span className="text-xs text-slate-600">Resolved</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-slate-500 border border-slate-600"></div>
+            <div
+              className="w-3 h-3 rounded-full"
+              style={{
+                backgroundColor: "#64748b",
+                borderColor: "#475569",
+                borderWidth: "1px",
+              }}
+            ></div>
             <span className="text-xs text-slate-600">Suspended</span>
           </div>
         </div>
@@ -159,7 +194,7 @@ const MapView: React.FC<React.PropsWithChildren<Props>> = ({
       {/* Recenter Button */}
       <button
         onClick={handleRecenter}
-        className="absolute bottom-24 right-4 z-[1000] bg-white hover:bg-slate-50 rounded-lg shadow-lg p-3 border border-slate-200 transition-colors"
+        className="absolute bottom-8 right-4 z-[1000] bg-white hover:bg-slate-50 rounded-lg shadow-lg px-3 py-2 border border-slate-200 transition-colors flex items-center gap-2"
         title="Recenter map"
         aria-label="Recenter map"
       >
@@ -182,6 +217,7 @@ const MapView: React.FC<React.PropsWithChildren<Props>> = ({
             d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"
           />
         </svg>
+        <span className="text-sm font-medium text-slate-700">Recenter</span>
       </button>
 
       <MapContainer

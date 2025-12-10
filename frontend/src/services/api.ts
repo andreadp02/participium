@@ -73,6 +73,13 @@ export interface Report {
     firstName: string;
     lastName: string;
   } | null;
+  externalMaintainerId?: number | null;
+  externalMaintainer?: {
+    id: number;
+    firstName: string;
+    lastName: string;
+    companyName: string;
+  } | null;
 }
 
 export type ReportStatus =
@@ -91,9 +98,27 @@ export interface ApproveReportRequest {
   motivation?: string;
 }
 
+export interface UpdateReportStatusRequest {
+  status: Extract<ReportStatus, "IN_PROGRESS" | "SUSPENDED" | "RESOLVED">;
+}
+
 export interface ApiError {
   error: string;
   message: string;
+}
+
+export interface CommentRequest {
+  content: string;
+}
+
+export interface Comment {
+  id: number;
+  reportId: number;
+  municipality_user_id?: number | null;
+  external_maintainer_id?: number | null;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 // ==================== Municipality User Types ====================
@@ -124,6 +149,27 @@ export interface MunicipalityUser {
     name: string;
   };
   createdAt: string;
+}
+
+// ==================== External Maintainer User Types ====================
+export interface ExternalMaintainerUserCreateRequest {
+  email: string;
+  username: string;
+  firstName: string;
+  lastName: string;
+  companyName: string;
+  password: string;
+  category: string;
+}
+
+export interface ExternalMaintainerUser {
+  id: number;
+  email: string;
+  username: string;
+  companyName: string;
+  category: string;
+  createdAt: string;
+  reports: Report[];
 }
 
 // ==================== API Instance ====================
@@ -315,6 +361,42 @@ export const getAssignedReportsForOfficer = async (
 
   return response.data;
 };
+
+/**
+ * Assign a report to an external maintainer
+ * @param reportId Report ID
+ * @throws ApiError on failure
+ */
+export const assignReportToExternalMaintainer = async (
+  reportId: number,
+): Promise<void> => {
+  await api.post(`/reports/${reportId}/external-maintainers/`);
+};
+
+export const getReportsForExternalMaintainer = async (
+  externalMaintainerId: number,
+): Promise<Report[]> => {
+  const response = await api.get(
+    `/reports/external-maintainers/${externalMaintainerId}`,
+  );
+  return response.data;
+};
+
+/**
+ * Update report status by external maintainer
+ * @param reportId Report ID
+ * @param status "IN_PROGRESS", "SUSPENDED", or "RESOLVED"
+ * @returns Updated report
+ * @throws ApiError on failure
+ */
+export const updateReportStatusByExternalMaintainer = async (
+  reportId: number,
+  request: UpdateReportStatusRequest,
+): Promise<Report> => {
+  const response = await api.post(`/reports/${reportId}`, request);
+  return response.data;
+};
+
 // ==================== Municipality User APIs ====================
 
 /**
@@ -371,6 +453,32 @@ export const updateMunicipalityUserRole = async (
   return response.data;
 };
 
+// ==================== External Maintainer User APIs ====================
+/**
+ * Create a new external maintainer user
+ * @param userData
+ * @returns Created external maintainer user
+ * @throws ApiError on failure
+ */
+export const createExternalMaintainerUser = async (
+  userData: ExternalMaintainerUserCreateRequest,
+): Promise<any> => {
+  const response = await api.post("/users/external-users", userData);
+  return response.data;
+};
+
+/**
+ * Get all external maintainer users
+ * @returns
+ * @throws ApiError on failure
+ */
+export const getExternalMaintainerUsers = async (): Promise<
+  ExternalMaintainerUser[]
+> => {
+  const response = await api.get("/users/external-users");
+  return response.data;
+};
+
 // ==================== Citizen Profile APIs ====================
 
 /**
@@ -384,6 +492,38 @@ export const updateCitizenProfile = async (
   formData: FormData,
 ): Promise<void> => {
   await api.patch("/users", formData);
+};
+
+// ==================== Comment APIs ====================
+
+/**
+ * Get internal comments for a report
+ * Requires: MUNICIPALITY_USER or EXTERNAL_MAINTAINER role
+ * @param reportId Report ID
+ * @returns List of comments
+ * @throws ApiError on failure
+ */
+export const getReportComments = async (
+  reportId: number,
+): Promise<Comment[]> => {
+  const response = await api.get(`/reports/${reportId}/comments`);
+  return response.data;
+};
+
+/**
+ * Add an internal comment to a report
+ * Requires: MUNICIPALITY_USER or EXTERNAL_MAINTAINER role
+ * @param reportId Report ID
+ * @param comment Comment data
+ * @returns Created comment
+ * @throws ApiError on failure
+ */
+export const addReportComment = async (
+  reportId: number,
+  comment: CommentRequest,
+): Promise<Comment> => {
+  const response = await api.post(`/reports/${reportId}/comments`, comment);
+  return response.data;
 };
 
 export default api;

@@ -1,5 +1,5 @@
 import "dotenv/config";
-import path from "path";
+import path from "node:path";
 
 if (!process.env.DATABASE_URL) {
   console.error(
@@ -23,7 +23,8 @@ export const CONFIG = {
   // Application settings
   APP_HOST: process.env.HOST || "localhost",
   APP_PORT: Number(process.env.PORT) || 4000,
-  BACKEND_URL: (process.env.HOST || "localhost") + ":" + (process.env.PORT || "4000"),
+  BACKEND_URL:
+    (process.env.HOST || "localhost") + ":" + (process.env.PORT || "4000"),
 
   // Database settings
   DATABASE_URL: process.env.DATABASE_URL,

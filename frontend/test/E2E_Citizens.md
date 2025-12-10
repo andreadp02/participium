@@ -1,4 +1,4 @@
-# End-to-End Testing Documentation for Participium Frontend
+# End-to-End Testing Documentation - Citizen Tests
 
 ## Test Cases
 
@@ -57,42 +57,6 @@
 **Status**: PASS
 
 ### TC-002: Report Creation Workflow
-**Expected Results**:
-- Registration succeeds with success message
-- User is redirected to login page
-- Login succeeds and redirects to dashboard
-
-**Actual Results**:
-- Registration succeeds with success message
-- User is redirected to login page
-- Login succeeds and redirects to dashboard
-
-**Status**: PASS
-
-#### Scenario: Registration with Invalid Data
-**Description**: Registration fails with invalid input.
-
-**Test Steps**:
-1. Navigate to `/register`
-2. Attempt registration with:
-   - Invalid email format
-   - Password too short (<6 characters)
-   - Empty required fields
-3. Submit form
-
-**Expected Results**:
-- Form validation prevents submission
-- Error messages displayed for each invalid field
-- Registration does not proceed
-
-**Actual Results**:
-- Form validation prevents submission
-- Error messages displayed for each invalid field
-- Registration does not proceed
-
-**Status**: PASS
-
-### TC-002: Report Creation Workflow
 
 #### Scenario: Successful Report Submission
 **Description**: Authenticated citizen creates and submits a report.
@@ -104,7 +68,7 @@
    - Description: "Large pothole causing traffic hazard"
    - Category: Select "Road Damage"
    - Location: Click on map at coordinates (45.123, 7.456)
-3. Upload 2 photos
+3. Upload photos
 4. Submit report
 5. Verify success confirmation
 6. Check report appears on map
@@ -118,7 +82,7 @@
 - Report status shows as "Pending Approval"
 
 **Actual Results**:
- Form accepts all inputs
+- Form accepts all inputs
 - Map shows selected location
 - Photos upload successfully with preview
 - Submission succeeds with confirmation message
@@ -173,79 +137,7 @@
 
 **Status**: PASS
 
-### TC-003: Municipal Authority Workflow
-
-#### Scenario: Municipality User Reviews Pending Reports
-**Description**: Municipality user views and approves pending reports.
-
-**Test Steps**:
-1. Navigate to `/municipality/dashboard`
-2. View list of pending reports
-3. Click on a pending report
-4. Review report details and photos
-5. Select "Approve" action
-
-**Expected Results**:
-- Dashboard shows pending reports list
-- Report detail view shows all information and photos
-- Approval succeeds and report status changes to "Assigned"
-
-**Actual Results**:
-- - Dashboard shows pending reports list
-- Report detail view shows all information and photos
-- Approval succeeds and report status changes to "Assigned"
-
-**Status**: PASS
-
-#### Scenario: Municipality User Rejects Report
-**Description**: Municipality user rejects a report with reason.
-
-**Test Steps**:
-1. Access municipality dashboard
-2. Select pending report
-3. Choose "Reject" action
-4. Enter rejection reason
-5. Submit rejection
-
-**Expected Results**:
-- Report status changes to "Rejected"
-- Rejection reason is recorded
-- Report removed from pending list
-
-**Actual Results**:
-- - Report status changes to "Rejected"
-- Rejection reason is recorded
-- Report removed from pending list
-
-**Status**: PASS
-
-### TC-004: Administrative Functions
-
-#### Scenario: Admin Creates Municipality User
-**Description**: Admin creates a new municipality user account.
-
-**Test Steps**:
-1. Navigate to `/admin/users`
-2. Click "Create User"
-3. Fill form for municipality user:
-   - Username, email, password
-   - Role: Municipality
-   - Municipality details
-4. Submit creation
-
-**Expected Results**:
-- User creation succeeds
-- New user can login with provided credentials
-- User has municipality role permissions
-
-**Actual Results**:
-- - User creation succeeds
-- New user can login with provided credentials
-- User has municipality role permissions
-
-**Status**: PASS
-
-### TC-005: Citizen Dashboard and Profile Management
+### TC-003: Citizen Dashboard and Profile Management
 
 #### Scenario: Citizen Views Dashboard Statistics
 **Description**: Citizen views their personal dashboard with reports.
@@ -260,7 +152,6 @@
 
 **Actual Results**:
 - Dashboard loads the correct number of reports and specify which are approved and which are rejected
-
 
 **Status**: PASS
 
@@ -286,7 +177,7 @@
 
 **Status**: PASS
 
-### TC-006: Report Details and Status Tracking
+### TC-004: Report Details and Status Tracking
 
 #### Scenario: Citizen Views Report Details
 **Description**: Citizen examines detailed information about their submitted report.
@@ -334,79 +225,3 @@
 - Status history is maintained
 
 **Status**: PASS
-
-### TC-007: Municipality Role-Based Access
-
-#### Scenario: Public Relations Officer Access
-**Description**: Municipality user with public relations role accesses appropriate dashboard.
-
-**Test Steps**:
-1. Login as municipality user with "municipal public relations officer" role
-2. Verify dashboard shows reports section
-3. Check access to pending reports
-4. Attempt access to technical reports (should be denied)
-
-**Expected Results**:
-- User redirected to reports dashboard
-- Can view and manage pending reports
-- Access restricted based on role
-
-**Actual Results**:
-- User redirected to reports dashboard
-- Can view and manage pending reports
-- Access restricted based on role
-
-**Status**: PASS
-
-#### Scenario: Technical Office Staff Access
-**Description**: Municipality user with technical role accesses assigned reports.
-
-**Test Steps**:
-1. Login as municipality user with technical role
-2. Verify dashboard shows technical reports section
-3. View reports assigned to their office
-4. Update report status (In Progress, Resolved)
-5. Verify status changes persist
-
-**Expected Results**:
-- User redirected to technical dashboard
-- Can view office-specific reports
-- Status updates work correctly
-- Changes visible to citizens
-
-**Actual Results**:
-- User redirected to technical dashboard
-- Can view office-specific reports
-- Status updates work correctly
-- Changes visible to citizens
-
-**Status**: PASS
-
-### TC-008: Map Integration and Location Features
-
-#### Scenario: Interactive Map Navigation
-**Description**: User interacts with map for location selection and report viewing.
-
-**Test Steps**:
-1. Navigate to report creation page
-2. Interact with map:
-   - Zoom in/out
-   - Pan to different areas
-   - Click to select location
-3. Verify coordinates are captured
-4. Submit report and view on main map
-
-**Expected Results**:
-- Map responds to user interactions
-- Location selection works accurately
-- Coordinates stored correctly
-- Reports display on map at correct locations
-
-**Actual Results**:
-- Map responds to user interactions
-- Location selection works accurately
-- Coordinates stored correctly
-- Reports display on map at correct locations
-
-**Status**: PASS
-
