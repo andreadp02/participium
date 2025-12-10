@@ -103,7 +103,10 @@ describe("authService", () => {
         expect.any(String),
         expect.objectContaining({ expiresIn: "1h" }),
       );
-      expect(res).toEqual({ user, token: "token-xyz" });
+      expect(res).toEqual({
+        user: { ...user, role: roleType.MUNICIPALITY },
+        token: "token-xyz",
+      });
     });
   });
 
@@ -154,7 +157,7 @@ describe("authService", () => {
 
       expect(jwt.verify).toHaveBeenCalledWith("good-token", expect.any(String));
       expect(repo.findUserById).toHaveBeenCalledWith(7, roleType.CITIZEN);
-      expect(res).toBe(user);
+      expect(res).toEqual({ ...user, role: roleType.CITIZEN });
     });
   });
 });

@@ -170,7 +170,12 @@ describe("userService", () => {
       const created = makeUser({ password: "h", municipality_role_id: 3 });
       repo.createUser.mockResolvedValue(created);
 
-      const res = await userService.createMunicipalityUser(mockUserData, "M", "M", 3);
+      const res = await userService.createMunicipalityUser(
+        mockUserData,
+        "M",
+        "M",
+        3,
+      );
 
       expect(repo.findUserByEmail).toHaveBeenCalledWith(
         mockUserData.email,
@@ -240,7 +245,12 @@ describe("userService", () => {
       });
       repo.createUser.mockResolvedValue(created);
 
-      const res = await userService.createMunicipalityUser(mockUserData, "M", "M", 5);
+      const res = await userService.createMunicipalityUser(
+        mockUserData,
+        "M",
+        "M",
+        5,
+      );
 
       expect(bcrypt.hash).toHaveBeenCalledWith(mockUserData.password, 10);
       expect(repo.createUser).toHaveBeenCalledWith(
@@ -407,9 +417,7 @@ describe("userService", () => {
       };
 
       (bcrypt.hash as jest.Mock).mockResolvedValue("hashed");
-      repo.createUser.mockRejectedValue(
-        new Error("Email is already in use"),
-      );
+      repo.createUser.mockRejectedValue(new Error("Email is already in use"));
 
       await expect(
         userService.createExternalMaintainerUser(
@@ -447,13 +455,11 @@ describe("userService", () => {
     });
 
     it("should throw error on database failure", async () => {
-      repo.getUsersByRole.mockRejectedValue(
-        new Error("Database error"),
-      );
+      repo.getUsersByRole.mockRejectedValue(new Error("Database error"));
 
-      await expect(
-        userService.getExternalMaintainerUsers(),
-      ).rejects.toThrow("Database error");
+      await expect(userService.getExternalMaintainerUsers()).rejects.toThrow(
+        "Database error",
+      );
     });
   });
 
@@ -467,7 +473,9 @@ describe("userService", () => {
 
     it("should throw error when username is already in use", async () => {
       repo.findUserByEmail.mockResolvedValue(null);
-      repo.findUserByUsername.mockResolvedValue(makeUser({ username: "existing_username" }));
+      repo.findUserByUsername.mockResolvedValue(
+        makeUser({ username: "existing_username" }),
+      );
 
       await expect(userService.registerUser(mockUserData)).rejects.toThrow(
         "Username is already in use",
@@ -505,12 +513,28 @@ describe("userService", () => {
       (imageService.persistUserImage as jest.Mock).mockResolvedValue(
         "user_5.jpg",
       );
-      repo.updateUserProfile.mockResolvedValue({ ...user, profilePhoto: "user_5.jpg" });
+      repo.updateUserProfile.mockResolvedValue({
+        ...user,
+        profilePhoto: "user_5.jpg",
+      });
 
-      const res = await userService.updateCitizenProfile(5, "photo_key", "telegram_user", true);
+      const res = await userService.updateCitizenProfile(
+        5,
+        "photo_key",
+        "telegram_user",
+        true,
+      );
 
-      expect(imageService.persistUserImage).toHaveBeenCalledWith("photo_key", 5);
-      expect(repo.updateUserProfile).toHaveBeenCalledWith(5, "telegram_user", true, "user_5.jpg");
+      expect(imageService.persistUserImage).toHaveBeenCalledWith(
+        "photo_key",
+        5,
+      );
+      expect(repo.updateUserProfile).toHaveBeenCalledWith(
+        5,
+        "telegram_user",
+        true,
+        "user_5.jpg",
+      );
     });
 
     it("should update citizen profile without photo", async () => {
@@ -518,10 +542,20 @@ describe("userService", () => {
       repo.findUserById.mockResolvedValue(user);
       repo.updateUserProfile.mockResolvedValue({ ...user });
 
-      await userService.updateCitizenProfile(5, undefined, "telegram_user", false);
+      await userService.updateCitizenProfile(
+        5,
+        undefined,
+        "telegram_user",
+        false,
+      );
 
       expect(imageService.persistUserImage).not.toHaveBeenCalled();
-      expect(repo.updateUserProfile).toHaveBeenCalledWith(5, "telegram_user", false, undefined);
+      expect(repo.updateUserProfile).toHaveBeenCalledWith(
+        5,
+        "telegram_user",
+        false,
+        undefined,
+      );
     });
   });
 });

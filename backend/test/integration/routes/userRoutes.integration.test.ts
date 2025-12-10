@@ -431,9 +431,7 @@ describe("Admin routes integration tests", () => {
         })
         .expect(201);
 
-      const res = await admin
-        .get(`${base}/municipality-users`)
-        .expect(200);
+      const res = await admin.get(`${base}/municipality-users`).expect(200);
 
       expect(Array.isArray(res.body)).toBeTruthy();
       expect(res.body.length).toBeGreaterThanOrEqual(1);
@@ -461,9 +459,7 @@ describe("Admin routes integration tests", () => {
   describe("GET /api/users/external-users", () => {
     it("200 returns list of external maintainer users for ADMIN", async () => {
       const admin = await makeAdminAgent();
-      const res = await admin
-        .get(`${base}/external-users`)
-        .expect(200);
+      const res = await admin.get(`${base}/external-users`).expect(200);
 
       expect(Array.isArray(res.body)).toBeTruthy();
     });
@@ -501,9 +497,7 @@ describe("Admin routes integration tests", () => {
         category: "WASTE",
       };
 
-      const res = await admin
-        .post(`${base}/external-users`)
-        .send(payload);
+      const res = await admin.post(`${base}/external-users`).send(payload);
 
       if (res.status !== 201) {
         console.error("External user creation failed:", res.status, res.body);
@@ -526,9 +520,7 @@ describe("Admin routes integration tests", () => {
         // missing companyName and category
       };
 
-      const res = await admin
-        .post(`${base}/external-users`)
-        .send(payload);
+      const res = await admin.post(`${base}/external-users`).send(payload);
       expect([400, 500]).toContain(res.status);
       expect(res.body).toHaveProperty("error");
     });
@@ -594,9 +586,7 @@ describe("Admin routes integration tests", () => {
     it("403 when authenticated but not CITIZEN", async () => {
       const admin = await makeAdminAgent();
 
-      const res = await admin
-        .patch(`${base}`)
-        .field("firstName", "Updated");
+      const res = await admin.patch(`${base}`).field("firstName", "Updated");
       expect([403, 400]).toContain(res.status);
     });
   });

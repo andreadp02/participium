@@ -19,7 +19,9 @@ jest.mock("@controllers/userController", () => ({
       res.status(201).json({ route: "createMunicipalityUser", body: req.body }),
     ),
     createExternalMaintainerUser: jest.fn((req: Request, res: Response) =>
-      res.status(201).json({ route: "createExternalMaintainerUser", body: req.body }),
+      res
+        .status(201)
+        .json({ route: "createExternalMaintainerUser", body: req.body }),
     ),
     getAllUsers: jest.fn((_req: Request, res: Response) =>
       res.status(200).json([{ id: 1 }, { id: 2 }]),

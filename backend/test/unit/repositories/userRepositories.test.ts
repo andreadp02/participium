@@ -147,11 +147,7 @@ describe("userRepository", () => {
       const u = makeUser();
       prismaMock.user.create.mockResolvedValue(u);
 
-      await userRepository.createUser(
-        u.email,
-        u.username,
-        u.password,
-      );
+      await userRepository.createUser(u.email, u.username, u.password);
 
       expect(prismaMock.user.create).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -417,8 +413,24 @@ describe("userRepository", () => {
     it("should find external maintainers by category", async () => {
       const category = "PUBLIC_LIGHTING";
       const rawMaintainers = [
-        { id: 1, username: "maint1", email: "m1@test.com", password: "hash", createdAt: new Date(), category, reports: [] },
-        { id: 2, username: "maint2", email: "m2@test.com", password: "hash", createdAt: new Date(), category, reports: [] },
+        {
+          id: 1,
+          username: "maint1",
+          email: "m1@test.com",
+          password: "hash",
+          createdAt: new Date(),
+          category,
+          reports: [],
+        },
+        {
+          id: 2,
+          username: "maint2",
+          email: "m2@test.com",
+          password: "hash",
+          createdAt: new Date(),
+          category,
+          reports: [],
+        },
       ];
 
       prismaMock.external_maintainer.findMany.mockResolvedValue(rawMaintainers);
@@ -452,7 +464,9 @@ describe("userRepository", () => {
       );
 
       await expect(
-        userRepository.findExternalMaintainersByCategory("PUBLIC_LIGHTING" as any),
+        userRepository.findExternalMaintainersByCategory(
+          "PUBLIC_LIGHTING" as any,
+        ),
       ).rejects.toThrow("Database error");
     });
   });
@@ -460,8 +474,20 @@ describe("userRepository", () => {
   describe("getUsersByRole - external maintainer", () => {
     it("should get all external maintainers from external_maintainer table", async () => {
       const rawMaintainers = [
-        { id: 1, username: "maint1", email: "m1@test.com", password: "hash", createdAt: new Date() },
-        { id: 2, username: "maint2", email: "m2@test.com", password: "hash", createdAt: new Date() },
+        {
+          id: 1,
+          username: "maint1",
+          email: "m1@test.com",
+          password: "hash",
+          createdAt: new Date(),
+        },
+        {
+          id: 2,
+          username: "maint2",
+          email: "m2@test.com",
+          password: "hash",
+          createdAt: new Date(),
+        },
       ];
 
       prismaMock.external_maintainer.findMany.mockResolvedValue(rawMaintainers);
@@ -521,7 +547,12 @@ describe("userRepository", () => {
       const updated = makeUser({ id: 5, telegramUsername: "newTelegram" });
       prismaMock.user.update.mockResolvedValue(updated);
 
-      await userRepository.updateUserProfile(5, "newTelegram", undefined, undefined);
+      await userRepository.updateUserProfile(
+        5,
+        "newTelegram",
+        undefined,
+        undefined,
+      );
 
       expect(prismaMock.user.update).toHaveBeenCalledWith({
         where: { id: 5 },
@@ -545,7 +576,12 @@ describe("userRepository", () => {
       const updated = makeUser({ id: 5, profilePhoto: "path/to/photo.jpg" });
       prismaMock.user.update.mockResolvedValue(updated);
 
-      await userRepository.updateUserProfile(5, undefined, undefined, "path/to/photo.jpg");
+      await userRepository.updateUserProfile(
+        5,
+        undefined,
+        undefined,
+        "path/to/photo.jpg",
+      );
 
       expect(prismaMock.user.update).toHaveBeenCalledWith({
         where: { id: 5 },
@@ -583,7 +619,12 @@ describe("userRepository", () => {
       const updated = makeUser({ id: 5, telegramUsername: "newTelegram" });
       prismaMock.user.update.mockResolvedValue(updated);
 
-      await userRepository.updateUserProfile(5, "newTelegram", undefined, undefined);
+      await userRepository.updateUserProfile(
+        5,
+        "newTelegram",
+        undefined,
+        undefined,
+      );
 
       expect(prismaMock.user.update).toHaveBeenCalledWith({
         where: { id: 5 },

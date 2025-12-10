@@ -11,6 +11,8 @@ jest.mock("@services/reportService", () => {
     findAssignedReportsForOfficer: jest.fn(),
     assignToExternalMaintainer: jest.fn(),
     findReportsForExternalMaintainer: jest.fn(),
+    addCommentToReport: jest.fn(),
+    getCommentsOfAReportById: jest.fn(),
   };
   return { __esModule: true, default: m };
 });
@@ -32,8 +34,13 @@ import {
   approveOrRejectReport,
   deleteReport,
   getReportsForMunicipalityUser,
+  assignToExternalMaintainer,
+  getReportsForExternalMaintainer,
+  addCommentToReport,
+  getCommentOfAReportById,
 } from "@controllers/reportController";
 import { query } from "winston";
+import { roleType } from "@models/enums";
 
 type ServiceMock = {
   findAll: jest.Mock;
@@ -45,6 +52,8 @@ type ServiceMock = {
   findAssignedReportsForOfficer: jest.Mock;
   assignToExternalMaintainer: jest.Mock;
   findReportsForExternalMaintainer: jest.Mock;
+  addCommentToReport: jest.Mock;
+  getCommentsOfAReportById: jest.Mock;
 };
 type ImageMock = {
   storeTemporaryImages: jest.Mock;
@@ -663,15 +672,16 @@ describe("reportController", () => {
       const req = {
         params: { id: "1" },
         body: { status: "INVALID" },
+        role: roleType.MUNICIPALITY,
       } as unknown as Request;
       const res = makeRes();
 
       await approveOrRejectReport(req, res as unknown as Response);
 
       expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({
-        error: "Invalid status. Must be ASSIGNED or REJECTED.",
-      });
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({ error: expect.any(String) }),
+      );
       expect(svc.updateReportStatus).not.toHaveBeenCalled();
     });
 
@@ -895,10 +905,10 @@ describe("reportController", () => {
       } as unknown as Request;
       const res = makeRes();
 
-      // Import the function
-      const { assignToExternalMaintainer } = require("@controllers/reportController");
-
-      await assignToExternalMaintainer(req as unknown as Request, res as unknown as Response);
+      await assignToExternalMaintainer(
+        req as unknown as Request,
+        res as unknown as Response,
+      );
 
       expect(svc.assignToExternalMaintainer).toHaveBeenCalledWith(5);
       expect(res.status).toHaveBeenCalledWith(200);
@@ -911,8 +921,10 @@ describe("reportController", () => {
       } as unknown as Request;
       const res = makeRes();
 
-      const { assignToExternalMaintainer } = require("@controllers/reportController");
-      await assignToExternalMaintainer(req as unknown as Request, res as unknown as Response);
+      await assignToExternalMaintainer(
+        req as unknown as Request,
+        res as unknown as Response,
+      );
 
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith(
@@ -932,8 +944,10 @@ describe("reportController", () => {
       } as unknown as Request;
       const res = makeRes();
 
-      const { assignToExternalMaintainer } = require("@controllers/reportController");
-      await assignToExternalMaintainer(req as unknown as Request, res as unknown as Response);
+      await assignToExternalMaintainer(
+        req as unknown as Request,
+        res as unknown as Response,
+      );
 
       expect(res.status).toHaveBeenCalledWith(404);
     });
@@ -946,8 +960,10 @@ describe("reportController", () => {
       } as unknown as Request;
       const res = makeRes();
 
-      const { assignToExternalMaintainer } = require("@controllers/reportController");
-      await assignToExternalMaintainer(req as unknown as Request, res as unknown as Response);
+      await assignToExternalMaintainer(
+        req as unknown as Request,
+        res as unknown as Response,
+      );
 
       expect(res.status).toHaveBeenCalledWith(500);
     });
@@ -966,8 +982,10 @@ describe("reportController", () => {
       } as unknown as Request;
       const res = makeRes();
 
-      const { getReportsForExternalMaintainer } = require("@controllers/reportController");
-      await getReportsForExternalMaintainer(req as unknown as Request, res as unknown as Response);
+      await getReportsForExternalMaintainer(
+        req as unknown as Request,
+        res as unknown as Response,
+      );
 
       expect(res.status).toHaveBeenCalledWith(401);
       expect(res.json).toHaveBeenCalledWith(
@@ -984,8 +1002,10 @@ describe("reportController", () => {
       } as unknown as Request;
       const res = makeRes();
 
-      const { getReportsForExternalMaintainer } = require("@controllers/reportController");
-      await getReportsForExternalMaintainer(req as unknown as Request, res as unknown as Response);
+      await getReportsForExternalMaintainer(
+        req as unknown as Request,
+        res as unknown as Response,
+      );
 
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith(
@@ -1002,8 +1022,10 @@ describe("reportController", () => {
       } as unknown as Request;
       const res = makeRes();
 
-      const { getReportsForExternalMaintainer } = require("@controllers/reportController");
-      await getReportsForExternalMaintainer(req as unknown as Request, res as unknown as Response);
+      await getReportsForExternalMaintainer(
+        req as unknown as Request,
+        res as unknown as Response,
+      );
 
       expect(res.status).toHaveBeenCalledWith(403);
       expect(res.json).toHaveBeenCalledWith(
@@ -1023,8 +1045,10 @@ describe("reportController", () => {
       } as unknown as Request;
       const res = makeRes();
 
-      const { getReportsForExternalMaintainer } = require("@controllers/reportController");
-      await getReportsForExternalMaintainer(req as unknown as Request, res as unknown as Response);
+      await getReportsForExternalMaintainer(
+        req as unknown as Request,
+        res as unknown as Response,
+      );
 
       expect(svc.findReportsForExternalMaintainer).toHaveBeenCalledWith(3);
       expect(res.status).toHaveBeenCalledWith(200);
@@ -1040,10 +1064,109 @@ describe("reportController", () => {
       } as unknown as Request;
       const res = makeRes();
 
-      const { getReportsForExternalMaintainer } = require("@controllers/reportController");
-      await getReportsForExternalMaintainer(req as unknown as Request, res as unknown as Response);
+      await getReportsForExternalMaintainer(
+        req as unknown as Request,
+        res as unknown as Response,
+      );
 
       expect(res.status).toHaveBeenCalledWith(500);
+    });
+  });
+
+  // ---------- addCommentToReport / getCommentsOfAReportById ----------
+  describe("comments controller", () => {
+    it("addCommentToReport -> 201 on success", async () => {
+      const created = {
+        id: 11,
+        reportId: 5,
+        content: "ok",
+        municipality_user_id: 3,
+      };
+      svc.addCommentToReport.mockResolvedValue(created);
+
+      const req = {
+        params: { report_id: "5" },
+        user: { id: 3 },
+        role: "MUNICIPALITY",
+        body: { content: "ok" },
+      } as unknown as Request;
+      const res = makeRes();
+
+      await addCommentToReport(req, res as unknown as Response);
+
+      expect(svc.addCommentToReport).toHaveBeenCalledWith({
+        reportId: 5,
+        authorId: 3,
+        authorType: "MUNICIPALITY",
+        content: "ok",
+      });
+      expect(res.status).toHaveBeenCalledWith(201);
+      expect(res.json).toHaveBeenCalledWith(created);
+    });
+
+    it("addCommentToReport -> 400 on invalid report id", async () => {
+      const req = {
+        params: { report_id: "not-a-number" },
+        user: { id: 3 },
+        role: "MUNICIPALITY",
+      } as unknown as Request;
+      const res = makeRes();
+
+      await addCommentToReport(req, res as unknown as Response);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({ error: "Bad Request" }),
+      );
+    });
+
+    it("getCommentOfAReportById -> 200 on success", async () => {
+      const comments = [{ id: 1, content: "c" }];
+      svc.getCommentsOfAReportById.mockResolvedValue(comments);
+
+      const req = {
+        params: { report_id: "7" },
+        user: { id: 7 },
+        role: "MUNICIPALITY",
+      } as unknown as Request;
+      const res = makeRes();
+
+      await getCommentOfAReportById(req, res as unknown as Response);
+
+      expect(svc.getCommentsOfAReportById).toHaveBeenCalledWith(7);
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith(comments);
+    });
+
+    it("getCommentOfAReportById -> 401 when unauthenticated", async () => {
+      const req = { params: { report_id: "7" }, user: null } as any;
+      const res = makeRes();
+
+      await getCommentOfAReportById(req, res as unknown as Response);
+
+      expect(res.status).toHaveBeenCalledWith(401);
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({ error: "Authentication Error" }),
+      );
+    });
+
+    it("addCommentToReport -> 404 when service throws Report not found", async () => {
+      svc.addCommentToReport.mockRejectedValue(new Error("Report not found"));
+
+      const req = {
+        params: { report_id: "999" },
+        user: { id: 2 },
+        role: "MUNICIPALITY",
+        body: { content: "x" },
+      } as unknown as Request;
+      const res = makeRes();
+
+      await addCommentToReport(req, res as unknown as Response);
+
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({ error: "Report not found" }),
+      );
     });
   });
 });

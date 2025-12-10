@@ -137,9 +137,7 @@ describe("ImageService", () => {
       const result = await imageService.storeTemporaryImages(images);
 
       expect(result).toHaveLength(1);
-      expect(
-        require("@redis").redisClient.setex,
-      ).toHaveBeenCalledWith(
+      expect(require("@redis").redisClient.setex).toHaveBeenCalledWith(
         expect.stringContaining("temp:image:"),
         60 * 60 * 24,
         expect.any(String),
@@ -487,9 +485,7 @@ describe("ImageService", () => {
 
     it("should delete images from filesystem and cache", async () => {
       (require("fs").existsSync as jest.Mock).mockReturnValue(true);
-      (require("fs").promises.unlink as jest.Mock).mockResolvedValue(
-        undefined,
-      );
+      (require("fs").promises.unlink as jest.Mock).mockResolvedValue(undefined);
       (require("@redis").redisClient.del as jest.Mock).mockResolvedValue(1);
       (require("fs").promises.readdir as jest.Mock).mockResolvedValue([
         "123_1.jpg",
@@ -509,9 +505,7 @@ describe("ImageService", () => {
 
     it("should clean up empty directories", async () => {
       (require("fs").existsSync as jest.Mock).mockReturnValue(true);
-      (require("fs").promises.unlink as jest.Mock).mockResolvedValue(
-        undefined,
-      );
+      (require("fs").promises.unlink as jest.Mock).mockResolvedValue(undefined);
       (require("@redis").redisClient.del as jest.Mock).mockResolvedValue(1);
       (require("fs").promises.readdir as jest.Mock).mockResolvedValue([]);
       (require("fs").promises.rmdir as jest.Mock).mockResolvedValue(undefined);
@@ -528,9 +522,7 @@ describe("ImageService", () => {
 
     it("should handle readdir errors gracefully", async () => {
       (require("fs").existsSync as jest.Mock).mockReturnValue(true);
-      (require("fs").promises.unlink as jest.Mock).mockResolvedValue(
-        undefined,
-      );
+      (require("fs").promises.unlink as jest.Mock).mockResolvedValue(undefined);
       (require("@redis").redisClient.del as jest.Mock).mockResolvedValue(1);
       (require("fs").promises.readdir as jest.Mock).mockRejectedValue(
         new Error("readdir error"),
@@ -543,9 +535,7 @@ describe("ImageService", () => {
 
     it("should handle user images deletion", async () => {
       (require("fs").existsSync as jest.Mock).mockReturnValue(true);
-      (require("fs").promises.unlink as jest.Mock).mockResolvedValue(
-        undefined,
-      );
+      (require("fs").promises.unlink as jest.Mock).mockResolvedValue(undefined);
       (require("@redis").redisClient.del as jest.Mock).mockResolvedValue(1);
       (require("fs").promises.readdir as jest.Mock).mockResolvedValue([]);
       (require("fs").promises.rmdir as jest.Mock).mockResolvedValue(undefined);

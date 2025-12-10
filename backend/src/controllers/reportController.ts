@@ -128,15 +128,20 @@ export const approveOrRejectReport = async (req: Request, res: Response) => {
 
     // Validate status based on role
     if (isMunicipalityRole && !municipalityStatuses.includes(status)) {
-      return res
-        .status(400)
-        .json({ error: "Invalid status. Municipality users can only set ASSIGNED or REJECTED." });
+      return res.status(400).json({
+        error:
+          "Invalid status. Municipality users can only set ASSIGNED or REJECTED.",
+      });
     }
 
-    if (isExternalMaintainerRole && !externalMaintainerStatuses.includes(status)) {
-      return res
-        .status(400)
-        .json({ error: "Invalid status. External maintainers can only set IN_PROGRESS, SUSPENDED or RESOLVED." });
+    if (
+      isExternalMaintainerRole &&
+      !externalMaintainerStatuses.includes(status)
+    ) {
+      return res.status(400).json({
+        error:
+          "Invalid status. External maintainers can only set IN_PROGRESS, SUSPENDED or RESOLVED.",
+      });
     }
 
     if (
@@ -318,9 +323,8 @@ export const assignToExternalMaintainer = async (
       });
     }
 
-    const updatedReport = await reportService.assignToExternalMaintainer(
-      reportId,
-    );
+    const updatedReport =
+      await reportService.assignToExternalMaintainer(reportId);
 
     return res.status(200).json(updatedReport);
   } catch (error) {
@@ -331,7 +335,7 @@ export const assignToExternalMaintainer = async (
     const statusCode =
       error instanceof Error && /not found/i.test(error.message) ? 404 : 500;
     return res.status(statusCode).json({ error: errorMessage });
-  };
+  }
 };
 
 export const getReportsForExternalMaintainer = async (
@@ -361,9 +365,10 @@ export const getReportsForExternalMaintainer = async (
       });
     }
 
-    const reports = await reportService.findReportsForExternalMaintainer(
-      externalMaintainerId,
-    );
+    const reports =
+      await reportService.findReportsForExternalMaintainer(
+        externalMaintainerId,
+      );
 
     return res.status(200).json(reports);
   } catch (error) {
@@ -375,7 +380,7 @@ export const getReportsForExternalMaintainer = async (
       error instanceof Error && /not found/i.test(error.message) ? 404 : 500;
     return res.status(statusCode).json({ error: errorMessage });
   }
-}
+};
 
 export const addCommentToReport = async (req: Request, res: Response) => {
   try {
@@ -394,7 +399,14 @@ export const addCommentToReport = async (req: Request, res: Response) => {
       });
     }
 
-    const authorType: commentAuthorType = 
+    if (!req.body.content || req.body.content.trim().length === 0) {
+      return res.status(400).json({
+        error: "Bad Request",
+        message: "Comment content cannot be empty",
+      });
+    }
+
+    const authorType: commentAuthorType =
       req.role === roleType.MUNICIPALITY
         ? "MUNICIPALITY"
         : "EXTERNAL_MAINTAINER";
@@ -424,7 +436,6 @@ export const addCommentToReport = async (req: Request, res: Response) => {
     return res.status(statusCode).json({ error: errorMessage });
   }
 };
-
 
 export const getCommentOfAReportById = async (req: Request, res: Response) => {
   try {
@@ -462,4 +473,4 @@ export const getCommentOfAReportById = async (req: Request, res: Response) => {
       error instanceof Error && /not found/i.test(error.message) ? 404 : 500;
     return res.status(statusCode).json({ error: errorMessage });
   }
-}
+};

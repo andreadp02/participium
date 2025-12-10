@@ -734,7 +734,9 @@ describe("userController", () => {
       const res = makeRes();
 
       const user = makeUser({ id: 5, email: "em@example.com" });
-      (userService.createExternalMaintainerUser as jest.Mock).mockResolvedValue(user);
+      (userService.createExternalMaintainerUser as jest.Mock).mockResolvedValue(
+        user,
+      );
 
       await userController.createExternalMaintainerUser(req as any, res as any);
 
@@ -914,7 +916,9 @@ describe("userController", () => {
       } as unknown as Request;
       const res = makeRes();
 
-      (userService.deleteUser as jest.Mock).mockRejectedValue(new Error("boom"));
+      (userService.deleteUser as jest.Mock).mockRejectedValue(
+        new Error("boom"),
+      );
 
       await userController.deleteUser(req as any, res as any);
 

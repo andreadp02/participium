@@ -9,6 +9,8 @@ jest.mock("@repositories/reportRepository", () => {
     create: jest.fn(),
     update: jest.fn(),
     deleteById: jest.fn(),
+    addCommentToReport: jest.fn(),
+    getCommentsByReportId: jest.fn(),
   };
   return { __esModule: true, default: mRepo };
 });
@@ -522,10 +524,9 @@ describe("reportService", () => {
       const res = await reportService.assignToExternalMaintainer(reportId);
 
       expect(repo.findById).toHaveBeenCalledWith(reportId);
-      expect(repo.update).toHaveBeenCalledWith(
-        reportId,
-        { externalMaintainerId: 2 },
-      );
+      expect(repo.update).toHaveBeenCalledWith(reportId, {
+        externalMaintainerId: 2,
+      });
       expect(res).toEqual(updatedReport);
     });
 
@@ -560,17 +561,28 @@ describe("reportService", () => {
     it("should return all reports for external maintainer", async () => {
       const maintainerId = 1;
       const reports = [
-        { id: 1, title: "Report 1", externalMaintainerId: maintainerId, photos: [], user_id: undefined, status: ReportStatus.PENDING_APPROVAL },
-        { id: 2, title: "Report 2", externalMaintainerId: maintainerId, photos: [], user_id: undefined, status: ReportStatus.PENDING_APPROVAL },
+        {
+          id: 1,
+          title: "Report 1",
+          externalMaintainerId: maintainerId,
+          photos: [],
+          user_id: undefined,
+          status: ReportStatus.PENDING_APPROVAL,
+        },
+        {
+          id: 2,
+          title: "Report 2",
+          externalMaintainerId: maintainerId,
+          photos: [],
+          user_id: undefined,
+          status: ReportStatus.PENDING_APPROVAL,
+        },
       ];
 
-      repo.findByExternalMaintainerId = jest
-        .fn()
-        .mockResolvedValue(reports);
+      repo.findByExternalMaintainerId = jest.fn().mockResolvedValue(reports);
 
-      const res = await reportService.findReportsForExternalMaintainer(
-        maintainerId,
-      );
+      const res =
+        await reportService.findReportsForExternalMaintainer(maintainerId);
 
       expect(repo.findByExternalMaintainerId).toHaveBeenCalledWith(
         maintainerId,
@@ -584,16 +596,20 @@ describe("reportService", () => {
       const maintainerId = 1;
       const status = ReportStatus.IN_PROGRESS;
       const reports = [
-        { id: 1, title: "Report 1", status, externalMaintainerId: maintainerId, photos: [], user_id: undefined },
+        {
+          id: 1,
+          title: "Report 1",
+          status,
+          externalMaintainerId: maintainerId,
+          photos: [],
+          user_id: undefined,
+        },
       ];
 
-      repo.findByExternalMaintainerId = jest
-        .fn()
-        .mockResolvedValue(reports);
+      repo.findByExternalMaintainerId = jest.fn().mockResolvedValue(reports);
 
-      const res = await reportService.findReportsForExternalMaintainer(
-        maintainerId,
-      );
+      const res =
+        await reportService.findReportsForExternalMaintainer(maintainerId);
 
       expect(repo.findByExternalMaintainerId).toHaveBeenCalledWith(
         maintainerId,
@@ -665,9 +681,7 @@ describe("reportService", () => {
       repo.create.mockResolvedValue(created);
       img.persistImagesForReport.mockResolvedValue(["p1"]);
       repo.update.mockResolvedValue(updated);
-      img.preloadCache.mockRejectedValue(
-        new Error("Redis connection failed"),
-      );
+      img.preloadCache.mockRejectedValue(new Error("Redis connection failed"));
       const consoleSpy = jest.spyOn(console, "warn").mockImplementation();
 
       const res = await reportService.submitReport(dto as any, 123);
@@ -694,15 +708,145 @@ describe("reportService", () => {
       repo.findByExternalMaintainerId = jest.fn().mockResolvedValue([]);
 
       // Mock userRepository to return empty list for category
-      jest
-        .spyOn(userRepository, "getUsersByRole")
-        .mockResolvedValue([]);
+      jest.spyOn(userRepository, "getUsersByRole").mockResolvedValue([]);
 
       await expect(
         reportService.assignToExternalMaintainer(reportId),
       ).rejects.toThrow(
         'No external maintainers available for category "PUBLIC_LIGHTING"',
       );
+    });
+  });
+
+  // ---------- addCommentToReport / getCommentsOfAReportById ----------
+  describe("comments service", () => {
+    it("addCommentToReport creates comment and returns dto", async () => {
+      const repoCreated = {
+        id: 12,
+        reportId: 5,
+        content: "hello",
+        municipality_user_id: 3,
+        external_maintainer_id: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      repo.create = repo.create || jest.fn(); // guard when repo shape differs
+      repo.create = repo.create; // no-op to silence TS in snippet context
+
+      // mock repository addCommentToReport
+      (repo as any).addCommentToReport.mockResolvedValue(repoCreated);
+      const dto = {
+        reportId: 5,
+        authorId: 3,
+        authorType: "MUNICIPALITY",
+        content: "hello",
+      };
+
+      const result =
+        await require("@services/reportService").default.addCommentToReport(
+          dto,
+        );
+
+      expect((repo as any).addCommentToReport).toHaveBeenCalledWith({
+        reportId: 5,
+        content: "hello",
+        municipality_user_id: 3,
+        external_maintainer_id: null,
+      });
+      expect(result).toHaveProperty("id", 12);
+      expect(result).toHaveProperty("content", "hello");
+    });
+
+    it("addCommentToReport throws when report not found at repo layer", async () => {
+      (repo as any).findById.mockResolvedValue(null);
+      // reportService first calls reportRepository.findById inside addCommentToReport
+      (repo as any).addCommentToReport.mockImplementation(() => {
+        throw new Error("Report not found");
+      });
+
+      await expect(
+        require("@services/reportService").default.addCommentToReport({
+          reportId: 999,
+          authorId: 1,
+          authorType: "MUNICIPALITY",
+          content: "x",
+        }),
+      ).rejects.toThrow();
+    });
+
+    it("getCommentsOfAReportById returns mapped comments", async () => {
+      const rawComments = [
+        {
+          id: 1,
+          reportId: 5,
+          content: "c1",
+          municipality_user_id: 2,
+          external_maintainer_id: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ];
+      (repo as any).findById.mockResolvedValue({ id: 5 });
+      (repo as any).getCommentsByReportId.mockResolvedValue(rawComments);
+
+      const res =
+        await require("@services/reportService").default.getCommentsOfAReportById(
+          5,
+        );
+
+      expect((repo as any).getCommentsByReportId).toHaveBeenCalledWith(5);
+      expect(Array.isArray(res)).toBe(true);
+      expect(res[0]).toHaveProperty("content", "c1");
+    });
+  });
+
+  // ---------- updateReportStatusByExternalMaintainer ----------
+  describe("updateReportStatusByExternalMaintainer", () => {
+    it("updates status when report assigned to maintainer and valid transition", async () => {
+      const svc = require("@services/reportService").default;
+      const existing = { id: 7, externalMaintainerId: 3, status: "ASSIGNED" };
+      (repo as any).findById.mockResolvedValue(existing);
+      (repo as any).update.mockResolvedValue({
+        ...existing,
+        status: "IN_PROGRESS",
+      });
+
+      const updated = await svc.updateReportStatusByExternalMaintainer(
+        7,
+        3,
+        "IN_PROGRESS",
+      );
+      expect((repo as any).update).toHaveBeenCalledWith(
+        7,
+        expect.objectContaining({ status: "IN_PROGRESS" }),
+      );
+      expect(updated).toHaveProperty("status", "IN_PROGRESS");
+    });
+
+    it("throws when maintainer not authorized", async () => {
+      const existing = { id: 7, externalMaintainerId: 4, status: "ASSIGNED" };
+      (repo as any).findById.mockResolvedValue(existing);
+
+      await expect(
+        require("@services/reportService").default.updateReportStatusByExternalMaintainer(
+          7,
+          3,
+          "IN_PROGRESS",
+        ),
+      ).rejects.toThrow(/not authorized/i);
+    });
+
+    it("throws for invalid status change", async () => {
+      const existing = { id: 7, externalMaintainerId: 3, status: "ASSIGNED" };
+      (repo as any).findById.mockResolvedValue(existing);
+
+      await expect(
+        require("@services/reportService").default.updateReportStatusByExternalMaintainer(
+          7,
+          3,
+          "RESOLVED",
+        ),
+      ).rejects.toThrow(/Invalid state transition/i);
     });
   });
 });

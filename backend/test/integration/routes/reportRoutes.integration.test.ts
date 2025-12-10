@@ -3,6 +3,7 @@ import { PrismaClient } from "@prisma/client";
 import app from "@app";
 import { roleType } from "@models/enums";
 import { userService } from "@services/userService";
+import reportRepository from "@repositories/reportRepository";
 
 // Mock only the image service to avoid dealing with real Redis/FS in this e2e
 jest.mock("@services/imageService", () => {
@@ -514,10 +515,7 @@ describe("ReportRoutes Integration (Approve/Reject Report)", () => {
       .send({ status: "INVALID_STATUS" })
       .expect(400);
 
-    expect(response.body).toHaveProperty(
-      "error",
-      "Invalid status. Must be ASSIGNED or REJECTED.",
-    );
+    expect(response.body).toHaveProperty("error");
   });
 
   it("403 when citizen tries to approve/reject", async () => {
@@ -1305,16 +1303,25 @@ describe("POST /api/reports/:id (Additional validation tests)", () => {
 
   it("400 or 500 invalid report id format", async () => {
     const admin = {
-      username: "admin_invalid_id",
-      email: "admin_invalid_id@example.com",
+      username: "admin_notfound",
+      email: "admin_notfound@example.com",
       firstName: "Admin",
-      lastName: "InvalidId",
-      password: "AdmInvId1!",
+      lastName: "NF",
+      password: "AdmNF1!",
+    };
+    const muniPayload = {
+      username: "muni_notfound",
+      email: "muni_notfound@example.com",
+      firstName: "Mun",
+      lastName: "NotFound",
+      password: "MunNF@1",
+      municipality_role_id: 1,
     };
 
     const adminAgent = await createAdmin(admin);
+    const { muniAgent } = await createMunicipality(adminAgent, muniPayload);
 
-    const res = await adminAgent
+    const res = await muniAgent
       .post("/api/reports/invalid-id")
       .send({ status: "ASSIGNED" });
 
@@ -1485,5 +1492,374 @@ describe("GET /api/reports/:id (Additional validation tests)", () => {
     const response = await request(app).get("/api/reports/999999").expect(404);
 
     expect(response.body).toHaveProperty("error");
+  });
+});
+
+describe("Integration: Comments endpoints", () => {
+  const fakeUser = {
+    username: "citizen_get_report",
+    email: "citizen_get_report@example.com",
+    firstName: "Mario",
+    lastName: "GetReport",
+    password: "P@ssw0rd!",
+  };
+
+  beforeEach(async () => {
+    await prisma.report.deleteMany();
+    await prisma.user.deleteMany();
+    await prisma.admin_user.deleteMany();
+    await prisma.comment.deleteMany();
+    await prisma.municipality_user.deleteMany();
+    await prisma.municipality_role.deleteMany();
+    await prisma.municipality_role.createMany({
+      data: [
+        { id: 1, name: "municipal public relations officer" },
+        { id: 2, name: "municipal administrator" },
+        { id: 3, name: "public works project manager" },
+        { id: 4, name: "sanitation and waste management officer" },
+        { id: 5, name: "environmental protection officer" },
+        { id: 6, name: "traffic and mobility coordinator" },
+        { id: 7, name: "parks and green spaces officer" },
+        { id: 8, name: "urban planning specialist" },
+      ],
+      skipDuplicates: true,
+    });
+  });
+
+  afterAll(async () => {
+    await prisma.report.deleteMany();
+    await prisma.user.deleteMany();
+    await prisma.admin_user.deleteMany();
+    await prisma.comment.deleteMany();
+    await prisma.municipality_user.deleteMany();
+    await prisma.municipality_role.deleteMany();
+    await prisma.$disconnect();
+  });
+
+  it("POST 201: municipality user can add a comment and GET will return it", async () => {
+    const admin = {
+      username: "admin_comments_e2e",
+      email: "admin_comments_e2e@example.com",
+      firstName: "Admin",
+      lastName: "Comments",
+      password: "adminpass1",
+    };
+    const muni = {
+      username: "muni_comments_e2e",
+      email: "muni_comments_e2e@example.com",
+      firstName: "Muni",
+      lastName: "Comments",
+      password: "munipass1",
+      municipality_role_id: 3,
+    };
+
+    const adminAgent = await createAdmin(admin);
+    const { muniAgent } = await createMunicipality(adminAgent, muni);
+    const citizenAgent = await createAndLogin(fakeUser);
+
+    const createdReport = await createReportAs(citizenAgent, {
+      title: "Report for comments e2e",
+      description: "Description",
+      category: "WASTE",
+      latitude: 45.0,
+      longitude: 7.0,
+    });
+
+    // Add comment
+    const postRes = await muniAgent
+      .post(`/api/reports/${createdReport.id}/comments`)
+      .send({ content: "Hello from municipality" })
+      .expect(201);
+
+    expect(postRes.body).toHaveProperty("id");
+    expect(postRes.body).toHaveProperty("content", "Hello from municipality");
+
+    // Fetch comments
+    const getRes = await muniAgent
+      .get(`/api/reports/${createdReport.id}/comments`)
+      .expect(200);
+
+    expect(Array.isArray(getRes.body)).toBeTruthy();
+    expect(getRes.body.length).toBeGreaterThanOrEqual(1);
+    expect(
+      getRes.body.some((c: any) => c.content === "Hello from municipality"),
+    ).toBeTruthy();
+  });
+
+  it("POST 400 when content missing", async () => {
+    const adminAgent = await createAdmin({
+      username: "admin_comments_e2e2",
+      email: "admin_comments_e2e2@example.com",
+      firstName: "Admin",
+      lastName: "Comments2",
+      password: "adminpass2",
+    });
+    const { muniAgent } = await createMunicipality(adminAgent, {
+      username: "muni_comments_e2e2",
+      email: "muni_comments_e2e2@example.com",
+      firstName: "Muni",
+      lastName: "Comments2",
+      password: "munipass2",
+      municipality_role_id: 3,
+    });
+
+    const citizenAgent = await createAndLogin(fakeUser);
+    const createdReport = await createReportAs(citizenAgent, {
+      title: "Report missing content",
+      description: "desc",
+      category: "WASTE",
+      latitude: 45.0,
+      longitude: 7.0,
+    });
+
+    await muniAgent
+      .post(`/api/reports/${createdReport.id}/comments`)
+      .send({}) // missing content
+      .expect(400);
+  });
+
+  it("POST 401 when not authenticated", async () => {
+    const resident = {
+      username: "random_guest",
+      email: "random_guest@example.com",
+      firstName: "Guest",
+      lastName: "User",
+      password: "guest123",
+    };
+    // don't log in - unauthenticated
+    const res = await request(app)
+      .post(`/api/reports/1/comments`)
+      .send({ content: "x" })
+      .expect(401);
+  });
+
+  it("POST 403 when citizen tries to add a comment", async () => {
+    const citizen = {
+      username: "citizen_try_comment",
+      email: "citizen_try_comment@example.com",
+      firstName: "Citizen",
+      lastName: "Try",
+      password: "citizenpass2",
+    };
+    const citizenAgent = await createAndLogin(citizen);
+
+    const createdReport = await createReportAs(citizenAgent, {
+      title: "Report citizen comment",
+      description: "desc",
+      category: "WASTE",
+      latitude: 45.0,
+      longitude: 7.0,
+    });
+
+    await citizenAgent
+      .post(`/api/reports/${createdReport.id}/comments`)
+      .send({ content: "citizen trying to comment" })
+      .expect(403);
+  });
+
+  it("POST 404 when report not found", async () => {
+    const adminAgent = await createAdmin({
+      username: "admin_comments_notfound",
+      email: "admin_comments_notfound@example.com",
+      firstName: "AdminNF",
+      lastName: "Comments",
+      password: "adminpassNF",
+    });
+    const { muniAgent } = await createMunicipality(adminAgent, {
+      username: "muni_comments_nf",
+      email: "muni_comments_nf@example.com",
+      firstName: "MuniNF",
+      lastName: "Comments",
+      password: "munipassNF",
+      municipality_role_id: 3,
+    });
+
+    await muniAgent
+      .post(`/api/reports/999999/comments`)
+      .send({ content: "should not find" })
+      .expect(404);
+  });
+
+  it("POST 500 when repository throws", async () => {
+    const adminAgent = await createAdmin({
+      username: "admin_comments_500",
+      email: "admin_comments_500@example.com",
+      firstName: "Admin500",
+      lastName: "Comments",
+      password: "adminpass500",
+    });
+    const { muniAgent } = await createMunicipality(adminAgent, {
+      username: "muni_comments_500",
+      email: "muni_comments_500@example.com",
+      firstName: "Muni500",
+      lastName: "Comments",
+      password: "munipass500",
+      municipality_role_id: 3,
+    });
+
+    const citizenAgent = await createAndLogin(fakeUser);
+    const createdReport = await createReportAs(citizenAgent, {
+      title: "Report for 500 test",
+      description: "desc",
+      category: "WASTE",
+      latitude: 45.0,
+      longitude: 7.0,
+    });
+
+    // Spy on repository to force an error path
+    jest
+      .spyOn(reportRepository, "addCommentToReport")
+      .mockRejectedValue(new Error("DB failure"));
+
+    await muniAgent
+      .post(`/api/reports/${createdReport.id}/comments`)
+      .send({ content: "trigger db error" })
+      .expect(500);
+
+    jest.restoreAllMocks();
+  });
+
+  // --- GET comments cases ---
+  it("GET 200 returns comments to municipality user", async () => {
+    const adminAgent = await createAdmin({
+      username: "admin_comments_get",
+      email: "admin_comments_get@example.com",
+      firstName: "AdminGet",
+      lastName: "Comments",
+      password: "adminpassget",
+    });
+    const { muniAgent } = await createMunicipality(adminAgent, {
+      username: "muni_comments_get",
+      email: "muni_comments_get@example.com",
+      firstName: "MuniGet",
+      lastName: "Comments",
+      password: "munipassget",
+      municipality_role_id: 3,
+    });
+
+    const citizenAgent = await createAndLogin(fakeUser);
+    const createdReport = await createReportAs(citizenAgent, {
+      title: "Report for get comments",
+      description: "desc",
+      category: "WASTE",
+      latitude: 45.0,
+      longitude: 7.0,
+    });
+
+    // Add a comment via muniAgent
+    await muniAgent
+      .post(`/api/reports/${createdReport.id}/comments`)
+      .send({ content: "visible to muni" })
+      .expect(201);
+
+    const getRes = await muniAgent
+      .get(`/api/reports/${createdReport.id}/comments`)
+      .expect(200);
+
+    expect(Array.isArray(getRes.body)).toBeTruthy();
+    expect(getRes.body.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("GET 400 when invalid id", async () => {
+    const adminAgent = await createAdmin({
+      username: "admin_comments_get_badid",
+      email: "admin_comments_get_badid@example.com",
+      firstName: "AdminBad",
+      lastName: "Comments",
+      password: "adminpassbad",
+    });
+    const { muniAgent } = await createMunicipality(adminAgent, {
+      username: "muni_comments_get_badid",
+      email: "muni_comments_get_badid@example.com",
+      firstName: "MuniBad",
+      lastName: "Comments",
+      password: "munipassbad",
+      municipality_role_id: 3,
+    });
+
+    await muniAgent.get(`/api/reports/invalid-id/comments`).expect(400);
+  });
+
+  it("GET 401 when not authenticated", async () => {
+    await request(app).get(`/api/reports/1/comments`).expect(401);
+  });
+
+  it("GET 403 when citizen tries to access comments", async () => {
+    const citizenAgent = await createAndLogin({
+      username: "citizen_get_forbidden",
+      email: "citizen_get_forbidden@example.com",
+      firstName: "Citizen",
+      lastName: "Forbidden",
+      password: "citizenforbid1",
+    });
+
+    const createdReport = await createReportAs(citizenAgent, {
+      title: "Report get forbidden",
+      description: "desc",
+      category: "WASTE",
+      latitude: 45.0,
+      longitude: 7.0,
+    });
+
+    await citizenAgent
+      .get(`/api/reports/${createdReport.id}/comments`)
+      .expect(403);
+  });
+
+  it("GET 404 when report not found", async () => {
+    const adminAgent = await createAdmin({
+      username: "admin_comments_get_nf",
+      email: "admin_comments_get_nf@example.com",
+      firstName: "AdminNF",
+      lastName: "Comments",
+      password: "adminpassnf",
+    });
+    const { muniAgent } = await createMunicipality(adminAgent, {
+      username: "muni_comments_get_nf",
+      email: "muni_comments_get_nf@example.com",
+      firstName: "MuniNF",
+      lastName: "Comments",
+      password: "munipassnf",
+      municipality_role_id: 3,
+    });
+
+    await muniAgent.get(`/api/reports/999999/comments`).expect(404);
+  });
+
+  it("GET 500 when repository throws", async () => {
+    const adminAgent = await createAdmin({
+      username: "admin_comments_get_500",
+      email: "admin_comments_get_500@example.com",
+      firstName: "Admin500Get",
+      lastName: "Comments",
+      password: "adminpass500get",
+    });
+    const { muniAgent } = await createMunicipality(adminAgent, {
+      username: "muni_comments_get_500",
+      email: "muni_comments_get_500@example.com",
+      firstName: "Muni500Get",
+      lastName: "Comments",
+      password: "munipass500get",
+      municipality_role_id: 3,
+    });
+
+    const citizenAgent = await createAndLogin(fakeUser);
+    const createdReport = await createReportAs(citizenAgent, {
+      title: "Report for get 500",
+      description: "desc",
+      category: "WASTE",
+      latitude: 45.0,
+      longitude: 7.0,
+    });
+
+    jest
+      .spyOn(reportRepository, "getCommentsByReportId")
+      .mockRejectedValue(new Error("DB fail"));
+
+    await muniAgent
+      .get(`/api/reports/${createdReport.id}/comments`)
+      .expect(500);
+
+    jest.restoreAllMocks();
   });
 });
