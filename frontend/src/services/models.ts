@@ -19,6 +19,13 @@ export class ReportModel {
     lastName: string;
   } | null;
   assignedOffice?: string;
+  externalMaintainerId?: number | null;
+  externalMaintainer?: {
+    id: number;
+    firstName: string;
+    lastName: string;
+    companyName: string;
+  } | null;
   // submittedBy?: string;
 
   constructor(x: Report) {
@@ -34,6 +41,8 @@ export class ReportModel {
     this.rejectionReason = x.rejectionReason;
     this.user = x.user || null;
     this.assignedOffice = x.assignedOffice;
+    this.externalMaintainerId = x.externalMaintainerId || null;
+    this.externalMaintainer = x.externalMaintainer || null;
     // this.submittedBy = submittedBy;
     this.isAnonymous = x.anonymous || false;
   }

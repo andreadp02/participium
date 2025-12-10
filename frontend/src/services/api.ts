@@ -73,6 +73,13 @@ export interface Report {
     firstName: string;
     lastName: string;
   } | null;
+  externalMaintainerId?: number | null;
+  externalMaintainer?: {
+    id: number;
+    firstName: string;
+    lastName: string;
+    companyName: string;
+  } | null;
 }
 
 export type ReportStatus =

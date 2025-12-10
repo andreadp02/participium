@@ -32,6 +32,14 @@ const findAll = async (statusFilter?: ReportStatusFilter, userId?: number) => {
             lastName: true,
           },
         },
+        externalMaintainer: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            companyName: true,
+          },
+        },
       },
       orderBy: {
         createdAt: "desc",
@@ -51,6 +59,14 @@ const findAll = async (statusFilter?: ReportStatusFilter, userId?: number) => {
           lastName: true,
         },
       },
+      externalMaintainer: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          companyName: true,
+        },
+      },
     },
     orderBy: {
       createdAt: "desc",
@@ -68,6 +84,14 @@ const findById = async (id: number) => {
           username: true,
           firstName: true,
           lastName: true,
+        },
+      },
+      externalMaintainer: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          companyName: true,
         },
       },
     },
@@ -145,6 +169,14 @@ const findAssignedReportsForOfficer = async (
           username: true,
           firstName: true,
           lastName: true,
+        },
+      },
+      externalMaintainer: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          companyName: true,
         },
       },
     },

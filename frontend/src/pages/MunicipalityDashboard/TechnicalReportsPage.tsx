@@ -36,6 +36,7 @@ interface Comment {
 
 interface Report {
   id: string;
+  numericId: number;
   title: string;
   description: string;
   category: string;
@@ -48,6 +49,13 @@ interface Report {
   photos: string[];
   assignedOffice: string;
   comments: Comment[];
+  externalMaintainerId?: number | null;
+  externalMaintainer?: {
+    id: number;
+    firstName: string;
+    lastName: string;
+    companyName: string;
+  } | null;
 }
 
 // Helper to map backend status to frontend status
@@ -70,6 +78,7 @@ const mapBackendStatus = (status: string): Report["status"] => {
 const mapReports = (data: ReportModel[]): Report[] => {
   return data.map((r: ReportModel) => ({
     id: `RPT-${r.id}`,
+    numericId: r.id,
     title: r.title || "Untitled Report",
     description: r.description || "No description",
     category: r.category || "Other",
@@ -86,6 +95,8 @@ const mapReports = (data: ReportModel[]): Report[] => {
     ),
     assignedOffice: r.assignedOffice || "Not assigned",
     comments: [],
+    externalMaintainerId: r.externalMaintainerId,
+    externalMaintainer: r.externalMaintainer,
   }));
 };
 
@@ -578,6 +589,22 @@ export const TechnicalReportsPage: React.FC = () => {
                       </p>
                     </div>
 
+                    {/* External Maintainer Assignment */}
+                    {report.externalMaintainer && (
+                      <div className="rounded-xl bg-purple-50 border-2 border-purple-200 p-4 mb-4">
+                        <p className="text-sm font-bold text-purple-900 mb-1">
+                          🔧 External Maintainer:
+                        </p>
+                        <p className="text-sm text-purple-700 font-medium">
+                          {report.externalMaintainer.firstName}{" "}
+                          {report.externalMaintainer.lastName}
+                        </p>
+                        <p className="text-xs text-purple-600 mt-1">
+                          {report.externalMaintainer.companyName}
+                        </p>
+                      </div>
+                    )}
+
                     {/* Comments Section */}
                     {report.comments.length > 0 && (
                       <div className="rounded-xl bg-slate-50 border border-slate-200 p-4 mb-4">
@@ -627,14 +654,16 @@ export const TechnicalReportsPage: React.FC = () => {
                         </button>
                       </div>
 
-                      {/* Assign to External Maintainer */}
-                      <button
-                        onClick={() => handleAssignToMaintainer(report)}
-                        className="w-full rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 px-6 py-3 text-base font-bold text-white shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2"
-                      >
-                        <UserPlus className="h-5 w-5" />
-                        Assign to External Maintainer
-                      </button>
+                      {/* Assign to External Maintainer - Only show if not already assigned */}
+                      {!report.externalMaintainerId && (
+                        <button
+                          onClick={() => handleAssignToMaintainer(report)}
+                          className="w-full rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 px-6 py-3 text-base font-bold text-white shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2"
+                        >
+                          <UserPlus className="h-5 w-5" />
+                          Assign to External Maintainer
+                        </button>
+                      )}
                     </div>
                   </div>
                 </motion.div>
