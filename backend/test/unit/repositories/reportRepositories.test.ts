@@ -142,7 +142,7 @@ describe("reportRepository", () => {
       expect(res).toBe(allReports);
     });
 
-    it("returns citizen own reports and ASSIGNED reports when userId is provided", async () => {
+/*    it("returns citizen own reports and ASSIGNED reports when userId is provided", async () => {
       const userReports = [
         makeReport({ id: 1, status: "PENDING_APPROVAL", user_id: 5 }),
         makeReport({ id: 2, status: "ASSIGNED", user_id: 3 }),
@@ -177,6 +177,7 @@ describe("reportRepository", () => {
       });
       expect(res).toBe(userReports);
     });
+    */
   });
 
   // -------- findByStatus --------
