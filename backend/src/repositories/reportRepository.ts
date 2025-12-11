@@ -14,13 +14,21 @@ interface AddCommentPersistenceData {
 }
 
 const findAll = async (statusFilter?: ReportStatusFilter, userId?: number) => {
-  // If userId is provided, citizen wants to see their own reports + ASSIGNED reports
+  // If userId is provided, citizen wants to see:
+  // - Their own reports (all statuses)
+  // - Other users' reports EXCEPT PENDING_APPROVAL and REJECTED
   if (userId) {
     return prisma.report.findMany({
       where: {
         OR: [
           { user_id: userId }, // Own reports (all statuses)
-          { status: "ASSIGNED" }, // Assigned (approved) reports from others
+          {
+            // Other users' reports: all statuses except PENDING_APPROVAL and REJECTED
+            user_id: { not: userId },
+            status: {
+              in: ["ASSIGNED", "IN_PROGRESS", "SUSPENDED", "RESOLVED"],
+            },
+          },
         ],
       },
       include: {

@@ -275,9 +275,10 @@ async function createReports(
       const desiredStatus = (source.status || "").toUpperCase();
       switch (desiredStatus) {
         case ReportStatus.PENDING_APPROVAL:
-        // Done in updateReports)
+        // Done in updateReports
         case ReportStatus.IN_PROGRESS:
         case ReportStatus.RESOLVED:
+        case ReportStatus.SUSPENDED:
           break;
         case ReportStatus.REJECTED:
         case ReportStatus.ASSIGNED:
@@ -334,7 +335,8 @@ async function updateReports(
 
       if (
         desiredStatus === ReportStatus.IN_PROGRESS ||
-        desiredStatus === ReportStatus.RESOLVED
+        desiredStatus === ReportStatus.RESOLVED ||
+        desiredStatus === ReportStatus.SUSPENDED
       ) {
         // Use direct repository update to set these statuses after comments are created
         await reportRepository.update(created.id, {

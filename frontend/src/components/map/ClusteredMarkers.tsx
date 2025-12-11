@@ -85,6 +85,26 @@ const ClusteredMarkers: React.FC<Props> = ({ reports }) => {
       maxClusterRadius: 60,
       chunkedLoading: true,
       showCoverageOnHover: false,
+      iconCreateFunction: (cluster: any) => {
+        const count = cluster.getChildCount();
+        return L.divIcon({
+          html: `<div style="
+            background: rgba(236, 72, 153, 0.6);
+            border: 1.5px solid #ec4899;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: bold;
+            font-size: 14px;
+          ">${count}</div>`,
+          className: "custom-cluster-icon",
+          iconSize: L.point(40, 40),
+        });
+      },
     });
 
     // Add markers from reports
