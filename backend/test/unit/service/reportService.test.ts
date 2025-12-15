@@ -355,6 +355,32 @@ describe("reportService", () => {
         ),
       ).rejects.toThrow("Maximum 3 photos are allowed");
     });
+
+    it("preserves anonymous flag on create and sanitizes returned report", async () => {
+      const dto = makeCreateDto({ anonymous: true });
+      const created = makeReport({ id: 77, photos: [] });
+      // The repository returns created report first (without photos), then update returns final
+      repo.create.mockResolvedValue(created);
+      img.persistImagesForReport.mockResolvedValue(["/img/1.jpg"]);
+      // Simulate DB returning user details even when anonymous=true; service must sanitize
+      repo.update.mockResolvedValue({
+        ...created,
+        photos: ["/img/1.jpg"],
+        anonymous: true,
+        user: { id: created.user_id, username: "john" },
+      });
+
+      const res = await reportService.submitReport(dto as any, 999);
+
+      // ensure anonymous flag from dto is forwarded to repository.create
+      expect(repo.create).toHaveBeenCalledWith(
+        expect.objectContaining({ anonymous: true, user_id: 999 })
+      );
+      // ensure user is sanitized in service response
+      expect(res.user).toBeNull();
+      expect(res.user_id).toBe(created.user_id);
+      expect(res.photos).toEqual(["/img/1.jpg"]);
+    });
   });
 
   // -------- deleteReport --------
@@ -654,6 +680,20 @@ describe("reportService", () => {
       const res = await reportService.findById(1);
 
       expect(res?.user).toEqual({ id: 10, username: "user1" });
+    });
+
+    it("should sanitize anonymous reports in findAll results", async () => {
+      const rows = [
+        makeReport({ id: 1, anonymous: true, user: { id: 10, username: "u" } }),
+        makeReport({ id: 2, anonymous: false, user: { id: 11, username: "v" } }),
+      ];
+      repo.findAll.mockResolvedValue(rows);
+
+      const res = await reportService.findAll();
+
+      expect(res[0].user).toBeNull();
+      expect(res[0].user_id).toBe(rows[0].user_id);
+      expect(res[1].user).toEqual({ id: 11, username: "v" });
     });
   });
 

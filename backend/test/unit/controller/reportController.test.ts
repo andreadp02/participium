@@ -564,6 +564,69 @@ describe("reportController", () => {
         error: "Failed to submit report",
       });
     });
+
+    it("parses anonymous=true string to boolean true", async () => {
+      const created = makeReport({ id: 55 });
+      img.storeTemporaryImages.mockResolvedValue(["k1"]);
+      svc.submitReport.mockResolvedValue(created);
+
+      const req = {
+        body: {
+          latitude: "45.1",
+          longitude: "7.65",
+          title: "Lampione rotto",
+          description: "desc",
+          category: "WASTE",
+          anonymous: "true",
+        },
+        files: [
+          { buffer: Buffer.from("x"), mimetype: "image/jpeg", originalname: "a.jpg" },
+        ],
+        user: { id: 9 },
+      } as unknown as Request;
+      const res = makeRes();
+
+      await submitReport(req, res as unknown as Response);
+
+      expect(img.storeTemporaryImages).toHaveBeenCalledTimes(1);
+      expect(svc.submitReport).toHaveBeenCalledWith(
+        expect.objectContaining({ anonymous: true }),
+        9,
+      );
+      expect(res.status).toHaveBeenCalledWith(201);
+      expect(res.json).toHaveBeenCalledWith(created);
+    });
+
+    it("parses anonymous boolean true without string conversion", async () => {
+      const created = makeReport({ id: 56 });
+      img.storeTemporaryImages.mockResolvedValue(["k1"]);
+      svc.submitReport.mockResolvedValue(created);
+
+      const req = {
+        body: {
+          latitude: 45.1,
+          longitude: 7.65,
+          title: "Lampione rotto",
+          description: "desc",
+          category: "WASTE",
+          anonymous: true,
+        },
+        files: [
+          { buffer: Buffer.from("x"), mimetype: "image/jpeg", originalname: "a.jpg" },
+        ],
+        user: { id: 9 },
+      } as unknown as Request;
+      const res = makeRes();
+
+      await submitReport(req, res as unknown as Response);
+
+      expect(svc.submitReport).toHaveBeenCalledWith(
+        expect.objectContaining({ anonymous: true }),
+        9,
+      );
+      expect(res.status).toHaveBeenCalledWith(201);
+      expect(res.json).toHaveBeenCalledWith(created);
+    });
   });
 
   // -------- deleteReport --------
